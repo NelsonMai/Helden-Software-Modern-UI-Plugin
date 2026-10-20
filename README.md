@@ -153,9 +153,10 @@ Das Skript lädt FlatLaf von Maven Central (oder nimmt das JAR aus der Umgebungs
 Die Helden-Software wird zum Bauen **nicht** benötigt: Der Ordner `api-stubs/` enthält nur die Signaturen
 der drei verwendeten Plugin-Schnittstellen. Sie dienen nur zum Kompilieren und werden nicht ins Plugin gepackt.
 
-GitHub Actions baut bei jedem Push und hängt das JAR als Artefakt an. Ein Tag `vX.Y.Z` (bzw. ein über die
-GitHub-Oberfläche veröffentlichtes Release) erzeugt zusätzlich ein Release mit dem JAR. Die aktuelle
-Version steht in `VERSION`.
+GitHub Actions baut bei jedem Push und hängt das JAR als Artefakt an. Bei einem über die GitHub-Oberfläche
+veröffentlichten Release (oder einem Tag `vX.Y.Z`) wird das JAR automatisch an das Release angehängt.
+Die Versionsnummer kommt aus dem Tag, wenn er wie eine Version aussieht (z. B. `v1.13.2`), sonst aus der
+Datei `VERSION`.
 
 ## Aufbau des Quellcodes
 

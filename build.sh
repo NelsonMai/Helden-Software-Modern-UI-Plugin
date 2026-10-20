@@ -5,7 +5,12 @@
 set -e
 cd "$(dirname "$0")"
 
-VERSION="${VERSION:-$(cat VERSION)}"
+# Version aus Tag/Release nur übernehmen, wenn sie wie eine Versionsnummer aussieht (z. B. 1.13.2);
+# sonst (Tag wie „modern-ui“) gilt die Datei VERSION
+case "${VERSION:-}" in
+  [0-9]*) ;;
+  *) VERSION="$(cat VERSION)" ;;
+esac
 FLATLAF_VERSION="3.5.4"
 FLATLAF_JAR="${FLATLAF_JAR:-lib/flatlaf-$FLATLAF_VERSION.jar}"
 
