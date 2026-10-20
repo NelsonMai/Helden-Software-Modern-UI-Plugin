@@ -21,7 +21,7 @@ offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
 - **Moderne Druckvorschau** im Reiter „Druckvorschau“: neu gestalteter Heldenbogen (A4) mit Zustand
   (LE/AU-Schwellen, Wundkästchen), Waffen, Rüstungszonen inkl. W20-Trefferzonen, Talenten mit Probe,
   Werten, BE und Steigerungsspalte, Inventar und Notizseite. Drucken, PDF-Export, Umschalter zur Original-Vorschau.
-  Unter *Optionen* lassen sich Kurzbeschreibungen, Talente mit TaW 0, Meta-Talente und die Notizseite ein- und ausblenden.
+  Unter *Optionen* lassen sich Kurzbeschreibungen, Meta-Talente und die Notizseite ein- und ausblenden.
   Meta-Talente (z. B. Wache halten) berechnet die Helden-Software nur, wenn in ihren Druckeinstellungen „Metatalente“
   aktiv ist – der Eintrag *Meta-Talente in der Helden-Software einschalten …* öffnet diese Einstellungen direkt.
 

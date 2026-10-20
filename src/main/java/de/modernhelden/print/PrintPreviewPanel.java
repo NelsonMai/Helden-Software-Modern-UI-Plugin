@@ -34,7 +34,7 @@ public final class PrintPreviewPanel extends JPanel {
     private final JScrollPane scroll = new JScrollPane(pages);
     private final JToggleButton modern = new JToggleButton("Modern"), original = new JToggleButton("Original");
     private final JComboBox<String> zoom = new JComboBox<>(ZOOMS);
-    private final JCheckBox desc = new JCheckBox("Kurzbeschreibungen zu SF und Vor-/Nachteilen"), null0 = new JCheckBox("Talente mit TaW 0 zeigen"), notes = new JCheckBox("Notizen und Linienseite"),
+    private final JCheckBox desc = new JCheckBox("Kurzbeschreibungen zu SF und Vor-/Nachteilen"), notes = new JCheckBox("Notizen und Linienseite"),
             meta = new JCheckBox("Meta-Talente zeigen (z. B. Wache halten, Kräuter suchen)");
     private final JLabel info = new JLabel();
     private final JPanel modernTools = new JPanel();
@@ -53,7 +53,6 @@ public final class PrintPreviewPanel extends JPanel {
         putClientProperty("modernhelden.own", true);
 
         desc.setSelected(!"false".equals(props.get("druck.beschreibungen")));
-        null0.setSelected(!"false".equals(props.get("druck.taw0")));
         notes.setSelected(!"false".equals(props.get("druck.notizen")));
         meta.setSelected(!"false".equals(props.get("druck.meta")));
         String z = props.get("druck.zoom");
@@ -72,7 +71,6 @@ public final class PrintPreviewPanel extends JPanel {
         original.addActionListener(e -> showMode(false));
 
         desc.addActionListener(e -> { save.accept("druck.beschreibungen", String.valueOf(desc.isSelected())); rebuild(); });
-        null0.addActionListener(e -> { save.accept("druck.taw0", String.valueOf(null0.isSelected())); rebuild(); });
         notes.addActionListener(e -> { save.accept("druck.notizen", String.valueOf(notes.isSelected())); rebuild(); });
         // Meta-Talente liefert die Helden-Software nur auf Anfrage – daher Daten neu holen
         meta.addActionListener(e -> { save.accept("druck.meta", String.valueOf(meta.isSelected())); dirty = true; refresh(); });
@@ -99,7 +97,7 @@ public final class PrintPreviewPanel extends JPanel {
         modernTools.add(zoom);
         modernTools.add(Box.createHorizontalStrut(8));
         final JPopupMenu optMenu = new JPopupMenu();
-        for (JCheckBox cb : new JCheckBox[]{desc, null0, meta, notes}) {
+        for (JCheckBox cb : new JCheckBox[]{desc, meta, notes}) {
             final JCheckBox src = cb;
             final JCheckBoxMenuItem mi = new JCheckBoxMenuItem(cb.getText(), cb.isSelected());
             mi.addActionListener(e -> { src.setSelected(mi.isSelected()); for (java.awt.event.ActionListener l : src.getActionListeners()) l.actionPerformed(e); });
@@ -256,7 +254,6 @@ public final class PrintPreviewPanel extends JPanel {
         if (sheetData == null) return;
         ModernSheet.Options o = new ModernSheet.Options();
         o.beschreibungen = desc.isSelected();
-        o.talenteOhneWert = null0.isSelected();
         o.notizseite = notes.isSelected();
         o.metatalente = meta.isSelected();
         sheet = new ModernSheet(sheetData, db, o);
