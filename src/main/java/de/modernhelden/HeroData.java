@@ -38,6 +38,8 @@ public final class HeroData {
     public final List<Talent> zauber = new ArrayList<>();
     public final List<Item> inventar = new ArrayList<>();
     public String geld = "";
+    /** Auswertung des Ereignisprotokolls (Herkunft von Talentwerten und SF). */
+    public Herkunft herkunft = new Herkunft(null);
 
     private static final String[][] EIG = {
             {"Mut", "MU"}, {"Klugheit", "KL"}, {"Intuition", "IN"}, {"Charisma", "CH"},
@@ -168,6 +170,7 @@ public final class HeroData {
             if (mod != null && first(mod, "name") != null) n = first(mod, "name").getAttribute("value");
             h.inventar.add(new Item(n, anz.isEmpty() || "1".equals(anz) ? "" : anz + "×"));
         }
+        h.herkunft = new Herkunft(first(held, "ereignisse"));
         Element gb = first(held, "geldboerse");
         if (gb != null) {
             List<String> m = new ArrayList<>();

@@ -164,6 +164,13 @@ public final class TooltipDB {
      * @param extra zusätzliche Zeilen (z. B. Probe, Wert) – darf null sein
      */
     public String html(Match m, Map<String, String> extra) {
+        return html(m, extra, null);
+    }
+
+    /**
+     * @param verlauf Herkunft des Werts als Zeilen {Beschriftung, Text} – darf null sein
+     */
+    public String html(Match m, Map<String, String> extra, java.util.List<String[]> verlauf) {
         if (m == null) return null;
         StringBuilder sb = new StringBuilder("<html><div style='width:330px;padding:2px'>");
         sb.append("<b style='font-size:110%'>").append(esc(m.shown)).append("</b>");
@@ -180,6 +187,15 @@ public final class TooltipDB {
                 if (x.getValue() == null || x.getValue().trim().isEmpty()) continue;
                 sb.append("<tr><td style='color:#8a8a8a;padding-right:8px'>").append(esc(x.getKey()))
                   .append("</td><td>").append(esc(x.getValue())).append("</td></tr>");
+            }
+            sb.append("</table>");
+        }
+        if (verlauf != null && !verlauf.isEmpty()) {
+            sb.append("<div style='margin-top:6px'><b>Herkunft des Werts</b></div>");
+            sb.append("<table cellpadding=0 cellspacing=0>");
+            for (String[] v : verlauf) {
+                sb.append("<tr><td style='color:#8a8a8a;padding-right:8px;white-space:nowrap'>").append(esc(v[0]))
+                  .append("</td><td>").append(esc(v[1])).append("</td></tr>");
             }
             sb.append("</table>");
         }

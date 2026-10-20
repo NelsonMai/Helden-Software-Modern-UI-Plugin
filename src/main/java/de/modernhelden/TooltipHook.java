@@ -101,7 +101,7 @@ public final class TooltipHook implements AWTEventListener {
             x.put("Helden-Software", own.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim());
         pendingKey = key;
         pendingComp = c;
-        pendingHtml = db.html(m, x);
+        pendingHtml = db.html(m, x, verlauf(m));
         pendingScreen = e.getLocationOnScreen();
         showTimer.restart();
     }
@@ -141,6 +141,16 @@ public final class TooltipHook implements AWTEventListener {
         if (line.equals(lastLogged)) return;
         lastLogged = line;
         try (java.io.FileWriter w = new java.io.FileWriter(debugLog, true)) { w.write(line + "\n"); } catch (java.io.IOException ignore) { }
+    }
+
+    private java.util.List<String[]> verlauf(TooltipDB.Match m) {
+        HeroData h = hero;
+        if (h == null) return null;
+        HeroData.Talent t = h.talent(m.shown);
+        if (t == null && m.entry != null) t = h.talent(m.entry.name);
+        if (t != null) return h.herkunft.talent(t.name, t.wert);
+        for (HeroData.Item it : h.sf) if (it.name.equals(m.shown)) return h.herkunft.sonderfertigkeit(it.name);
+        return null;
     }
 
     private Map<String, String> extra(TooltipDB.Match m) {

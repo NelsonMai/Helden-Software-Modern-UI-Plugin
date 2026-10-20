@@ -297,7 +297,7 @@ public final class HeroPanel extends JPanel {
         x.put("BE", t.be);
         if (!t.k.isEmpty()) x.put("Komplexität", t.k);
         x.put("Lernen", t.lernmethode);
-        return db.html(m, x);
+        return db.html(m, x, hero.herkunft.talent(t.name, t.wert));
     }
 
     /** Talentwert als Zahl mit kleinem Balken (0–21). */
@@ -373,7 +373,8 @@ public final class HeroPanel extends JPanel {
                 if (m == null) return null;
                 Map<String, String> x = new LinkedHashMap<>();
                 if (!it.detail.isEmpty()) x.put("Details", it.detail);
-                return db.html(m, x);
+                boolean istSf = hero.sf.contains(it);
+                return db.html(m, x, istSf ? hero.herkunft.sonderfertigkeit(it.name) : null);
             }
         };
         list.putClientProperty("modernhelden.own", true);

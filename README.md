@@ -10,6 +10,10 @@ offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
   (Steigern, Erschaffung, Ausrüstung …). Umschaltbar unter *Erweiterungen → Modern-UI*, auch zurück zum Original.
 - **Tooltips** zu Talenten, Sonderfertigkeiten sowie Vor- und Nachteilen – auch in den Original-Dialogen.
   Bei eigenen Talenten mit Probe und Eigenschaftswerten, TaW, BE bzw. AT/PA.
+- **Herkunft des Werts** im Tooltip: Startwert aus Rasse/Kultur/Profession, Professions-Auswahl,
+  Steigerungen bei der Erschaffung und jede spätere Steigerung mit Datum, Lernmethode
+  (Lehrmeister, Selbststudium …), Spezieller Erfahrung und AP-Kosten. Bei Sonderfertigkeiten das Erwerbsdatum.
+  Grundlage ist das Ereignisprotokoll der Helden-Software.
 - **Eigene Tooltip-Texte**: Maus über einen Eintrag, `Strg+Umschalt+T`. Gespeichert in
   `helden/plugins/modern-ui/eigene-tooltips.tsv` (nur lokal, nicht im Repository).
 - **Reiter „Plugin: Modern-UI“**: moderne Heldenübersicht mit Eigenschaften, Basiswerten, filterbaren Talenten,
