@@ -250,7 +250,6 @@ public final class ModernSheet implements Pageable, Printable {
 
     private void ruestung() {
         if (d.zonen.isEmpty() && d.rsGesamt.isEmpty() && d.ruestungen.isEmpty()) return;
-        subheading("Rüstung & Trefferzonen");
         // Schwertarm = rechts, außer bei Linkshändern
         boolean links = false;
         for (SheetData.Eintrag e : d.vorteile) if (e.name.startsWith("Linkshänder")) links = true;
@@ -270,7 +269,9 @@ public final class ModernSheet implements Pageable, Printable {
         for (SheetData.Ruestung r : d.ruestungen) teile.add(r.name + (r.rs.isEmpty() || "*".equals(r.rs) ? "" : " (RS " + r.rs + ", BE " + r.be + ")"));
         final List<String> lines = wrap(String.join(" · ", teile), F.reg(7.5f), W - 2 * M);
         final float tileH = zonen > 0 ? 40 : 28;
-        atomic(tileH + 8 + lines.size() * 10, (g, x, yy, w, h) -> {
+        final float blockH = tileH + 8 + lines.size() * 10;
+        subheading("Rüstung & Trefferzonen", blockH);
+        atomic(blockH, (g, x, yy, w, h) -> {
             float gap = 4, tw = (w - gap * (z.size() - 1)) / Math.max(1, z.size());
             for (int i = 0; i < z.size(); i++) {
                 boolean sum = i >= zonen;
@@ -733,8 +734,11 @@ public final class ModernSheet implements Pageable, Printable {
         });
     }
 
-    private void subheading(final String title) {
-        if (y + 14 + 30 > BOTTOM) newPage();
+    private void subheading(final String title) { subheading(title, 30); }
+
+    /** Zwischenüberschrift, die nie allein am Seitenende stehen bleibt. */
+    private void subheading(final String title, float minFollow) {
+        if (y + 14 + minFollow > BOTTOM) newPage();
         place(14, (g, x, yy, w, h) -> {
             g.setFont(F.bold(7));
             g.setColor(MUTED);
@@ -763,17 +767,28 @@ public final class ModernSheet implements Pageable, Printable {
         if (y + headH + rowH > BOTTOM) newPage();
         place(headH, header);
         int i = 0;
+        final float lineH = 9.5f;
         for (final String[] r : rows) {
-            if (y + rowH > BOTTOM) { newPage(); place(headH, header); }
+            // Erste Spalte (Name) bei Bedarf umbrechen statt abschneiden
+            final List<String> nameLines = align[0] == 0 ? wrap(r[0], F.bold(8), cw[0] * (W - 2 * M) - 8) : new ArrayList<String>();
+            final int n = Math.max(1, nameLines.size());
+            final float rh = rowH + (n - 1) * lineH;
+            if (y + rh > BOTTOM) { newPage(); place(headH, header); }
             final boolean zebra = (i++ % 2) == 1;
-            place(rowH, (g, x, yy, w, h) -> {
+            place(rh, (g, x, yy, w, h) -> {
                 if (zebra && !writeLines) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, h)); }
                 float cx = x;
+                float base = yy + rowH - 4;   // alle Werte auf der ersten Zeile
                 for (int c = 0; c < r.length; c++) {
                     float cwid = cw[c] * w;
                     g.setFont(c == 0 ? F.bold(8) : F.reg(8));
                     g.setColor(c == 0 || align[c] == 2 ? INK : new Color(0x444444));
-                    cell(g, r[c], cx, cwid, yy + h - 4, align[c]);
+                    if (c == 0 && n > 1) {
+                        float ly = base;
+                        for (String l : nameLines) { g.drawString(l, cx + 4, ly); ly += lineH; }
+                    } else {
+                        cell(g, r[c], cx, cwid, base, align[c]);
+                    }
                     if (writeLines && c > 0 && r[c].isEmpty()) {
                         g.setColor(LINE);
                         g.draw(new Line2D.Float(cx + 4, yy + h - 3, cx + cwid - 4, yy + h - 3));
