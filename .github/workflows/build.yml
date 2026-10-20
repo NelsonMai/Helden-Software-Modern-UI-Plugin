@@ -5,6 +5,8 @@ on:
     branches: [main]
     tags: ['v*']
   pull_request:
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -22,8 +24,11 @@ jobs:
           java-version: '17'
 
       - name: Plugin bauen
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then export VERSION="${GITHUB_REF_NAME#v}"; fi
+          if [ -n "${RELEASE_TAG}" ]; then export VERSION="${RELEASE_TAG#v}"; fi
           ./build.sh
 
       - name: JAR als Artefakt hochladen
@@ -32,9 +37,9 @@ jobs:
           name: ModernUI-Plugin
           path: build/ModernUI-Plugin.jar
 
-      - name: Release anlegen (bei Tags v*)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: JAR an Release anhängen (Tag v* oder veröffentlichtes Release)
+        if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.release.tag_name || github.ref_name }}
           files: build/ModernUI-Plugin.jar
-          generate_release_notes: true
