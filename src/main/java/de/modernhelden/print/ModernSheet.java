@@ -373,35 +373,34 @@ public final class ModernSheet implements Pageable, Printable {
             int mod = SheetData.num(sc.ini);
             if (mod != 0) schild.add("mit " + sc.name + " zusätzlich " + vz(mod).replace(" ", ""));
         }
-        float rowsH = 14 + rows.size() * 12.5f + (schild.isEmpty() ? 0 : 11 * schild.size() + 2);
-        float h = Math.max(62, rowsH + 22);
+        float h = 22 + rows.size() * 12.5f + (schild.isEmpty() ? 0 : 11 * schild.size()) + 2;
         space(4);
         atomic(h, (g, x, yy, w, hh) -> {
-            // linke Kachel: Behinderung
-            float bw = 150;
+            g.setColor(FILL);
+            g.fill(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
+            g.setFont(F.bold(6.8f));
+            g.setColor(MUTED);
+            g.drawString("INITIATIVE IM KAMPF", x + 10, yy + 14);
+            g.setFont(F.reg(7.2f));
+            g.drawString("INI-Basis − BE + Waffen-/Schild-Mod. + 1W6", x + 104, yy + 14);
+            // kompakte Plakette: Behinderung der angelegten Rüstung
+            String label = "BE durch Rüstung", wert = hatBe ? String.valueOf(be) : "–";
+            g.setFont(F.bold(6.8f));
+            float lw = g.getFontMetrics().stringWidth(label);
+            g.setFont(F.bold(9));
+            float vw = g.getFontMetrics().stringWidth(wert);
+            float pw = lw + vw + 22, px = x + w - pw - 8, py = yy + 5;
             g.setColor(ACCENT_SOFT);
-            g.fill(new RoundRectangle2D.Float(x, yy, bw, hh, 8, 8));
+            g.fill(new RoundRectangle2D.Float(px, py, pw, 13, 13, 13));
             g.setFont(F.bold(6.8f));
             g.setColor(ACCENT.darker());
-            g.drawString("BEHINDERUNG (BE) GESAMT", x + 10, yy + 14);
-            g.setFont(F.bold(26));
+            g.drawString(label, px + 8, py + 9.3f);
+            g.setFont(F.bold(9));
             g.setColor(ACCENT);
-            g.drawString(hatBe ? String.valueOf(be) : "–", x + 10, yy + 43);
-            g.setFont(F.reg(6.6f));
-            g.setColor(MUTED);
-            g.drawString("durch angelegte Rüstung", x + 44, yy + 34);
-            g.drawString("wirkt auf INI und Talente mit BE", x + 44, yy + 43);
-            // rechte Fläche: Initiative
-            float rx = x + bw + 8, rw = w - bw - 8;
-            g.setColor(FILL);
-            g.fill(new RoundRectangle2D.Float(rx, yy, rw, hh, 8, 8));
-            g.setFont(F.bold(6.8f));
-            g.setColor(MUTED);
-            g.drawString("INITIATIVE IM KAMPF", rx + 10, yy + 14);
-            g.setFont(F.reg(7.2f));
-            g.drawString("INI-Basis − BE + Waffen-/Schild-Mod. + 1W6", rx + 104, yy + 14);
+            g.drawString(wert, px + 8 + lw + 6, py + 9.8f);
+
             float ly = yy + 30;
-            float c1 = rx + 10, c2 = rx + rw * 0.42f, c3 = rx + rw - 10;
+            float c1 = x + 10, c2 = x + w * 0.42f, c3 = x + w - 10;
             for (String[] r : rows) {
                 g.setFont(F.bold(8));
                 g.setColor(INK);
