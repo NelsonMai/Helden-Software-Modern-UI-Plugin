@@ -172,6 +172,33 @@ public final class Theme {
 
     // Farben für die eigene Ansicht
     public static Color card() { return color("Panel.background", 0.035f); }
+
+    /** Hintergrund für Zeile i einer Liste/Tabelle (Zebra-Streifen in den modernen Designs). */
+    public static Color zeile(int i) {
+        Color basis = UIManager.getColor("Table.background");
+        Color alt = UIManager.getColor("Table.alternateRowColor");
+        if (basis == null) basis = Color.WHITE;
+        if (alt == null) alt = card();
+        return i % 2 == 1 ? alt : basis;
+    }
+
+    /** Linien zwischen Zeilen, Spalten und um Kacheln. */
+    public static Color trenner() {
+        Color c = isModern() ? UIManager.getColor("Table.gridColor") : null;
+        return c != null ? c : card().darker();
+    }
+
+    /** Hintergrund von Gruppen-Überschriften in Tabellen. */
+    public static Color kopfzeile() {
+        Color c = isModern() ? UIManager.getColor("TableHeader.background") : null;
+        return c != null ? c : card();
+    }
+
+    /** Hintergrund der Werte-Kacheln: hebt sich deutlich vom Fenster ab. */
+    public static Color kachel() {
+        Color c = isModern() ? UIManager.getColor("Table.background") : null;
+        return c != null ? c : card();
+    }
     public static Color muted() {
         if (!isModern()) return new Color(0x6b5a3e);   // gut lesbar auf dem Pergament-Design
         Color c = UIManager.getColor("Label.disabledForeground");

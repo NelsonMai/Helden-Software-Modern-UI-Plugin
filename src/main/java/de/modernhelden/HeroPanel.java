@@ -87,12 +87,13 @@ public final class HeroPanel extends JPanel {
 
             tabs = new JTabbedPane();
             tabs.putClientProperty("JTabbedPane.tabType", "card");
-            tabs.addTab("Talente (" + h.talente.size() + ")", talentTab(h));
-            tabs.addTab("Sonderfertigkeiten (" + h.sf.size() + ")", sfTab(h));
-            tabs.addTab("Vor- & Nachteile", vtTab(h));
-            tabs.addTab("Kampf", kampfTab(h));
-            if (!h.zauber.isEmpty()) tabs.addTab("Zauber (" + h.zauber.size() + ")", zauberTab(h));
-            tabs.addTab("Inventar", inventarTab(h));
+            // Symbole nur in den modernen Designs (im Original-Design unsichtbar und ohne Platzbedarf)
+            tabs.addTab("Talente (" + h.talente.size() + ")", ModernIcons.nurModern("talente", 16), talentTab(h));
+            tabs.addTab("Sonderfertigkeiten (" + h.sf.size() + ")", ModernIcons.nurModern("sonderfertigkeit", 16), sfTab(h));
+            tabs.addTab("Vor- & Nachteile", ModernIcons.nurModern("vorteile", 16), vtTab(h));
+            tabs.addTab("Kampf", ModernIcons.nurModern("kampf", 16), kampfTab(h));
+            if (!h.zauber.isEmpty()) tabs.addTab("Zauber (" + h.zauber.size() + ")", ModernIcons.nurModern("zauber", 16), zauberTab(h));
+            tabs.addTab("Inventar", ModernIcons.nurModern("inventar", 16), inventarTab(h));
             if (lastTab >= 0 && lastTab < tabs.getTabCount()) tabs.setSelectedIndex(lastTab);
             JPanel wrap = new JPanel(new BorderLayout());
             wrap.setBorder(new EmptyBorder(0, 12, 12, 12));
@@ -173,9 +174,10 @@ public final class HeroPanel extends JPanel {
 
     private JComponent tile(String key, String value, String tip, boolean derived) {
         JPanel t = new JPanel(new BorderLayout());
-        t.setBackground(Theme.card());
-        t.setBorder(BorderFactory.createCompoundBorder(
-                new MatteBorder(0, 0, 3, 0, derived ? Theme.muted() : Theme.accent()), new EmptyBorder(6, 4, 4, 4)));
+        t.setBackground(Theme.kachel());
+        t.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Theme.trenner()),
+                new MatteBorder(0, 0, 3, 0, derived ? Theme.muted() : Theme.accent())), new EmptyBorder(6, 4, 4, 4)));
         JLabel k = new JLabel(key, SwingConstants.CENTER);
         k.setForeground(Theme.muted());
         k.setFont(k.getFont().deriveFont(Font.BOLD, k.getFont().getSize2D() * 0.85f));
@@ -273,11 +275,12 @@ public final class HeroPanel extends JPanel {
                     super.getTableCellRendererComponent(t, v, false, false, r, c);
                     setFont(getFont().deriveFont(Font.BOLD));
                     setForeground(Theme.accent());
-                    setBackground(Theme.card());
+                    setBackground(Theme.kopfzeile());
                     setBorder(new EmptyBorder(0, 8, 0, 4));
                     return this;
                 }
                 super.getTableCellRendererComponent(t, v, sel, false, r, c);
+                if (!sel) setBackground(Theme.zeile(r));
                 setFont(t.getFont());
                 setBorder(new EmptyBorder(0, c == 0 ? 18 : 6, 0, 6));
                 if (!sel) setForeground(c == 0 || c == 3 ? t.getForeground() : Theme.muted());
@@ -321,7 +324,8 @@ public final class HeroPanel extends JPanel {
             super.getTableCellRendererComponent(t, "", sel, false, r, c);
             header = model.get().rows.get(r).t == null;
             value = v instanceof Integer ? (Integer) v : 0;
-            if (header) setBackground(Theme.card());
+            if (header) setBackground(Theme.kopfzeile());
+            else if (!sel) setBackground(Theme.zeile(r));
             return this;
         }
         @Override protected void paintComponent(Graphics g) {
@@ -338,7 +342,7 @@ public final class HeroPanel extends JPanel {
             g2.setColor(getForeground());
             g2.drawString(s, 8 + 24 - fm.stringWidth(s), y);
             int bx = 40, bw = Math.max(10, getWidth() - bx - 10), bh = 6, by = (getHeight() - bh) / 2;
-            g2.setColor(Theme.card().darker());
+            g2.setColor(Theme.trenner());
             g2.fillRoundRect(bx, by, bw, bh, bh, bh);
             g2.setColor(Theme.accent());
             int w = (int) (bw * Math.max(0, Math.min(21, value)) / 21.0);
@@ -414,7 +418,8 @@ public final class HeroPanel extends JPanel {
                 desc.setEditable(false);
                 desc.setOpaque(false);
                 desc.setBorder(null);
-                panel.setBorder(new EmptyBorder(6, 10, 6, 10));
+                panel.setBorder(BorderFactory.createCompoundBorder(
+                        new MatteBorder(0, 0, 1, 0, Theme.trenner()), new EmptyBorder(6, 10, 6, 10)));
                 JPanel center = new JPanel(new BorderLayout(0, 2));
                 center.setOpaque(false);
                 center.add(title, BorderLayout.NORTH);
@@ -423,7 +428,10 @@ public final class HeroPanel extends JPanel {
                 panel.add(right, BorderLayout.EAST);
             }
             public Component getListCellRendererComponent(JList<? extends HeroData.Item> l, HeroData.Item it, int i, boolean sel, boolean foc) {
-                panel.setBackground(sel ? l.getSelectionBackground() : (i % 2 == 0 ? l.getBackground() : Theme.card()));
+                panel.setBackground(sel ? l.getSelectionBackground() : Theme.zeile(i));
+                // Trennlinie mit aktueller Designfarbe (nach einem Designwechsel)
+                panel.setBorder(BorderFactory.createCompoundBorder(
+                        new MatteBorder(0, 0, 1, 0, Theme.trenner()), new EmptyBorder(6, 10, 6, 10)));
                 title.setForeground(sel ? l.getSelectionForeground() : l.getForeground());
                 title.setFont(l.getFont().deriveFont(Font.BOLD));
                 String col = sel ? "" : String.format("color:#%06x", Theme.accent().getRGB() & 0xffffff);
@@ -501,6 +509,11 @@ public final class HeroPanel extends JPanel {
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 1; i < cols.length; i++) table.getColumnModel().getColumn(i).setCellRenderer(center);
+        // Zebra-Streifen (in den modernen Designs)
+        for (int i = 0; i < cols.length; i++) {
+            javax.swing.table.TableColumn col = table.getColumnModel().getColumn(i);
+            col.setCellRenderer(new TabellenStil.Zebra(col.getCellRenderer()));
+        }
         attachPopup(table, e -> {
             int r = table.rowAtPoint(e.getPoint());
             return r < 0 ? null : String.valueOf(table.getValueAt(r, 0));
@@ -522,7 +535,9 @@ public final class HeroPanel extends JPanel {
         t.putClientProperty("modernhelden.own", true);
         t.setRowHeight(Math.round(t.getFont().getSize() * 2.1f));
         t.setFillsViewportHeight(true);
-        t.setShowVerticalLines(false);
+        t.setShowVerticalLines(true);
+        t.setShowHorizontalLines(true);
+        t.setGridColor(Theme.trenner());
         t.setAutoCreateRowSorter(false);
         t.getTableHeader().setReorderingAllowed(false);
         t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -561,7 +576,7 @@ public final class HeroPanel extends JPanel {
 
     private static JScrollPane scroll(JComponent c) {
         JScrollPane s = new JScrollPane(c);
-        s.setBorder(BorderFactory.createLineBorder(Theme.card().darker()));
+        s.setBorder(BorderFactory.createLineBorder(Theme.trenner()));
         return s;
     }
 

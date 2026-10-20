@@ -132,17 +132,24 @@ public final class PrintPreviewPanel extends JPanel {
         info.setForeground(UIManager.getColor("Label.disabledForeground"));
         bar.add(info);
         bar.add(Box.createHorizontalStrut(8));
-        refreshBtn.setText("↻");
         refreshBtn.setToolTipText("Aktualisieren");
         bar.add(refreshBtn);
         bar.add(Box.createHorizontalStrut(4));
         pdf.setText("PDF …");
         pdf.setToolTipText("Als PDF speichern");
-        pdf.setIcon(null);
         bar.add(pdf);
         bar.add(Box.createHorizontalStrut(4));
         print.setText("Drucken …");
         bar.add(print);
+        // Symbole nur in den modernen Designs; „↻“ als Text im Original-Design
+        pdf.setIcon(de.modernhelden.ModernIcons.nurModern("pdf", 16));
+        print.setIcon(de.modernhelden.ModernIcons.nurModern("print", 16));
+        refreshBtn.setIcon(de.modernhelden.ModernIcons.nurModern("refresh", 16));
+        Runnable symbole = () -> refreshBtn.setText(de.modernhelden.Theme.isModern() ? "" : "↻");
+        symbole.run();
+        UIManager.addPropertyChangeListener(ev -> {
+            if ("lookAndFeel".equals(ev.getPropertyName())) SwingUtilities.invokeLater(symbole);
+        });
         add(bar, BorderLayout.NORTH);
 
         scroll.setBorder(null);

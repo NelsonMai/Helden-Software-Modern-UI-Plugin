@@ -53,6 +53,19 @@ public final class ModernIcons {
     /** Symbol in der Größe des Originals; zeichnet bei jedem Aufruf in den aktuellen Designfarben. */
     public static ImageIcon icon(String key, int w, int h) { return new VektorIcon(key, w, h); }
 
+    /**
+     * Symbol, das nur in den modernen Designs erscheint. Im Design „Original“ ist es unsichtbar
+     * und belegt keinen Platz – ohne dass die Oberfläche neu aufgebaut werden muss.
+     */
+    public static Icon nurModern(final String key, final int size) {
+        final VektorIcon v = new VektorIcon(key, size, size);
+        return new Icon() {
+            @Override public void paintIcon(Component c, Graphics g, int x, int y) { if (Theme.isModern()) v.paintIcon(c, g, x, y); }
+            @Override public int getIconWidth() { return Theme.isModern() ? size : 0; }
+            @Override public int getIconHeight() { return Theme.isModern() ? size : 0; }
+        };
+    }
+
     /** ImageIcon-Unterklasse, damit Code der Helden-Software, der ImageIcon erwartet, weiter funktioniert. */
     static final class VektorIcon extends ImageIcon {
         final String key;
@@ -346,6 +359,72 @@ public final class ModernIcons {
             Area mond = new Area(new Ellipse2D.Double(4, 4, 16, 16));
             mond.subtract(new Area(new Ellipse2D.Double(9, 1, 16, 16)));
             g.draw(mond);
+        });
+
+        // ---------------- Reiter des Plugins
+        def("talente", (g, fg, a) -> {        // aufgeschlagenes Buch
+            g.setColor(fg);
+            g.draw(pfad(12, 6.5, 12, 20));
+            g.draw(pfad(12, 6.5, 9, 5, 3, 5, 3, 18, 9, 18, 12, 20, 15, 18, 21, 18, 21, 5, 15, 5, 12, 6.5));
+            g.setColor(a);
+            linie(g, 6, 9, 9, 9);
+            linie(g, 15, 9, 18, 9);
+            linie(g, 6, 12.5, 9, 12.5);
+            linie(g, 15, 12.5, 18, 12.5);
+        });
+        def("sonderfertigkeit", (g, fg, a) -> {   // Stern
+            Path2D st = new Path2D.Double();
+            for (int i = 0; i < 10; i++) {
+                double r = i % 2 == 0 ? 9.5 : 4.2, w = -Math.PI / 2 + i * Math.PI / 5;
+                double x = 12 + r * Math.cos(w), y = 12.8 + r * Math.sin(w);
+                if (i == 0) st.moveTo(x, y); else st.lineTo(x, y);
+            }
+            st.closePath();
+            g.setColor(a);
+            g.draw(st);
+        });
+        def("vorteile", (g, fg, a) -> {       // Plus und Minus
+            g.setColor(fg);
+            g.draw(rr(2.5, 6, 19, 12, 4));
+            g.setColor(GRUEN);
+            linie(g, 8, 9, 8, 15);
+            linie(g, 5, 12, 11, 12);
+            g.setColor(ROT);
+            linie(g, 14, 12, 19, 12);
+        });
+        def("kampf", (g, fg, a) -> {          // gekreuzte Schwerter
+            g.setColor(fg);
+            linie(g, 5, 5, 17, 17);
+            linie(g, 19, 5, 7, 17);
+            g.setColor(a);
+            linie(g, 14.5, 19.5, 19.5, 14.5);
+            linie(g, 4.5, 14.5, 9.5, 19.5);
+            linie(g, 17, 17, 20, 20);
+            linie(g, 7, 17, 4, 20);
+        });
+        def("zauber", (g, fg, a) -> {         // Stab mit Funken
+            g.setColor(fg);
+            linie(g, 4, 20, 15, 9);
+            g.setColor(a);
+            linie(g, 17, 3, 17, 7);
+            linie(g, 15, 5, 19, 5);
+            linie(g, 20.5, 10, 20.5, 12.5);
+            linie(g, 19.25, 11.25, 21.75, 11.25);
+            g.fill(new Ellipse2D.Double(10.2, 3.2, 2.2, 2.2));
+        });
+        def("inventar", (g, fg, a) -> {       // Rucksack
+            g.setColor(fg);
+            g.draw(rr(5, 7, 14, 14, 5));
+            g.draw(pfad(9, 7, 9, 4.5, 15, 4.5, 15, 7));
+            g.setColor(a);
+            g.draw(rr(8.5, 13, 7, 5, 2));
+        });
+        def("pdf", (g, fg, a) -> {            // Dokument mit Pfeil nach unten
+            g.setColor(fg);
+            g.draw(pfad(14, 3, 6, 3, 6, 21, 18, 21, 18, 7, 14, 3, 14, 7, 18, 7));
+            g.setColor(a);
+            linie(g, 12, 10, 12, 17);
+            g.draw(pfad(9, 14, 12, 17, 15, 14));
         });
 
         // ---------------- Meldungen
