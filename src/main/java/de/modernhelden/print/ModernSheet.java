@@ -201,13 +201,14 @@ public final class ModernSheet implements Pageable, Printable {
     private void energiePool(final String titel, final String kurz, final int max, final String reg, final String anlass) {
         if (max <= 0) return;
         final float pad = 10, titleH = 22;
-        final float cell = max >= 100 ? 16.5f : 14f;   // dreistellige Werte brauchen etwas mehr Platz
+        final float cell = 15f;                          // Feldhöhe
         final float innerW = W - 2 * M - 2 * pad;
-        // Zellen je Zeile (Vielfaches von 5), passend zur Breite inkl. der kleinen Gruppenabstände
-        int fit = (int) Math.floor((innerW + 1.5f) / (5 * (cell + 0.5f) + 1.5f)) * 5;
-        final int perRow = Math.max(5, Math.min(35, fit));
+        // höchstens 25 Felder je Reihe, gleichmäßig auf die nötigen Reihen verteilt;
+        // jede Reihe füllt die ganze Breite (keine halb leeren Reihen)
+        final int maxProReihe = 25;
         final int cells = max + 1;
-        final int trackRows = (cells + perRow - 1) / perRow;
+        final int trackRows = (cells + maxProReihe - 1) / maxProReihe;
+        final int basis = cells / trackRows, extra = cells % trackRows;   // die ersten „extra“ Reihen haben ein Feld mehr
         final float trackH = trackRows * (cell + 2.5f);
         final List<String> hint = wrap("Kein Radieren nötig: Lege eine Münze, einen Spielstein oder eine Büroklammer auf den "
                 + "aktuellen Wert und verschiebe sie. Jede Änderung zusätzlich unten als neue Zeile eintragen – "
@@ -232,18 +233,23 @@ public final class ModernSheet implements Pageable, Printable {
 
             // Zahlenleiste: Maximum oben links, dann absteigend zeilenweise bis 0; Fünfer-Werte hervorgehoben
             float lx = x + pad, ly = yy + titleH + 2;
-            for (int i = 0; i < cells; i++) {
-                int v = max - i;
-                int row = i / perRow, col = i % perRow;
-                float cx = lx + col * (cell + 0.5f) + (col / 5) * 1.5f, cy = ly + row * (cell + 2.5f);
-                boolean fuenf = v % 5 == 0;
-                g.setColor(WHITE);
-                g.fill(new RoundRectangle2D.Float(cx, cy, cell - 1.5f, cell - 1.5f, 3, 3));
-                g.setColor(fuenf ? ACCENT : LINE.darker());
-                g.draw(new RoundRectangle2D.Float(cx, cy, cell - 1.5f, cell - 1.5f, 3, 3));
-                g.setFont(fuenf ? F.bold(max >= 100 ? 6.3f : 6f) : F.reg(max >= 100 ? 6.1f : 5.8f));
-                g.setColor(fuenf ? ACCENT : MUTED);
-                center(g, String.valueOf(v), cx, cell - 1.5f, cy + (cell - 1.5f) / 2 + 2.2f);
+            final float fgap = 2.5f;
+            int v = max;
+            for (int row = 0; row < trackRows; row++) {
+                int n = basis + (row < extra ? 1 : 0);
+                float fw = (w - 2 * pad - fgap * (n - 1)) / n;          // Feldbreite: Reihe füllt die Breite
+                float cy = ly + row * (cell + 2.5f);
+                for (int col = 0; col < n; col++, v--) {
+                    float cx = lx + col * (fw + fgap);
+                    boolean fuenf = v % 5 == 0;
+                    g.setColor(WHITE);
+                    g.fill(new RoundRectangle2D.Float(cx, cy, fw, cell - 1.5f, 4, 4));
+                    g.setColor(fuenf ? ACCENT : LINE.darker());
+                    g.draw(new RoundRectangle2D.Float(cx, cy, fw, cell - 1.5f, 4, 4));
+                    g.setFont(fuenf ? F.bold(7f) : F.reg(6.6f));
+                    g.setColor(fuenf ? ACCENT : MUTED);
+                    center(g, String.valueOf(v), cx, fw, cy + (cell - 1.5f) / 2 + 2.4f);
+                }
             }
             g.setFont(F.reg(6.8f));
             g.setColor(MUTED);
