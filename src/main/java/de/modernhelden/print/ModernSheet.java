@@ -600,7 +600,7 @@ public final class ModernSheet implements Pageable, Printable {
         heading("Sonderfertigkeiten", 30);
         List<ColItem> items = new ArrayList<>();
         float colW = colWidth();
-        for (SheetData.Eintrag e : d.sf) items.add(entryItem(e.name, colW, null));
+        for (SheetData.Eintrag e : d.sf) items.addAll(entryItems(e.name, colW));
         columns(items, "Sonderfertigkeiten");
         space(6);
     }
@@ -616,12 +616,12 @@ public final class ModernSheet implements Pageable, Printable {
         float colW = colWidth();
         if (vor) {
             if (nach) items.add(labelItem("Vorteile"));
-            for (SheetData.Eintrag e : d.vorteile) if (!e.nachteil) items.add(entryItem(e.name, colW, null));
+            for (SheetData.Eintrag e : d.vorteile) if (!e.nachteil) items.addAll(entryItems(e.name, colW));
         }
         if (vor && nach) items.add(ColItem.BREAK);
         if (nach) {
             if (vor) items.add(labelItem("Nachteile"));
-            for (SheetData.Eintrag e : d.vorteile) if (e.nachteil) items.add(entryItem(e.name, colW, null));
+            for (SheetData.Eintrag e : d.vorteile) if (e.nachteil) items.addAll(entryItems(e.name, colW));
         }
         columns(items, titel);
     }
@@ -637,9 +637,33 @@ public final class ModernSheet implements Pageable, Printable {
         return t == null ? "" : t.trim();
     }
 
-    private ColItem entryItem(final String name, float colW, String extra) {
+    /** So viele Beschreibungszeilen passen in einen Block; längere Texte werden in Folgeblöcke geteilt. */
+    private static final int BLOCK_ZEILEN = 14;
+
+    /**
+     * Eintrag (SF, Vor-/Nachteil) mit Beschreibung. Sehr lange eigene Notizen werden in mehrere
+     * Blöcke geteilt, damit sie über Spalten und Seiten weiterlaufen statt über den Rand hinaus.
+     */
+    private List<ColItem> entryItems(final String name, float colW) {
         String desc = opt.beschreibungen ? beschreibung(name) : "";
-        final List<String> lines = desc.isEmpty() ? Collections.<String>emptyList() : wrap(desc, F.reg(7), colW - 10);
+        List<String> alle = desc.isEmpty() ? Collections.<String>emptyList() : wrap(desc, F.reg(7), colW - 10);
+        List<ColItem> out = new ArrayList<>();
+        out.add(entryItem(name, colW, alle.subList(0, Math.min(BLOCK_ZEILEN, alle.size()))));
+        for (int i = BLOCK_ZEILEN; i < alle.size(); i += BLOCK_ZEILEN) {
+            final List<String> teil = alle.subList(i, Math.min(i + BLOCK_ZEILEN, alle.size()));
+            out.add(new ColItem(teil.size() * 8.6f + 2, false, (g, x, yy, w, hh) -> {
+                g.setColor(LINE.darker());
+                g.fill(new Rectangle2D.Float(x, yy, 1f, hh - 2));   // dünne Linie: gehört zum Eintrag darüber
+                g.setFont(F.reg(7));
+                g.setColor(MUTED);
+                float ly = yy + 6.5f;
+                for (String l : teil) { g.drawString(l, x + 7, ly); ly += 8.6f; }
+            }));
+        }
+        return out;
+    }
+
+    private ColItem entryItem(final String name, float colW, final List<String> lines) {
         // Lange Namen werden umbrochen statt abgeschnitten
         final List<String> nameLines = wrap(name, F.bold(8.5f), colW - 8);
         if (nameLines.isEmpty()) nameLines.add(name);
@@ -859,7 +883,8 @@ public final class ModernSheet implements Pageable, Printable {
             if (!z.anmerkung.isEmpty()) n.add(z.anmerkung);
             String own = opt.beschreibungen ? beschreibung(z.name) : "";
             if (!own.isEmpty() && !own.equals(z.anmerkung)) n.add(own);
-            final List<String> noteLines = n.isEmpty() ? new ArrayList<String>() : wrap(String.join(" – ", n), F.reg(7.4f), fullW - 22);
+            final List<String> alleNotiz = n.isEmpty() ? new ArrayList<String>() : wrap(String.join(" – ", n), F.reg(7.4f), fullW - 22);
+            final List<String> noteLines = alleNotiz.subList(0, Math.min(20, alleNotiz.size()));
             final boolean leerNotiz = noteLines.isEmpty();
             // leere Schreiblinie nur, wenn Notizen in den Optionen eingeschaltet sind
             final boolean schreiblinie = leerNotiz && opt.notizseite;
@@ -925,6 +950,27 @@ public final class ModernSheet implements Pageable, Printable {
                     for (String l : noteLines) { g.drawString(l, x + 14, ly + 1); ly += 9.5f; }
                 }
             });
+            // sehr lange Notizen: Rest in Folgeblöcken, die über Seiten weiterlaufen
+            for (int k = 20; k < alleNotiz.size(); ) {
+                int passt = (int) Math.floor((BOTTOM - y - 6) / 9.5f);
+                if (passt < 3) {
+                    newPage();
+                    place(18, fortsetzung("Zauber").p);
+                    place(13, kopf);
+                    continue;
+                }
+                final List<String> teil = alleNotiz.subList(k, Math.min(k + passt, alleNotiz.size()));
+                k += teil.size();
+                atomic(teil.size() * 9.5f + 6, (g, x, yy, w, hh) -> {
+                    if (zebra) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, hh)); }
+                    g.setColor(ACCENT);
+                    g.fill(new Rectangle2D.Float(x + 7, yy + 1, 1.6f, teil.size() * 9.5f - 1.5f));
+                    g.setFont(F.reg(7.4f));
+                    g.setColor(new Color(0x444444));
+                    float ly = yy + 7.5f;
+                    for (String l : teil) { g.drawString(l, x + 14, ly); ly += 9.5f; }
+                });
+            }
         }
         // Platz für weitere Zauber – nur den Rest der Seite nutzen, keine neue Seite dafür anfangen
         space(6);
@@ -1150,7 +1196,22 @@ public final class ModernSheet implements Pageable, Printable {
     }
 
     private void paragraph(final String label, String text) {
-        final List<String> lines = wrap(text, F.reg(8.5f), W - 2 * M);
+        List<String> alle = wrap(text, F.reg(8.5f), W - 2 * M);
+        // lange Texte seitenweise teilen: jeder Block nutzt den Platz, der auf der Seite noch frei ist
+        int i = 0;
+        boolean erster = true;
+        do {
+            float kopf = erster && label != null ? 12 : 0;
+            int passt = (int) Math.floor((BOTTOM - y - 4 - kopf) / 11);
+            if (passt < 3 && y > M + 1) { newPage(); continue; }
+            int n = Math.max(1, Math.min(passt, alle.size() - i));
+            paragraphBlock(erster ? label : null, alle.subList(Math.min(i, alle.size()), Math.min(i + n, alle.size())));
+            i += n;
+            erster = false;
+        } while (i < alle.size());
+    }
+
+    private void paragraphBlock(final String label, final List<String> lines) {
         atomic((label == null ? 0 : 12) + lines.size() * 11 + 4, (g, x, yy, w, h) -> {
             float ly = yy;
             if (label != null) {

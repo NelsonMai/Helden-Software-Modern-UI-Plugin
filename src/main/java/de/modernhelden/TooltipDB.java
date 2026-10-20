@@ -77,7 +77,7 @@ public final class TooltipDB {
                 if (line.isEmpty() || line.startsWith("#")) continue;
                 int tab = line.indexOf('\t');
                 if (tab <= 0) continue;
-                String text = line.substring(tab + 1).replace("\\n", "\n").trim();
+                String text = unescape(line.substring(tab + 1)).trim();
                 if (!text.isEmpty()) userTexts.put(line.substring(0, tab).trim(), text);
             }
         } catch (IOException e) {
@@ -86,6 +86,29 @@ public final class TooltipDB {
     }
 
     public File getUserFile() { return userFile; }
+
+    /** Für die Datei: Backslash → \\, Zeilenumbruch → \n (eine Zeile pro Eintrag). */
+    static String escape(String t) {
+        return t.replace("\r", "").replace("\\", "\\\\").replace("\n", "\\n");
+    }
+
+    /**
+     * Umkehrung von {@link #escape}. Ältere Dateien kannten nur \n; ein einzelner Backslash
+     * vor einem anderen Zeichen (z. B. „C:\Spiele“) bleibt deshalb unverändert.
+     */
+    static String unescape(String t) {
+        StringBuilder b = new StringBuilder(t.length());
+        for (int i = 0; i < t.length(); i++) {
+            char c = t.charAt(i);
+            if (c == '\\' && i + 1 < t.length()) {
+                char n = t.charAt(i + 1);
+                if (n == 'n') { b.append('\n'); i++; continue; }
+                if (n == '\\') { b.append('\\'); i++; continue; }
+            }
+            b.append(c);
+        }
+        return b.toString();
+    }
 
     public synchronized String getUserText(String key) { return userTexts.get(key); }
 
@@ -98,7 +121,7 @@ public final class TooltipDB {
         try (Writer w = new OutputStreamWriter(new FileOutputStream(userFile), StandardCharsets.UTF_8)) {
             w.write("# Eigene Tooltip-Texte (Name<TAB>Text, Zeilenumbruch als \\n). Nur für den privaten Gebrauch.\n");
             for (Map.Entry<String, String> e : userTexts.entrySet()) {
-                w.write(e.getKey() + "\t" + e.getValue().replace("\r", "").replace("\n", "\\n") + "\n");
+                w.write(e.getKey() + "\t" + escape(e.getValue()) + "\n");
             }
         }
     }
@@ -167,6 +190,22 @@ public final class TooltipDB {
         return html(m, extra, null);
     }
 
+    /** Längere eigene Notizen werden im Tooltip gekürzt, damit er nicht höher als der Bildschirm wird. */
+    static final int TOOLTIP_MAX = 600;
+
+    static String kurz(String t) {
+        String k = t;
+        // höchstens 8 Zeilenumbrüche, sonst wird der Tooltip trotzdem zu hoch
+        int n = 0;
+        for (int i = 0; i < k.length(); i++) if (k.charAt(i) == '\n' && ++n > 8) { k = k.substring(0, i); break; }
+        if (k.length() > TOOLTIP_MAX) {
+            k = k.substring(0, TOOLTIP_MAX);
+            int sp = Math.max(k.lastIndexOf(' '), k.lastIndexOf('\n'));
+            if (sp > TOOLTIP_MAX / 2) k = k.substring(0, sp);
+        }
+        return k.equals(t) ? t : k.replaceAll("\\s+$", "") + " …";
+    }
+
     /** Schlichter Info-Tooltip mit Titel und Zeilen {Beschriftung, Text} (ohne Hinweis auf eigene Texte). */
     public static String htmlInfo(String title, String untertitel, java.util.List<String[]> rows) {
         StringBuilder sb = new StringBuilder("<html><div style='width:360px;padding:2px'>");
@@ -220,7 +259,10 @@ public final class TooltipDB {
         String user = getUserText(m.key);
         if (user == null && e != null) user = getUserText(e.name);
         if (user != null) {
-            sb.append("<div style='margin-top:6px'><b>Eigene Notiz</b><br>").append(esc(user)).append("</div>");
+            String k = kurz(user);
+            sb.append("<div style='margin-top:6px'><b>Eigene Notiz</b><br>").append(esc(k)).append("</div>");
+            if (!k.equals(user))
+                sb.append("<div style='color:#9a9a9a;font-size:90%'>… gekürzt – vollständig per Doppelklick oder im Heldenbogen</div>");
         }
         if (e != null && !e.text.isEmpty()) {
             sb.append("<div style='margin-top:6px'>").append(esc(e.text)).append("</div>");
