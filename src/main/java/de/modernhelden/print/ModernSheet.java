@@ -772,8 +772,11 @@ public final class ModernSheet implements Pageable, Printable {
             if (!own.isEmpty() && !own.equals(z.anmerkung)) n.add(own);
             final List<String> noteLines = n.isEmpty() ? new ArrayList<String>() : wrap(String.join(" – ", n), F.reg(7.4f), fullW - 22);
             final boolean leerNotiz = noteLines.isEmpty();
+            // leere Schreiblinie nur, wenn Notizen in den Optionen eingeschaltet sind
+            final boolean schreiblinie = leerNotiz && opt.notizseite;
             final float topH = Math.max(20, 6 + nameLines.size() * 11 + 2);
-            final float h = topH + eckLines.size() * 9 + (leerNotiz ? 15 : noteLines.size() * 9.5f + 4) + 4;
+            final float h = topH + eckLines.size() * 9
+                    + (leerNotiz ? (schreiblinie ? 15 : 2) : noteLines.size() * 9.5f + 4) + 4;
             atomic(h, (g, x, yy, w, hh) -> {
                 if (zebra) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, hh)); }
                 float base = yy + 14;
@@ -809,7 +812,9 @@ public final class ModernSheet implements Pageable, Printable {
                 g.setFont(F.reg(7));
                 g.setColor(MUTED);
                 for (String l : eckLines) { g.drawString(l, x + 6, ly); ly += 9; }
-                if (leerNotiz) {
+                if (leerNotiz && !schreiblinie) {
+                    // keine Notiz und Notizen ausgeschaltet: nichts zeichnen
+                } else if (leerNotiz) {
                     g.setFont(F.reg(6.4f));
                     g.drawString("Notiz", x + 6, ly + 4);
                     g.setColor(LINE);
@@ -825,7 +830,7 @@ public final class ModernSheet implements Pageable, Printable {
         }
         // Platz für weitere Zauber – nur den Rest der Seite nutzen, keine neue Seite dafür anfangen
         space(6);
-        if (y + 14 + 3 * 17 > BOTTOM) return;
+        if (!opt.notizseite || y + 14 + 3 * 17 > BOTTOM) return;
         subheading("Weitere Zauber & Notizen", 40);
         while (y + 17 <= BOTTOM) {
             atomic(17, (g, x, yy, w, h) -> {
