@@ -133,6 +133,10 @@ public final class HeroPanel extends JPanel {
         apl.setFont(apl.getFont().deriveFont(Font.BOLD, apl.getFont().getSize2D() * 1.35f));
         JLabel frei = new JLabel(h.freieAp + " frei verfügbar", SwingConstants.RIGHT);
         frei.setForeground(h.freieAp > 0 ? Theme.accent() : Theme.muted());
+        String apTip = TooltipDB.htmlInfo("Abenteuerpunkte: " + h.ap, "Woher die AP kommen und wofür sie ausgegeben wurden",
+                h.herkunft.abenteuerpunkte(h.ap, h.freieAp));
+        apl.setToolTipText(apTip);
+        frei.setToolTipText(apTip);
         ap.add(apl);
         ap.add(frei);
         p.add(ap, BorderLayout.EAST);

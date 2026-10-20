@@ -132,6 +132,56 @@ public final class Herkunft {
         return out;
     }
 
+    /**
+     * Woher die Abenteuerpunkte kommen und wofür sie ausgegeben wurden.
+     * Vergaben stehen im Protokoll als „Ereignis eingeben“ (Abenteuerpunkte &gt; 0) bzw. als direkte Änderung
+     * „Abenteuerpunkte“ (Alt → Neu); der Rest des Gesamtwerts stammt aus der Erschaffung.
+     */
+    public List<String[]> abenteuerpunkte(int gesamt, int frei) {
+        List<String[]> zugang = new ArrayList<>();
+        int summeZugang = 0, manuell = 0;
+        Map<String, Integer> ausgaben = new LinkedHashMap<>();
+        int summeAusgaben = 0;
+        for (Ereignis e : ereignisse) {
+            int ap = num(e.ap);
+            if ("Abenteuerpunkte".equals(e.text) && !e.alt.isEmpty() && !e.neu.isEmpty()) {
+                manuell += num(e.neu) - num(e.alt);          // direkte Änderung des Gesamtwerts
+                continue;
+            }
+            if (ap == 0) continue;
+            boolean vergabe = e.text.startsWith("Ereignis") || e.obj.startsWith("Abenteuerpunkte");
+            if (vergabe) {
+                summeZugang += ap;
+                String grund = e.kommentar.replaceAll("\\s*Gesamt AP:.*$", "").trim();
+                if (grund.isEmpty()) grund = e.obj.isEmpty() ? "Abenteuerpunkte" : e.obj;
+                zugang.add(new String[]{e.time > 0 ? datum.format(new Date(e.time)) : "Ereignis",
+                        (ap > 0 ? "+" : "−") + Math.abs(ap) + " AP · " + grund});
+            } else if (ap < 0) {
+                String t = e.text.toLowerCase(Locale.GERMAN);
+                String k = t.contains("zauber") ? "Zauber" : t.contains("sonderfertigkeit") ? "Sonderfertigkeiten"
+                        : t.contains("eigenschaft") ? "Eigenschaften" : t.contains("talent") ? "Talente"
+                        : t.contains("vorteil") || t.contains("nachteil") ? "Vor-/Nachteile"
+                        : t.contains("liturgie") ? "Liturgien" : "Sonstiges";
+                ausgaben.merge(k, -ap, Integer::sum);
+                summeAusgaben += -ap;
+            }
+        }
+        List<String[]> out = new ArrayList<>();
+        int start = gesamt - summeZugang - manuell;
+        out.add(new String[]{"Erschaffung", start + " AP"});
+        out.addAll(zugang);
+        if (manuell != 0) out.add(new String[]{"Von Hand", (manuell > 0 ? "+" : "−") + Math.abs(manuell) + " AP (Gesamtwert direkt geändert)"});
+        out.add(new String[]{"Gesamt", gesamt + " AP"});
+        int ausgegeben = gesamt - frei;
+        int beiErschaffung = Math.max(0, ausgegeben - summeAusgaben);
+        out.add(new String[]{"Ausgegeben", ausgegeben + " AP"});
+        if (beiErschaffung > 0 && summeAusgaben > 0) out.add(new String[]{"  bei Erschaffung", beiErschaffung + " AP"});
+        for (Map.Entry<String, Integer> a : ausgaben.entrySet())
+            out.add(new String[]{"  " + a.getKey(), a.getValue() + " AP"});
+        out.add(new String[]{"Frei", frei + " AP"});
+        return out;
+    }
+
     private static String lernText(String info) {
         if (info == null || info.trim().isEmpty()) return "";
         List<String> teile = new ArrayList<>();

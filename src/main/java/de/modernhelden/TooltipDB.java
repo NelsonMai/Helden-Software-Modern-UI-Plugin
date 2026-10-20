@@ -167,6 +167,24 @@ public final class TooltipDB {
         return html(m, extra, null);
     }
 
+    /** Schlichter Info-Tooltip mit Titel und Zeilen {Beschriftung, Text} (ohne Hinweis auf eigene Texte). */
+    public static String htmlInfo(String title, String untertitel, java.util.List<String[]> rows) {
+        StringBuilder sb = new StringBuilder("<html><div style='width:360px;padding:2px'>");
+        sb.append("<b style='font-size:110%'>").append(esc(title)).append("</b>");
+        if (untertitel != null && !untertitel.isEmpty())
+            sb.append("<br><span style='color:#8a8a8a'>").append(esc(untertitel)).append("</span>");
+        sb.append("<table cellpadding=0 cellspacing=0 style='margin-top:5px'>");
+        for (String[] r : rows) {
+            boolean sub = r[0].startsWith("  ");
+            boolean sum = r[0].equals("Gesamt") || r[0].equals("Frei");
+            sb.append("<tr><td style='color:#8a8a8a;padding-right:10px;white-space:nowrap").append(sub ? ";padding-left:10px" : "")
+              .append("'>").append(esc(r[0].trim())).append("</td><td>")
+              .append(sum ? "<b>" : "").append(esc(r[1])).append(sum ? "</b>" : "").append("</td></tr>");
+        }
+        sb.append("</table></div></html>");
+        return sb.toString();
+    }
+
     /**
      * @param verlauf Herkunft des Werts als Zeilen {Beschriftung, Text} – darf null sein
      */

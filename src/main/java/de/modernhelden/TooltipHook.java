@@ -92,6 +92,23 @@ public final class TooltipHook implements AWTEventListener {
 
     private void handle(JComponent c, MouseEvent e) {
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) { hide(); return; }
+        // Abenteuerpunkte-Felder im Reiter „Allgemein“: Herkunft der AP erklären
+        if (c instanceof javax.swing.text.JTextComponent && hero != null) {
+            String lab = labelVor(c);
+            if (lab != null && (lab.startsWith("Abenteuerpunkte") || lab.startsWith("AP Guthaben") || lab.startsWith("AP-Guthaben"))) {
+                HeroData h = hero;
+                String key = System.identityHashCode(c) + "|AP";
+                if (key.equals(shownKey)) return;
+                if (popup != null) hidePopupOnly();
+                pendingKey = key;
+                pendingComp = c;
+                pendingHtml = TooltipDB.htmlInfo("Abenteuerpunkte: " + h.ap, "Woher die AP kommen und wofür sie ausgegeben wurden",
+                        h.herkunft.abenteuerpunkte(h.ap, h.freieAp));
+                pendingScreen = e.getLocationOnScreen();
+                showTimer.restart();
+                return;
+            }
+        }
         String text = textAt(c, e.getPoint());
         TooltipDB.Match m = text == null ? null : db.find(text);
         if (m == null && text != null && hero != null) {
@@ -185,6 +202,22 @@ public final class TooltipHook implements AWTEventListener {
             if (!t.lernmethode.isEmpty()) x.put("Lernen", t.lernmethode);
         }
         return x;
+    }
+
+    /** Beschriftung eines Eingabefelds: per labelFor oder das JLabel direkt davor im selben Container. */
+    static String labelVor(Component c) {
+        Container p = c.getParent();
+        if (p == null) return null;
+        String vorher = null;
+        for (Component k : p.getComponents()) {
+            if (k instanceof JLabel && ((JLabel) k).getLabelFor() == c) return ((JLabel) k).getText();
+        }
+        for (Component k : p.getComponents()) {
+            if (k == c) return vorher;
+            if (k instanceof JLabel) vorher = ((JLabel) k).getText();
+            else if (k instanceof javax.swing.text.JTextComponent) vorher = null;
+        }
+        return null;
     }
 
     /** Ermittelt den sichtbaren Text unter dem Mauszeiger. */
