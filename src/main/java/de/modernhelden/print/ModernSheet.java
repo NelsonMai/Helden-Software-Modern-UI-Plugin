@@ -135,7 +135,7 @@ public final class ModernSheet implements Pageable, Printable {
                 SheetData.Wert v = d.wert(e[i][0]);
                 float tx = x + i * (tw + gap);
                 tile(g, tx, yy, tw, h, e[i][1], v == null ? "–" : String.valueOf(v.akt),
-                        v == null ? "" : (v.modi != 0 ? "Start " + v.start + " · Mod " + signed(v.modi) : e[i][2]), true);
+                        e[i][2], true);
             }
         });
     }
