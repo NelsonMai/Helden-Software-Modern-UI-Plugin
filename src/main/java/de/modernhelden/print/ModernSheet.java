@@ -93,13 +93,17 @@ public final class ModernSheet implements Pageable, Printable {
         // Rasse · Kultur · Profession wird umbrochen statt abgeschnitten
         final List<String> subLines = wrap(sub, F.reg(9.5f), W - 2 * M - 120);
         if (subLines.isEmpty()) subLines.add("");
-        atomic(56 + (subLines.size() - 1) * 12, (g, x, yy, w, h) -> {
+        final List<String> nameLines = wrap(d.name, F.bold(21), W - 2 * M - 120);
+        if (nameLines.isEmpty()) nameLines.add(d.name);
+        final float nameExtra = (nameLines.size() - 1) * 24;
+        atomic(56 + nameExtra + (subLines.size() - 1) * 12, (g, x, yy, w, h) -> {
             g.setColor(INK);
             g.setFont(F.bold(21));
-            drawFit(g, d.name, x, yy + 22, w - 120);
+            float ny = yy + 22;
+            for (String l : nameLines) { g.drawString(l, x, ny); ny += 24; }
             g.setFont(F.reg(9.5f));
             g.setColor(MUTED);
-            float sy = yy + 38;
+            float sy = yy + 38 + nameExtra;
             for (String l : subLines) { g.drawString(l, x, sy); sy += 12; }
             g.setFont(F.bold(15));
             g.setColor(INK);
@@ -119,16 +123,32 @@ public final class ModernSheet implements Pageable, Printable {
                 {"Gewicht", d.gewicht.isEmpty() ? "" : d.gewicht + " Stein (" + d.gewicht + " kg)"},
                 {"Haarfarbe", d.haarfarbe}, {"Augenfarbe", d.augenfarbe}, {"Stand", d.stand}, {"Titel", d.titel},
                 {"Sozialstatus", String.valueOf(d.akt("sozialstatus"))}};
-        atomic(48, (g, x, yy, w, h) -> {
-            float cw = w / 5f;
-            for (int i = 0; i < f.length; i++) {
-                float cx = x + (i % 5) * cw, cy = yy + 6 + (i / 5) * 22;
-                g.setFont(F.bold(6.5f));
-                g.setColor(MUTED);
-                g.drawString(f[i][0].toUpperCase(Locale.GERMAN), cx, cy + 6);
-                g.setFont(F.reg(9.5f));
-                g.setColor(INK);
-                drawFit(g, f[i][1].isEmpty() ? "–" : f[i][1], cx, cy + 17, cw - 6);
+        // Werte werden umbrochen statt abgeschnitten; jede Reihe so hoch wie ihr längster Eintrag
+        final float cwAll = (W - 2 * M) / 5f;
+        final List<List<String>> lines = new ArrayList<>();
+        for (String[] e : f) {
+            List<String> l = wrap(e[1].isEmpty() ? "–" : e[1], F.reg(9.5f), cwAll - 6);
+            if (l.isEmpty()) l.add("–");
+            lines.add(l);
+        }
+        final float[] rowH = new float[(f.length + 4) / 5];
+        for (int i = 0; i < f.length; i++) rowH[i / 5] = Math.max(rowH[i / 5], 22 + (lines.get(i).size() - 1) * 11.5f);
+        float total = 4;
+        for (float rh : rowH) total += rh;
+        atomic(total, (g, x, yy, w, h) -> {
+            float cw = w / 5f, cy = yy + 6;
+            for (int row = 0; row < rowH.length; row++) {
+                for (int i = row * 5; i < Math.min(f.length, row * 5 + 5); i++) {
+                    float cx = x + (i % 5) * cw;
+                    g.setFont(F.bold(6.5f));
+                    g.setColor(MUTED);
+                    g.drawString(f[i][0].toUpperCase(Locale.GERMAN), cx, cy + 6);
+                    g.setFont(F.reg(9.5f));
+                    g.setColor(INK);
+                    float ly = cy + 17;
+                    for (String l : lines.get(i)) { g.drawString(l, cx, ly); ly += 11.5f; }
+                }
+                cy += rowH[row];
             }
         });
     }
@@ -162,6 +182,15 @@ public final class ModernSheet implements Pageable, Printable {
         add(b, "GS", "geschwindigkeit", "Geschwindigk.");
         if (!d.ausweichen.isEmpty()) b.add(new String[]{"AW", d.ausweichen, "Ausweichen"});
         if (!d.wundschwelle.isEmpty()) b.add(new String[]{"WS", d.wundschwelle, "Wundschwelle"});
+        if (b.size() > 11) {
+            // viele Kacheln (z. B. mit AE und KE): kürzere Beschriftungen, damit nichts abgeschnitten wird
+            Map<String, String> kurz = new HashMap<>();
+            kurz.put("Lebensenergie", "Leben"); kurz.put("Astralenergie", "Astral"); kurz.put("Karmaenergie", "Karma");
+            kurz.put("Magieresistenz", "Magieres."); kurz.put("Initiative-Basis", "INI-Basis"); kurz.put("Attacke-Basis", "AT-Basis");
+            kurz.put("Parade-Basis", "PA-Basis"); kurz.put("Fernkampf", "FK-Basis"); kurz.put("Geschwindigk.", "Geschw.");
+            kurz.put("Wundschwelle", "Wundschw."); kurz.put("Ausweichen", "Ausweich.");
+            for (String[] t : b) if (kurz.containsKey(t[2])) t[2] = kurz.get(t[2]);
+        }
         atomic(44, (g, x, yy, w, h) -> {
             float gap = 5, tw = (w - gap * (b.size() - 1)) / b.size();
             for (int i = 0; i < b.size(); i++)
@@ -468,7 +497,18 @@ public final class ModernSheet implements Pageable, Printable {
             int mod = SheetData.num(sc.ini);
             if (mod != 0) schild.add("mit " + sc.name + " zusätzlich " + vz(mod).replace(" ", ""));
         }
-        float h = 22 + rows.size() * 12.5f + (schild.isEmpty() ? 0 : 11 * schild.size()) + 2;
+        final float nameW = (W - 2 * M) * 0.42f - 16;
+        final List<List<String>> nameLines = new ArrayList<>();
+        float rowsH = 0;
+        for (String[] rw : rows) {
+            List<String> l = wrap(rw[0], F.bold(8), nameW);
+            if (l.isEmpty()) l.add(rw[0]);
+            nameLines.add(l);
+            rowsH += 12.5f + (l.size() - 1) * 9.5f;
+        }
+        final List<String> schildZeilen = new ArrayList<>();
+        for (String sz : schild) schildZeilen.addAll(wrap(sz, F.reg(7), W - 2 * M - 20));
+        float h = 22 + rowsH + 11 * schildZeilen.size() + 2;
         space(4);
         atomic(h, (g, x, yy, w, hh) -> {
             g.setColor(FILL);
@@ -496,21 +536,23 @@ public final class ModernSheet implements Pageable, Printable {
 
             float ly = yy + 30;
             float c1 = x + 10, c2 = x + w * 0.42f, c3 = x + w - 10;
-            for (String[] r : rows) {
+            for (int ri = 0; ri < rows.size(); ri++) {
+                String[] r = rows.get(ri);
                 g.setFont(F.bold(8));
                 g.setColor(INK);
-                drawFit(g, r[0], c1, ly, c2 - c1 - 6);
+                float nly = ly;
+                for (String l : nameLines.get(ri)) { g.drawString(l, c1, nly); nly += 9.5f; }
                 g.setFont(F.reg(7.6f));
                 g.setColor(MUTED);
                 g.drawString(r[1], c2, ly);
                 g.setFont(F.bold(8.5f));
                 g.setColor(INK);
                 right(g, "= " + r[2], c3, ly);
-                ly += 12.5f;
+                ly += 12.5f + (nameLines.get(ri).size() - 1) * 9.5f;
             }
             g.setFont(F.reg(7));
             g.setColor(ACCENT);
-            for (String sline : schild) { g.drawString(sline, c1, ly); ly += 11; }
+            for (String sline : schildZeilen) { g.drawString(sline, c1, ly); ly += 11; }
         });
     }
 
@@ -641,7 +683,11 @@ public final class ModernSheet implements Pageable, Printable {
             int i = 0;
             for (final SheetData.Talent t : e.getValue()) {
                 final boolean zebra = (i++ % 2) == 1;
-                items.add(new ColItem(12.5f, false, (g, x, yy, w, h) -> talentRow(g, t, kampf, sprache, zebra, x, yy, w, h)));
+                // lange Talentnamen umbrechen statt abschneiden
+                final List<String> nl = wrap(t.name, F.reg(8), talentCols(colWidth())[1] - 4);
+                if (nl.isEmpty()) nl.add(t.name);
+                items.add(new ColItem(12.5f + (nl.size() - 1) * 9.5f, false,
+                        (g, x, yy, w, h) -> talentRow(g, t, nl, kampf, sprache, zebra, x, yy, w, h)));
             }
             items.add(new ColItem(6, false, (g, x, yy, w, h) -> { }));
         }
@@ -672,7 +718,7 @@ public final class ModernSheet implements Pageable, Printable {
                 x0 + name + werte, be, x0 + name + werte + be, sp, x0 + name + werte + be + sp, taw};
     }
 
-    private void talentRow(Graphics2D g, SheetData.Talent t, boolean kampf, boolean sprache, boolean zebra,
+    private void talentRow(Graphics2D g, SheetData.Talent t, List<String> nameLines, boolean kampf, boolean sprache, boolean zebra,
                            float x, float yy, float w, float h) {
         if (zebra) {
             g.setColor(FILL);
@@ -680,16 +726,17 @@ public final class ModernSheet implements Pageable, Printable {
         }
         float[] c = talentCols(w);
         for (int i = 0; i < c.length; i += 2) c[i] += x;
-        float base = yy + h - 3.6f;
+        float base = yy + 12.5f - 3.6f;   // Werte immer auf der ersten Zeile
         g.setFont(F.reg(8));
         g.setColor(INK);
-        String name = t.name;
-        float nameW = g.getFontMetrics().stringWidth(name);
-        drawFit(g, name, c[0] + 3, base, c[1] - 4);
+        float nb = base;
+        for (String l : nameLines) { g.drawString(l, c[0] + 3, nb); nb += 9.5f; }
+        String last = nameLines.get(nameLines.size() - 1);
+        float nameW = g.getFontMetrics().stringWidth(last);
         if (!t.spez.isEmpty() && nameW + 12 < c[1]) {
             g.setFont(F.reg(6.5f));
             g.setColor(ACCENT);
-            drawFit(g, t.spez, c[0] + 3 + nameW + 4, base, c[1] - nameW - 10);
+            drawFit(g, t.spez, c[0] + 3 + nameW + 4, nb - 9.5f, c[1] - nameW - 10);
         }
         g.setFont(F.reg(7.2f));
         g.setColor(MUTED);
@@ -725,13 +772,14 @@ public final class ModernSheet implements Pageable, Printable {
             heading("Magie", 120);
             energiePool("Astralenergie", "AsP", d.akt("astralenergie"),
                     d.aspReg.isEmpty() ? "" : "Regeneration " + d.aspReg, "Zauber / Anlass");
-            zauberUebersicht();
         }
+        // Karma vor der Zauberliste, damit die Linien für weitere Zauber den Platz nicht vorher aufbrauchen
         if (kap) {
             space(6);
             heading("Karma", 120);
             energiePool("Karmaenergie", "KaP", d.akt("karmaenergie"), "", "Liturgie / Anlass");
         }
+        if (asp) zauberUebersicht();
         newPage();   // folgende Abschnitte wieder auf eigener Seite
     }
 
@@ -742,8 +790,8 @@ public final class ModernSheet implements Pageable, Printable {
         subheading("Zauber", 60);
         final float fullW = W - 2 * M;
         final float cName = 0.36f, cProbe = 0.20f, cZfw = 0.08f, cKost = 0.36f;
-        // Spaltenköpfe
-        place(13, (g, x, yy, w, h) -> {
+        // Spaltenköpfe (werden auf Folgeseiten wiederholt)
+        final Painter kopf = (g, x, yy, w, h) -> {
             g.setColor(ACCENT_SOFT);
             g.fill(new RoundRectangle2D.Float(x, yy, w, h, 6, 6));
             g.setFont(F.bold(6.4f));
@@ -752,7 +800,9 @@ public final class ModernSheet implements Pageable, Printable {
             g.drawString("PROBE", x + w * cName + 4, yy + 9);
             center(g, "ZFW", x + w * (cName + cProbe), w * cZfw, yy + 9);
             g.drawString("ASP-KOSTEN", x + w * (cName + cProbe + cZfw) + 6, yy + 9);
-        });
+        };
+        place(13, kopf);
+        final float kostW = fullW * cKost - 10;
         int idx = 0;
         for (final SheetData.Zauber z : d.zauber) {
             final boolean zebra = (idx++ % 2) == 1;
@@ -777,9 +827,17 @@ public final class ModernSheet implements Pageable, Printable {
             final boolean leerNotiz = noteLines.isEmpty();
             // leere Schreiblinie nur, wenn Notizen in den Optionen eingeschaltet sind
             final boolean schreiblinie = leerNotiz && opt.notizseite;
-            final float topH = Math.max(20, 6 + nameLines.size() * 11 + 2);
+            // lange Kostenangaben umbrechen; das Feld wächst mit
+            final List<String> kostLines = z.kosten.isEmpty() ? new ArrayList<String>() : wrap(z.kosten, F.reg(7.6f), kostW - 10);
+            final float kostH = 14 + Math.max(0, kostLines.size() - 1) * 9;
+            final float topH = Math.max(Math.max(20, 6 + nameLines.size() * 11 + 2), 4 + kostH + 4);
             final float h = topH + eckLines.size() * 9
                     + (leerNotiz ? (schreiblinie ? 15 : 2) : noteLines.size() * 9.5f + 4) + 4;
+            if (y + h > BOTTOM) {
+                newPage();
+                place(18, fortsetzung("Zauber").p);
+                place(13, kopf);
+            }
             atomic(h, (g, x, yy, w, hh) -> {
                 if (zebra) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, hh)); }
                 float base = yy + 14;
@@ -799,13 +857,14 @@ public final class ModernSheet implements Pageable, Printable {
                 // Kostenfeld: Wert der Helden-Software oder leer zum einmaligen Eintragen
                 float kx = x + w * (cName + cProbe + cZfw) + 4, kw = w * cKost - 10;
                 g.setColor(WHITE);
-                g.fill(new RoundRectangle2D.Float(kx, yy + 4, kw, 14, 5, 5));
+                g.fill(new RoundRectangle2D.Float(kx, yy + 4, kw, kostH, 5, 5));
                 g.setColor(LINE.darker());
-                g.draw(new RoundRectangle2D.Float(kx, yy + 4, kw, 14, 5, 5));
-                if (!z.kosten.isEmpty()) {
+                g.draw(new RoundRectangle2D.Float(kx, yy + 4, kw, kostH, 5, 5));
+                if (!kostLines.isEmpty()) {
                     g.setFont(F.reg(7.6f));
                     g.setColor(INK);
-                    drawFit(g, z.kosten, kx + 5, yy + 13.8f, kw - 10);
+                    float ky = yy + 13.8f;
+                    for (String l : kostLines) { g.drawString(l, kx + 5, ky); ky += 9; }
                 } else {
                     g.setFont(F.reg(6.4f));
                     g.setColor(LINE.darker());
@@ -848,14 +907,19 @@ public final class ModernSheet implements Pageable, Printable {
         heading("Inventar", 40);
         List<ColItem> items = new ArrayList<>();
         int i = 0;
+        final float invColW = colWidth();
         for (final SheetData.Gegenstand gg : d.inventar) {
             final boolean zebra = (i++ % 2) == 1;
-            items.add(new ColItem(12.5f, false, (g, x, yy, w, h) -> {
+            // lange Namen umbrechen; Anzahl, Gewicht und „angelegt“ bleiben auf der ersten Zeile
+            final List<String> nl = wrap(gg.name, F.reg(8), invColW - (gg.angelegt ? 132 : 98));
+            if (nl.isEmpty()) nl.add(gg.name);
+            items.add(new ColItem(12.5f + (nl.size() - 1) * 9.5f, false, (g, x, yy, w, h) -> {
                 if (zebra) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, h)); }
-                float base = yy + h - 3.6f;
+                float base = yy + 12.5f - 3.6f;
                 g.setFont(F.reg(8));
                 g.setColor(INK);
-                drawFit(g, gg.name, x + 3, base, w - (gg.angelegt ? 132 : 98));
+                float nb = base;
+                for (String l : nl) { g.drawString(l, x + 3, nb); nb += 9.5f; }
                 g.setFont(F.reg(7.2f));
                 g.setColor(gg.angelegt ? ACCENT : MUTED);
                 if (gg.angelegt) g.drawString("angelegt", x + w - 126, base);
@@ -911,7 +975,9 @@ public final class ModernSheet implements Pageable, Printable {
         }
         final String summe = silber > 0 ? Geld.silber(silber) + " S" : "";
         final String fremd = String.join(" · ", andere);
-        atomic(fremd.isEmpty() ? 50 : 61, (g, x, yy, w, h) -> {
+        final List<String> fremdZeilen = fremd.isEmpty() ? new ArrayList<String>()
+                : wrap("Andere Währungen (nicht im Gesamtwert): " + fremd, F.reg(7.2f), W - 2 * M - 82);
+        atomic(50 + fremdZeilen.size() * 11, (g, x, yy, w, h) -> {
             g.setColor(ACCENT_SOFT);
             g.fill(new RoundRectangle2D.Float(x, yy, w, h, 8, 8));
             g.setFont(F.bold(8.5f));
@@ -951,10 +1017,9 @@ public final class ModernSheet implements Pageable, Printable {
             g.setFont(F.reg(7.2f));
             g.setColor(MUTED);
             g.drawString("Umrechnung: " + Geld.UMRECHNUNG + "   ·   1 D = 10 S,  1 S = 10 H,  1 H = 10 K", x + 72, yy + 43);
-            if (!fremd.isEmpty()) {
-                g.setColor(INK);
-                drawFit(g, "Andere Währungen (nicht im Gesamtwert): " + fremd, x + 72, yy + 54, w - 82);
-            }
+            g.setColor(INK);
+            float fy = yy + 54;
+            for (String l : fremdZeilen) { g.drawString(l, x + 72, fy); fy += 11; }
         });
     }
 
@@ -1249,6 +1314,13 @@ public final class ModernSheet implements Pageable, Printable {
                     col = 0;
                     if (titel != null) place(18, fortsetzung(titel).p);
                     top = y; maxY = y;
+                    // passt der Rest auf diese Seite, auch hier beide Spalten ausgeglichen füllen
+                    float rest = 0;
+                    boolean restBreak = false;
+                    for (int k = i; k < items.size(); k++) {
+                        if (items.get(k) == ColItem.BREAK) restBreak = true; else rest += items.get(k).h;
+                    }
+                    target = (!restBreak && rest / 2 + 30 <= BOTTOM - y) ? rest / 2 : Float.MAX_VALUE;
                 }
             }
             pages.get(pages.size() - 1).add(new Placed(it.p, M + col * (colW + gap), y, colW, it.h));
