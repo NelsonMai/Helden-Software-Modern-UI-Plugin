@@ -14,7 +14,7 @@ offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
   Steigerungen bei der Erschaffung und jede spätere Steigerung mit Datum, Lernmethode
   (Lehrmeister, Selbststudium …), Spezieller Erfahrung und AP-Kosten. Bei Sonderfertigkeiten das Erwerbsdatum.
   Grundlage ist das Ereignisprotokoll der Helden-Software.
-- **Eigene Tooltip-Texte**: Maus über einen Eintrag, `Strg+Umschalt+T`. Gespeichert in
+- **Eigene Tooltip-Texte**: Doppelklick auf einen Eintrag oder Maus darüber und `Strg+Umschalt+T`. Gespeichert in
   `helden/plugins/modern-ui/eigene-tooltips.tsv` (nur lokal, nicht im Repository).
 - **Reiter „Plugin: Modern-UI“**: moderne Heldenübersicht mit Eigenschaften, Basiswerten, filterbaren Talenten,
   Sonderfertigkeiten, Vor-/Nachteilen, Kampfwerten, Zaubern und Inventar.
