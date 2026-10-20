@@ -27,8 +27,9 @@ offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
   über dem Zauber). Die Geldbörse listet Dukaten, Silbertaler, Heller und Kreuzer mit Gesamtwert und
   Umrechnung (1 D = 10 S = 100 H = 1000 K), Gewichte stehen in Stein mit kg in Klammern, und die
   Notizseite hat ein Feld für die Charakterbeschreibung.
-  Astral- und Karmaenergie haben eine Zahlenleiste zum Abstreichen (in Fünfergruppen) und ein kleines
-  Protokoll für Ausgaben und Regeneration.
+  Zauberkundige (und Geweihte) bekommen eine eigene Magie-Seite: Astral- bzw. Karmaenergie mit Zahlenleiste
+  für einen Marker und Verlaufsprotokoll (kein Radieren nötig) sowie eine Zauberübersicht mit Probe, ZfW,
+  AsP-Kosten, Eckdaten und Notizen. Helden ohne Magie bekommen diese Seite nicht.
   Meta-Talente (z. B. Wache halten) berechnet die Helden-Software nur, wenn in ihren Druckeinstellungen „Metatalente“
   aktiv ist – der Eintrag *Meta-Talente in der Helden-Software einschalten …* öffnet diese Einstellungen direkt.
 

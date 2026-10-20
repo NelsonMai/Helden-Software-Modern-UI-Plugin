@@ -80,7 +80,7 @@ public final class ModernSheet implements Pageable, Printable {
         vorteile();
         space(8);
         talente();
-        zauber();
+        magieSeite();
         inventar();
         if (opt.notizseite) notizen();
     }
@@ -175,8 +175,7 @@ public final class ModernSheet implements Pageable, Printable {
         List<String[]> rows = new ArrayList<>();
         energieRow(rows, "Lebensenergie", "lebensenergie");
         energieRow(rows, "Ausdauer", "ausdauer");
-        // AsP und KaP werden oft um mehrere Punkte reduziert – eigene Leiste + Protokoll statt Tabellenzeile
-        boolean asp = d.magisch || d.akt("astralenergie") > 0, kap = d.geweiht || d.akt("karmaenergie") > 0;
+        // Astral- und Karmaenergie stehen auf der eigenen Magie-Seite
         heading("Zustand", 40);
         table(new String[]{"", "Max", "½", "⅓", "¼", "Aktuell", "Notizen"},
                 new float[]{1.5f, .6f, .5f, .5f, .5f, 1.4f, 3.2f},
@@ -191,88 +190,88 @@ public final class ModernSheet implements Pageable, Printable {
             g.setColor(MUTED);
             g.drawString(reg + (reg.isEmpty() ? "" : "   ·   ") + "Wunden je Trefferzone siehe Kampf", x, yy + 14);
         });
-        if (asp) energiePool("Astralenergie", "AsP", d.akt("astralenergie"),
-                d.aspReg.isEmpty() ? "" : "Regeneration " + d.aspReg, "Zauber / Anlass");
-        if (kap) energiePool("Karmaenergie", "KaP", d.akt("karmaenergie"), "", "Liturgie / Anlass");
         space(6);
     }
 
     /**
-     * Leiste zum Abstreichen (max … 0) und daneben ein kurzes Protokoll für Ausgaben und Regeneration.
-     * Verbrauchte Punkte werden in der Leiste von oben durchgestrichen; das erste freie Feld ist der aktuelle Wert.
+     * Energie-Anzeige, bei der nie radiert werden muss:
+     * – Zahlenleiste max … 0 für einen Marker (Münze, Spielstein, Büroklammer) auf dem aktuellen Wert,
+     * – Verlaufsprotokoll, in das nur neue Zeilen geschrieben werden; der unterste Eintrag ist der aktuelle Stand.
      */
     private void energiePool(final String titel, final String kurz, final int max, final String reg, final String anlass) {
         if (max <= 0) return;
-        final float pad = 10, titleH = 20;
-        final float cell = 13f;
-        final float leftW = (W - 2 * M) * 0.56f - pad;
-        final int perRow = Math.max(5, Math.min(20, (int) Math.floor(leftW / cell / 5) * 5));
-        final int cells = max + 1;                       // max … 0
+        final float pad = 10, titleH = 22, cell = 14f;
+        final float innerW = W - 2 * M - 2 * pad;
+        final int perRow = Math.max(5, Math.min(35, (int) Math.floor((innerW + 2) / (cell + 0.5f) / 5) * 5));
+        final int cells = max + 1;
         final int trackRows = (cells + perRow - 1) / perRow;
-        final List<String> hint = wrap("Verbrauchte Punkte von oben abwärts durchstreichen – das erste freie Feld ist "
-                + "der aktuelle Wert. Bei Regeneration Striche von unten wieder freigeben.", F.reg(6.6f), leftW - 4);
-        final float trackH = trackRows * (cell + 2) + 6 + hint.size() * 8.5f;
-        final int logRows = Math.max(5, trackRows + 2);
-        final float logH = 13 + logRows * 13;
-        final float h = titleH + Math.max(trackH, logH) + 8;
-        space(4);
+        final float trackH = trackRows * (cell + 2.5f);
+        final List<String> hint = wrap("Kein Radieren nötig: Lege eine Münze, einen Spielstein oder eine Büroklammer auf den "
+                + "aktuellen Wert und verschiebe sie. Jede Änderung zusätzlich unten als neue Zeile eintragen – "
+                + "der unterste Eintrag ist der aktuelle Stand, ältere Zeilen bleiben einfach stehen.", F.reg(6.8f), innerW);
+        final float hintH = hint.size() * 8.8f + 4;
+        final int logRows = 9;                                   // je Spalte, zwei Spalten
+        final float logRowH = 14, logH = 13 + logRows * logRowH;
+        final float h = titleH + trackH + 4 + hintH + logH + pad;
+        space(2);
         atomic(h, (g, x, yy, w, hh) -> {
             g.setColor(FILL);
             g.fill(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
             g.setColor(ACCENT);
-            g.fill(new Rectangle2D.Float(x + pad, yy + 7, 2.5f, 10));
-            g.setFont(F.bold(9));
+            g.fill(new Rectangle2D.Float(x + pad, yy + 8, 2.5f, 10));
+            g.setFont(F.bold(10));
             g.setColor(INK);
-            g.drawString(titel, x + pad + 7, yy + 15.5f);
+            g.drawString(titel, x + pad + 7, yy + 17);
             float tx = x + pad + 7 + g.getFontMetrics().stringWidth(titel) + 10;
-            g.setFont(F.reg(7.6f));
+            g.setFont(F.reg(7.8f));
             g.setColor(MUTED);
-            g.drawString("max " + max + " " + kurz + (reg.isEmpty() ? "" : "   ·   " + reg), tx, yy + 15.5f);
+            g.drawString("max " + max + " " + kurz + (reg.isEmpty() ? "" : "   ·   " + reg), tx, yy + 17);
 
-            // --- Leiste zum Abstreichen
-            float lx = x + pad, ly = yy + titleH + 2;
-            // rechtsbündig füllen, damit jede Fünfergruppe auf 5, 10, 15 … endet und 0 ganz unten rechts steht
+            // Zahlenleiste: rechtsbündig, Fünfergruppen enden auf 5, 10, 15 …, 0 unten rechts
+            float lx = x + pad, ly = yy + titleH;
             int offset = trackRows * perRow - cells;
             for (int i = 0; i < cells; i++) {
-                int v = max - i;
-                int slot = i + offset;
+                int v = max - i, slot = i + offset;
                 int row = slot / perRow, col = slot % perRow;
-                float cx = lx + col * cell + (col / 5) * 2.5f, cy = ly + row * (cell + 2);
+                float cx = lx + col * (cell + 0.5f) + (col / 5) * 1.5f - 1.5f * (perRow / 5 - 1) * 0, cy = ly + row * (cell + 2.5f);
                 boolean fuenf = v % 5 == 0;
                 g.setColor(WHITE);
                 g.fill(new RoundRectangle2D.Float(cx, cy, cell - 1.5f, cell - 1.5f, 3, 3));
                 g.setColor(fuenf ? ACCENT : LINE.darker());
                 g.draw(new RoundRectangle2D.Float(cx, cy, cell - 1.5f, cell - 1.5f, 3, 3));
-                g.setFont(fuenf ? F.bold(5.8f) : F.reg(5.6f));
+                g.setFont(fuenf ? F.bold(6f) : F.reg(5.8f));
                 g.setColor(fuenf ? ACCENT : MUTED);
-                center(g, String.valueOf(v), cx, cell - 1.5f, cy + 8.2f);
+                center(g, String.valueOf(v), cx, cell - 1.5f, cy + 8.8f);
             }
-            g.setFont(F.reg(6.6f));
+            g.setFont(F.reg(6.8f));
             g.setColor(MUTED);
-            float hy = ly + trackRows * (cell + 2) + 7;
-            for (String l : hint) { g.drawString(l, lx, hy); hy += 8.5f; }
+            float hy = ly + trackH + 9;
+            for (String l : hint) { g.drawString(l, lx, hy); hy += 8.8f; }
 
-            // --- Protokoll
-            float px = x + (w * 0.56f), pw = x + w - pad - px;
-            float c1 = pw * 0.62f, c2 = pw * 0.19f;
-            float py = yy + titleH + 2;
-            g.setColor(WHITE);
-            g.fill(new RoundRectangle2D.Float(px, py, pw, logH, 6, 6));
-            g.setColor(LINE);
-            g.draw(new RoundRectangle2D.Float(px, py, pw, logH, 6, 6));
-            g.setFont(F.bold(6.2f));
-            g.setColor(ACCENT.darker());
-            g.drawString(anlass.toUpperCase(Locale.GERMAN), px + 5, py + 9);
-            center(g, "± " + kurz, px + c1, c2, py + 9);
-            center(g, "REST", px + c1 + c2, pw - c1 - c2, py + 9);
-            g.setColor(LINE);
-            for (int i = 0; i <= logRows; i++) {
-                float ry = py + 13 + i * 13;
-                if (i > 0 && i < logRows + 1 && ry < py + logH - 0.5f) g.draw(new Line2D.Float(px + 4, ry, px + pw - 4, ry));
+            // Verlaufsprotokoll in zwei Spalten
+            float py = ly + trackH + 4 + hintH;
+            float gap = 10, pw = (w - 2 * pad - gap) / 2;
+            for (int k = 0; k < 2; k++) {
+                float px = x + pad + k * (pw + gap);
+                float c1 = pw * 0.58f, c2 = pw * 0.19f;
+                g.setColor(WHITE);
+                g.fill(new RoundRectangle2D.Float(px, py, pw, logH, 6, 6));
+                g.setColor(LINE);
+                g.draw(new RoundRectangle2D.Float(px, py, pw, logH, 6, 6));
+                g.setFont(F.bold(6.2f));
+                g.setColor(ACCENT.darker());
+                g.drawString(anlass.toUpperCase(Locale.GERMAN), px + 5, py + 9);
+                center(g, "− / + " + kurz, px + c1, c2, py + 9);
+                center(g, kurz.toUpperCase(Locale.GERMAN) + " DANACH", px + c1 + c2, pw - c1 - c2, py + 9);
+                g.setColor(LINE);
+                g.draw(new Line2D.Float(px + 3, py + 13, px + pw - 3, py + 13));
+                for (int i = 1; i < logRows; i++) {
+                    float ry = py + 13 + i * logRowH;
+                    g.draw(new Line2D.Float(px + 3, ry, px + pw - 3, ry));
+                }
+                g.draw(new Line2D.Float(px + c1, py + 3, px + c1, py + logH - 3));
+                g.draw(new Line2D.Float(px + c1 + c2, py + 3, px + c1 + c2, py + logH - 3));
             }
-            g.draw(new Line2D.Float(px + c1, py + 3, px + c1, py + logH - 3));
-            g.draw(new Line2D.Float(px + c1 + c2, py + 3, px + c1 + c2, py + logH - 3));
-            g.draw(new Line2D.Float(px + 4, py + 13, px + pw - 4, py + 13));
         });
     }
 
@@ -705,23 +704,127 @@ public final class ModernSheet implements Pageable, Printable {
         right(g, String.valueOf(t.wert), c[10] + c[11] - 3, base);
     }
 
-    private void zauber() {
+    /** Eigene Seite für Astralenergie und Zauber (bzw. Karmaenergie) – nur, wenn der Held so etwas besitzt. */
+    private void magieSeite() {
+        boolean asp = d.magisch || d.akt("astralenergie") > 0 || !d.zauber.isEmpty();
+        boolean kap = d.geweiht || d.akt("karmaenergie") > 0;
+        if (!asp && !kap) return;
+        if (y > M + 1) newPage();
+        if (asp) {
+            heading("Magie", 120);
+            energiePool("Astralenergie", "AsP", d.akt("astralenergie"),
+                    d.aspReg.isEmpty() ? "" : "Regeneration " + d.aspReg, "Zauber / Anlass");
+            zauberUebersicht();
+        }
+        if (kap) {
+            space(6);
+            heading("Karma", 120);
+            energiePool("Karmaenergie", "KaP", d.akt("karmaenergie"), "", "Liturgie / Anlass");
+        }
+        newPage();   // folgende Abschnitte wieder auf eigener Seite
+    }
+
+    /** Zauberübersicht: Probe, ZfW, AsP-Kosten (Feld zum Eintragen, falls leer), Eckdaten und Notizen. */
+    private void zauberUebersicht() {
         if (d.zauber.isEmpty()) return;
-        space(4);
-        heading("Zauber", 40);
-        List<String[]> rows = new ArrayList<>();
-        List<String> notes = new ArrayList<>();
-        for (SheetData.Zauber z : d.zauber) {
-            rows.add(new String[]{z.name, z.probe, z.probenwerte, z.merkmale, z.rep, z.spalte, String.valueOf(z.wert)});
-            // Anmerkung aus der Helden-Software + eigener Text (wie bei SF und Vor-/Nachteilen)
+        space(8);
+        subheading("Zauber", 60);
+        final float fullW = W - 2 * M;
+        final float cName = 0.36f, cProbe = 0.20f, cZfw = 0.08f, cKost = 0.36f;
+        // Spaltenköpfe
+        place(13, (g, x, yy, w, h) -> {
+            g.setColor(ACCENT_SOFT);
+            g.fill(new RoundRectangle2D.Float(x, yy, w, h, 6, 6));
+            g.setFont(F.bold(6.4f));
+            g.setColor(ACCENT.darker());
+            g.drawString("ZAUBER", x + 6, yy + 9);
+            g.drawString("PROBE", x + w * cName + 4, yy + 9);
+            center(g, "ZFW", x + w * (cName + cProbe), w * cZfw, yy + 9);
+            g.drawString("ASP-KOSTEN", x + w * (cName + cProbe + cZfw) + 6, yy + 9);
+        });
+        int idx = 0;
+        for (final SheetData.Zauber z : d.zauber) {
+            final boolean zebra = (idx++ % 2) == 1;
+            final List<String> nameLines = wrap(z.name, F.bold(9), fullW * cName - 10);
+            if (nameLines.isEmpty()) nameLines.add(z.name);
+            // Eckdaten in einer Zeile
+            List<String> eck = new ArrayList<>();
+            if (!z.merkmale.isEmpty()) eck.add("Merkmale " + z.merkmale);
+            if (!z.rep.isEmpty()) eck.add("Rep. " + z.rep);
+            if (!z.spalte.isEmpty()) eck.add("Sp. " + z.spalte);
+            if (!z.mr.isEmpty()) eck.add("MR " + z.mr);
+            if (!z.zauberdauer.isEmpty()) eck.add("Zauberdauer " + z.zauberdauer);
+            if (!z.reichweite.isEmpty()) eck.add("Reichweite " + z.reichweite);
+            if (!z.wirkungsdauer.isEmpty()) eck.add("Wirkungsdauer " + z.wirkungsdauer);
+            final List<String> eckLines = wrap(String.join("  ·  ", eck), F.reg(7), fullW - 16);
+            // Notizen: Anmerkung der Helden-Software + eigener Text
             List<String> n = new ArrayList<>();
             if (!z.anmerkung.isEmpty()) n.add(z.anmerkung);
             String own = opt.beschreibungen ? beschreibung(z.name) : "";
             if (!own.isEmpty() && !own.equals(z.anmerkung)) n.add(own);
-            notes.add(String.join(" – ", n));
+            final List<String> noteLines = n.isEmpty() ? new ArrayList<String>() : wrap(String.join(" – ", n), F.reg(7.4f), fullW - 22);
+            final boolean leerNotiz = noteLines.isEmpty();
+            final float topH = Math.max(20, 6 + nameLines.size() * 11 + 2);
+            final float h = topH + eckLines.size() * 9 + (leerNotiz ? 15 : noteLines.size() * 9.5f + 4) + 4;
+            atomic(h, (g, x, yy, w, hh) -> {
+                if (zebra) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, hh)); }
+                float base = yy + 14;
+                g.setFont(F.bold(9));
+                g.setColor(INK);
+                float ny = base;
+                for (String l : nameLines) { g.drawString(l, x + 6, ny); ny += 11; }
+                float px = x + w * cName + 4;
+                g.setFont(F.bold(8));
+                g.drawString(z.probe, px, base);
+                g.setFont(F.reg(7.6f));
+                g.setColor(MUTED);
+                g.drawString(z.probenwerte, px + g.getFontMetrics().stringWidth(z.probe) + 14, base);
+                g.setFont(F.bold(10));
+                g.setColor(INK);
+                center(g, String.valueOf(z.wert), x + w * (cName + cProbe), w * cZfw, base + 0.5f);
+                // Kostenfeld: Wert der Helden-Software oder leer zum einmaligen Eintragen
+                float kx = x + w * (cName + cProbe + cZfw) + 4, kw = w * cKost - 10;
+                g.setColor(WHITE);
+                g.fill(new RoundRectangle2D.Float(kx, yy + 4, kw, 14, 5, 5));
+                g.setColor(LINE.darker());
+                g.draw(new RoundRectangle2D.Float(kx, yy + 4, kw, 14, 5, 5));
+                if (!z.kosten.isEmpty()) {
+                    g.setFont(F.reg(7.6f));
+                    g.setColor(INK);
+                    drawFit(g, z.kosten, kx + 5, yy + 13.8f, kw - 10);
+                } else {
+                    g.setFont(F.reg(6.4f));
+                    g.setColor(LINE.darker());
+                    right(g, "AsP", kx + kw - 5, yy + 13.6f);
+                }
+                float ly = yy + topH + 6;
+                g.setFont(F.reg(7));
+                g.setColor(MUTED);
+                for (String l : eckLines) { g.drawString(l, x + 6, ly); ly += 9; }
+                if (leerNotiz) {
+                    g.setFont(F.reg(6.4f));
+                    g.drawString("Notiz", x + 6, ly + 4);
+                    g.setColor(LINE);
+                    g.draw(new Line2D.Float(x + 28, ly + 5, x + w - 6, ly + 5));
+                } else {
+                    g.setColor(ACCENT);
+                    g.fill(new Rectangle2D.Float(x + 7, ly - 5.5f, 1.6f, noteLines.size() * 9.5f - 1.5f));
+                    g.setFont(F.reg(7.4f));
+                    g.setColor(new Color(0x444444));
+                    for (String l : noteLines) { g.drawString(l, x + 14, ly + 1); ly += 9.5f; }
+                }
+            });
         }
-        table(new String[]{"Zauber", "Probe", "Werte", "Merkmale", "Rep.", "Sp.", "ZfW"},
-                new float[]{2.7f, 1f, 1f, 1.7f, 1.45f, .4f, .5f}, new int[]{0, 1, 1, 0, 1, 1, 2}, rows, false, notes);
+        // Platz für weitere Zauber – nur den Rest der Seite nutzen, keine neue Seite dafür anfangen
+        space(6);
+        if (y + 14 + 3 * 17 > BOTTOM) return;
+        subheading("Weitere Zauber & Notizen", 40);
+        while (y + 17 <= BOTTOM) {
+            atomic(17, (g, x, yy, w, h) -> {
+                g.setColor(LINE);
+                g.draw(new Line2D.Float(x, yy + h - 2, x + w, yy + h - 2));
+            });
+        }
     }
 
     private void inventar() {

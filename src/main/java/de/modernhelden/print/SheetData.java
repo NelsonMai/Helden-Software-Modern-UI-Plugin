@@ -26,7 +26,8 @@ public final class SheetData {
     }
 
     public static final class Zauber {
-        public String name = "", probe = "", probenwerte = "", spalte = "", merkmale = "", rep = "", anmerkung = "";
+        public String name = "", probe = "", probenwerte = "", spalte = "", merkmale = "", rep = "", anmerkung = "",
+                kosten = "", zauberdauer = "", reichweite = "", wirkungsdauer = "", mr = "";
         public int wert;
     }
 
@@ -186,6 +187,11 @@ public final class SheetData {
             z.merkmale = first(e, "merkmale", "merkmal");
             z.rep = first(e, "repräsentation", "repraesentation", "rep");
             z.anmerkung = first(e, "anmerkung", "anmerkungen", "zauberkommentar");
+            z.kosten = text(e, "kosten");
+            z.zauberdauer = text(e, "zauberdauer");
+            z.reichweite = text(e, "reichweite");
+            z.wirkungsdauer = text(e, "wirkungsdauer");
+            z.mr = text(e, "mr");
             if (!z.name.isEmpty()) d.zauber.add(z);
         }
 
