@@ -181,22 +181,11 @@ public final class ModernSheet implements Pageable, Printable {
                 d.wundschwelle.isEmpty() ? "" : "Wundschwelle " + d.wundschwelle,
                 d.leReg.isEmpty() ? "" : "LE-Regeneration " + d.leReg,
                 d.aspReg.isEmpty() ? "" : "AsP-Regeneration " + d.aspReg);
-        final boolean zonenWunden = !d.zonen.isEmpty();
+        // Wunden werden immer je Trefferzone im Kampfteil geführt – auch ohne Rüstung
         atomic(22, (g, x, yy, w, h) -> {
-            float tx = x;
-            if (!zonenWunden) {
-                g.setFont(F.bold(8));
-                g.setColor(INK);
-                g.drawString("Wunden", x, yy + 14);
-                for (int i = 0; i < 8; i++) {
-                    g.setColor(LINE.darker());
-                    g.draw(new RoundRectangle2D.Float(x + 40 + i * 14, yy + 5, 10, 10, 3, 3));
-                }
-                tx = x + 40 + 8 * 14 + 12;
-            }
             g.setFont(F.reg(8));
             g.setColor(MUTED);
-            g.drawString(reg + (zonenWunden ? "   ·   Wunden je Trefferzone siehe Kampf" : ""), tx, yy + 14);
+            g.drawString(reg + (reg.isEmpty() ? "" : "   ·   ") + "Wunden je Trefferzone siehe Kampf", x, yy + 14);
         });
         space(6);
     }
@@ -238,7 +227,8 @@ public final class ModernSheet implements Pageable, Printable {
         ruestung();
         behinderungUndInitiative();
         waffenlos();
-        if (!d.zonen.isEmpty()) { space(6); trefferzonenUndWunden(trefferLinks); }
+        space(6);
+        trefferzonenUndWunden(trefferLinks);
         space(6);
     }
 
@@ -251,7 +241,6 @@ public final class ModernSheet implements Pageable, Printable {
             {"Beine", "+2", "1–6***", "–", "AT, PA, GE, INI-Basis −2; GS −1", "Sturz, kampfunfähig"}};
 
     private void ruestung() {
-        if (d.zonen.isEmpty() && d.rsGesamt.isEmpty() && d.ruestungen.isEmpty()) return;
         // Schwertarm = rechts, außer bei Linkshändern
         boolean links = false;
         for (SheetData.Eintrag e : d.vorteile) if (e.name.startsWith("Linkshänder")) links = true;
@@ -263,10 +252,13 @@ public final class ModernSheet implements Pageable, Printable {
         final List<String[]> z = new ArrayList<>();          // {Name, RS, W20}
         for (String[] t : zonenW20) {
             String rs = d.zonen.get(t[0]);
-            if (rs != null) z.add(new String[]{t[0], rs, t[1]});
+            // ohne Zonendaten: ohne Rüstung ist der RS überall 0, sonst unbekannt (einfache RS-Berechnung)
+            if (rs == null) rs = d.ruestungen.isEmpty() ? "0" : "–";
+            z.add(new String[]{t[0], rs, t[1]});
         }
         final int zonen = z.size();
-        if (!d.rsGesamt.isEmpty()) z.add(new String[]{"RS", d.rsGesamt, "gesamt"});
+        String rsGes = !d.rsGesamt.isEmpty() ? d.rsGesamt : d.ruestungen.isEmpty() ? "0" : "";
+        if (!rsGes.isEmpty()) z.add(new String[]{"RS", rsGes, "gesamt"});
         final List<String> teile = new ArrayList<>();
         for (SheetData.Ruestung r : d.ruestungen) teile.add(r.name + (r.rs.isEmpty() || "*".equals(r.rs) ? "" : " (RS " + r.rs + ", BE " + r.be + ")"));
         final List<String> lines = wrap(String.join(" · ", teile), F.reg(7.5f), W - 2 * M);
@@ -362,15 +354,19 @@ public final class ModernSheet implements Pageable, Printable {
 
     /** Gesamt-Behinderung der angelegten Rüstung und Initiative-Berechnung je Waffe. */
     private void behinderungUndInitiative() {
-        final int be = SheetData.num(d.beGesamt);
-        final boolean hatBe = !d.beGesamt.isEmpty();
+        // ohne Angabe der Software: keine Rüstung = BE 0; mit Rüstung unbekannt (Feld zum Eintragen)
+        String beText = !d.beGesamt.isEmpty() ? d.beGesamt : d.ruestungen.isEmpty() ? "0" : "";
+        final int be = SheetData.num(beText);
+        final boolean hatBe = !beText.isEmpty();
         final int basis = d.akt("initiative");
         final List<String[]> rows = new ArrayList<>();   // {Waffe, Rechnung, Ergebnis}
         for (SheetData.Nahkampfwaffe n : d.nahkampf) {
             int mod = SheetData.num(n.ini);
-            rows.add(new String[]{n.name, basis + " − " + be + " " + vz(mod), (basis - be + mod) + " + 1W6"});
+            rows.add(new String[]{n.name, basis + " − " + (hatBe ? be : "BE") + " " + vz(mod),
+                    hatBe ? (basis - be + mod) + " + 1W6" : "____ + 1W6"});
         }
-        rows.add(new String[]{"Waffenlos", basis + " − " + be + " + 0", (basis - be) + " + 1W6"});
+        rows.add(new String[]{"Waffenlos", basis + " − " + (hatBe ? be : "BE") + " + 0",
+                hatBe ? (basis - be) + " + 1W6" : "____ + 1W6"});
         final List<String> schild = new ArrayList<>();
         for (SheetData.Schild sc : d.schilde) {
             int mod = SheetData.num(sc.ini);
