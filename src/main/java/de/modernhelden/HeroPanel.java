@@ -111,12 +111,20 @@ public final class HeroPanel extends JPanel {
         p.setOpaque(false);
         JLabel name = new JLabel(h.name);
         name.setFont(name.getFont().deriveFont(Font.BOLD, name.getFont().getSize2D() * 1.9f));
-        JLabel sub = new JLabel(join(" · ", h.rasse, h.kultur, h.profession));
+        // Rasse · Kultur · Profession umbrechen statt abschneiden
+        JTextArea sub = new JTextArea(join(" · ", h.rasse, h.kultur, h.profession));
+        sub.setLineWrap(true);
+        sub.setWrapStyleWord(true);
+        sub.setEditable(false);
+        sub.setFocusable(false);
+        sub.setOpaque(false);
+        sub.setBorder(null);
+        sub.setFont(name.getFont().deriveFont(Font.PLAIN, UIManager.getFont("Label.font").getSize2D()));
         sub.setForeground(Theme.muted());
-        JPanel left = new JPanel(new GridLayout(0, 1, 0, 2));
+        JPanel left = new JPanel(new BorderLayout(0, 2));
         left.setOpaque(false);
-        left.add(name);
-        left.add(sub);
+        left.add(name, BorderLayout.NORTH);
+        left.add(sub, BorderLayout.CENTER);
         p.add(left, BorderLayout.CENTER);
 
         JPanel ap = new JPanel(new GridLayout(0, 1));

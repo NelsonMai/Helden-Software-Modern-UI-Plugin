@@ -87,13 +87,17 @@ public final class ModernSheet implements Pageable, Printable {
 
     private void header() {
         final String sub = join(" · ", d.rasse, d.kultur, d.profession);
-        atomic(56, (g, x, yy, w, h) -> {
+        // Rasse · Kultur · Profession wird umbrochen statt abgeschnitten
+        final List<String> subLines = wrap(sub, F.reg(9.5f), W - 2 * M - 120);
+        if (subLines.isEmpty()) subLines.add("");
+        atomic(56 + (subLines.size() - 1) * 12, (g, x, yy, w, h) -> {
             g.setColor(INK);
             g.setFont(F.bold(21));
             drawFit(g, d.name, x, yy + 22, w - 120);
             g.setFont(F.reg(9.5f));
             g.setColor(MUTED);
-            drawFit(g, sub, x, yy + 38, w - 120);
+            float sy = yy + 38;
+            for (String l : subLines) { g.drawString(l, x, sy); sy += 12; }
             g.setFont(F.bold(15));
             g.setColor(INK);
             right(g, d.apGesamt + " AP", x + w, yy + 22);
@@ -151,8 +155,8 @@ public final class ModernSheet implements Pageable, Printable {
         add(b, "INI", "initiative", "Initiative-Basis");
         add(b, "AT", "attacke", "Attacke-Basis");
         add(b, "PA", "parade", "Parade-Basis");
-        add(b, "FK", "fernkampf-basis", "Fernkampf-Basis");
-        add(b, "GS", "geschwindigkeit", "Geschwindigkeit");
+        add(b, "FK", "fernkampf-basis", "Fernkampf");
+        add(b, "GS", "geschwindigkeit", "Geschwindigk.");
         if (!d.ausweichen.isEmpty()) b.add(new String[]{"AW", d.ausweichen, "Ausweichen"});
         if (!d.wundschwelle.isEmpty()) b.add(new String[]{"WS", d.wundschwelle, "Wundschwelle"});
         atomic(44, (g, x, yy, w, h) -> {
