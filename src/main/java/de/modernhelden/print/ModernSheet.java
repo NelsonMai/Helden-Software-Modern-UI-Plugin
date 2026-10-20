@@ -175,8 +175,8 @@ public final class ModernSheet implements Pageable, Printable {
         List<String[]> rows = new ArrayList<>();
         energieRow(rows, "Lebensenergie", "lebensenergie");
         energieRow(rows, "Ausdauer", "ausdauer");
-        if (d.magisch || d.akt("astralenergie") > 0) energieRow(rows, "Astralenergie", "astralenergie");
-        if (d.geweiht || d.akt("karmaenergie") > 0) energieRow(rows, "Karmaenergie", "karmaenergie");
+        // AsP und KaP werden oft um mehrere Punkte reduziert – eigene Leiste + Protokoll statt Tabellenzeile
+        boolean asp = d.magisch || d.akt("astralenergie") > 0, kap = d.geweiht || d.akt("karmaenergie") > 0;
         heading("Zustand", 40);
         table(new String[]{"", "Max", "½", "⅓", "¼", "Aktuell", "Notizen"},
                 new float[]{1.5f, .6f, .5f, .5f, .5f, 1.4f, 3.2f},
@@ -184,14 +184,96 @@ public final class ModernSheet implements Pageable, Printable {
         final String reg = join("   ·   ",
                 d.wundschwelle.isEmpty() ? "" : "Wundschwelle " + d.wundschwelle,
                 d.leReg.isEmpty() ? "" : "LE-Regeneration " + d.leReg,
-                d.aspReg.isEmpty() ? "" : "AsP-Regeneration " + d.aspReg);
+                "");
         // Wunden werden immer je Trefferzone im Kampfteil geführt – auch ohne Rüstung
         atomic(22, (g, x, yy, w, h) -> {
             g.setFont(F.reg(8));
             g.setColor(MUTED);
             g.drawString(reg + (reg.isEmpty() ? "" : "   ·   ") + "Wunden je Trefferzone siehe Kampf", x, yy + 14);
         });
+        if (asp) energiePool("Astralenergie", "AsP", d.akt("astralenergie"),
+                d.aspReg.isEmpty() ? "" : "Regeneration " + d.aspReg, "Zauber / Anlass");
+        if (kap) energiePool("Karmaenergie", "KaP", d.akt("karmaenergie"), "", "Liturgie / Anlass");
         space(6);
+    }
+
+    /**
+     * Leiste zum Abstreichen (max … 0) und daneben ein kurzes Protokoll für Ausgaben und Regeneration.
+     * Verbrauchte Punkte werden in der Leiste von oben durchgestrichen; das erste freie Feld ist der aktuelle Wert.
+     */
+    private void energiePool(final String titel, final String kurz, final int max, final String reg, final String anlass) {
+        if (max <= 0) return;
+        final float pad = 10, titleH = 20;
+        final float cell = 13f;
+        final float leftW = (W - 2 * M) * 0.56f - pad;
+        final int perRow = Math.max(5, Math.min(20, (int) Math.floor(leftW / cell / 5) * 5));
+        final int cells = max + 1;                       // max … 0
+        final int trackRows = (cells + perRow - 1) / perRow;
+        final List<String> hint = wrap("Verbrauchte Punkte von oben abwärts durchstreichen – das erste freie Feld ist "
+                + "der aktuelle Wert. Bei Regeneration Striche von unten wieder freigeben.", F.reg(6.6f), leftW - 4);
+        final float trackH = trackRows * (cell + 2) + 6 + hint.size() * 8.5f;
+        final int logRows = Math.max(5, trackRows + 2);
+        final float logH = 13 + logRows * 13;
+        final float h = titleH + Math.max(trackH, logH) + 8;
+        space(4);
+        atomic(h, (g, x, yy, w, hh) -> {
+            g.setColor(FILL);
+            g.fill(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
+            g.setColor(ACCENT);
+            g.fill(new Rectangle2D.Float(x + pad, yy + 7, 2.5f, 10));
+            g.setFont(F.bold(9));
+            g.setColor(INK);
+            g.drawString(titel, x + pad + 7, yy + 15.5f);
+            float tx = x + pad + 7 + g.getFontMetrics().stringWidth(titel) + 10;
+            g.setFont(F.reg(7.6f));
+            g.setColor(MUTED);
+            g.drawString("max " + max + " " + kurz + (reg.isEmpty() ? "" : "   ·   " + reg), tx, yy + 15.5f);
+
+            // --- Leiste zum Abstreichen
+            float lx = x + pad, ly = yy + titleH + 2;
+            // rechtsbündig füllen, damit jede Fünfergruppe auf 5, 10, 15 … endet und 0 ganz unten rechts steht
+            int offset = trackRows * perRow - cells;
+            for (int i = 0; i < cells; i++) {
+                int v = max - i;
+                int slot = i + offset;
+                int row = slot / perRow, col = slot % perRow;
+                float cx = lx + col * cell + (col / 5) * 2.5f, cy = ly + row * (cell + 2);
+                boolean fuenf = v % 5 == 0;
+                g.setColor(WHITE);
+                g.fill(new RoundRectangle2D.Float(cx, cy, cell - 1.5f, cell - 1.5f, 3, 3));
+                g.setColor(fuenf ? ACCENT : LINE.darker());
+                g.draw(new RoundRectangle2D.Float(cx, cy, cell - 1.5f, cell - 1.5f, 3, 3));
+                g.setFont(fuenf ? F.bold(5.8f) : F.reg(5.6f));
+                g.setColor(fuenf ? ACCENT : MUTED);
+                center(g, String.valueOf(v), cx, cell - 1.5f, cy + 8.2f);
+            }
+            g.setFont(F.reg(6.6f));
+            g.setColor(MUTED);
+            float hy = ly + trackRows * (cell + 2) + 7;
+            for (String l : hint) { g.drawString(l, lx, hy); hy += 8.5f; }
+
+            // --- Protokoll
+            float px = x + (w * 0.56f), pw = x + w - pad - px;
+            float c1 = pw * 0.62f, c2 = pw * 0.19f;
+            float py = yy + titleH + 2;
+            g.setColor(WHITE);
+            g.fill(new RoundRectangle2D.Float(px, py, pw, logH, 6, 6));
+            g.setColor(LINE);
+            g.draw(new RoundRectangle2D.Float(px, py, pw, logH, 6, 6));
+            g.setFont(F.bold(6.2f));
+            g.setColor(ACCENT.darker());
+            g.drawString(anlass.toUpperCase(Locale.GERMAN), px + 5, py + 9);
+            center(g, "± " + kurz, px + c1, c2, py + 9);
+            center(g, "REST", px + c1 + c2, pw - c1 - c2, py + 9);
+            g.setColor(LINE);
+            for (int i = 0; i <= logRows; i++) {
+                float ry = py + 13 + i * 13;
+                if (i > 0 && i < logRows + 1 && ry < py + logH - 0.5f) g.draw(new Line2D.Float(px + 4, ry, px + pw - 4, ry));
+            }
+            g.draw(new Line2D.Float(px + c1, py + 3, px + c1, py + logH - 3));
+            g.draw(new Line2D.Float(px + c1 + c2, py + 3, px + c1 + c2, py + logH - 3));
+            g.draw(new Line2D.Float(px + 4, py + 13, px + pw - 4, py + 13));
+        });
     }
 
     private void energieRow(List<String[]> rows, String name, String key) {
