@@ -152,6 +152,22 @@ public final class Theme {
         for (int ci = 0; ci < cm.getColumnCount(); ci++) {
             javax.swing.table.TableColumn col = cm.getColumn(ci);
             Object r = col.getCellRenderer(), e = col.getCellEditor();
+            if (r instanceof TabellenStil.Zebra) {
+                // Hülle für Zebra-Streifen: der eigentliche Renderer steckt darin
+                Object innen = ((TabellenStil.Zebra) r).original;
+                if (innen instanceof Component) {
+                    if (erledigt.add((Component) innen)) SwingUtilities.updateComponentTreeUI((Component) innen);
+                    continue;
+                }
+                e = e == innen ? r : e;
+                if (innen == null) r = null;     // Hülle um den Standard-Renderer der Tabelle
+            }
+            // ohne eigenen Spalten-Renderer gilt der Standard-Renderer der Tabelle für diesen Spaltentyp –
+            // auch der kann Komponenten zwischenspeichern (z. B. „+1“-Knöpfe in der Talentliste)
+            if (r == null) {
+                r = t.getDefaultRenderer(t.getColumnClass(ci));
+                if (e == null) e = t.getDefaultEditor(t.getColumnClass(ci));
+            }
             // Komponenten-Renderer aktualisiert JTable.updateUI bereits selbst
             if (r == null || r instanceof Component) continue;
             javax.swing.table.TableCellRenderer tr = (javax.swing.table.TableCellRenderer) r;

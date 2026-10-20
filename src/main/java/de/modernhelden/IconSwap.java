@@ -34,6 +34,8 @@ public final class IconSwap {
         installieren();
         factory(m);
         alleFenster();
+        // nach dem Setzen/Entfernen der Zebra-Hüllen zwischengespeicherte Zellen-Knöpfe erneut angleichen
+        Theme.aktualisiereTabellenRenderer();
         if (m) timer.start(); else timer.stop();
     }
 
