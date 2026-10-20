@@ -229,6 +229,7 @@ public final class ModernSheet implements Pageable, Printable {
                     new float[]{3f, 1.5f, .6f, .9f, .6f, .5f}, new int[]{0, 0, 1, 1, 2, 1}, r, false);
         }
         ruestung();
+        behinderungUndInitiative();
         waffenlos();
         space(6);
     }
@@ -248,7 +249,6 @@ public final class ModernSheet implements Pageable, Printable {
         }
         final int zonen = z.size();
         if (!d.rsGesamt.isEmpty()) z.add(new String[]{"RS", d.rsGesamt, "gesamt"});
-        if (!d.beGesamt.isEmpty()) z.add(new String[]{"BE", d.beGesamt, "Rüstung"});
         final List<String> teile = new ArrayList<>();
         for (SheetData.Ruestung r : d.ruestungen) teile.add(r.name + (r.rs.isEmpty() || "*".equals(r.rs) ? "" : " (RS " + r.rs + ", BE " + r.be + ")"));
         final List<String> lines = wrap(String.join(" · ", teile), F.reg(7.5f), W - 2 * M);
@@ -291,11 +291,75 @@ public final class ModernSheet implements Pageable, Printable {
         });
     }
 
+    /** Gesamt-Behinderung der angelegten Rüstung und Initiative-Berechnung je Waffe. */
+    private void behinderungUndInitiative() {
+        final int be = SheetData.num(d.beGesamt);
+        final boolean hatBe = !d.beGesamt.isEmpty();
+        final int basis = d.akt("initiative");
+        final List<String[]> rows = new ArrayList<>();   // {Waffe, Rechnung, Ergebnis}
+        for (SheetData.Nahkampfwaffe n : d.nahkampf) {
+            int mod = SheetData.num(n.ini);
+            rows.add(new String[]{n.name, basis + " − " + be + " " + vz(mod), (basis - be + mod) + " + 1W6"});
+        }
+        rows.add(new String[]{"Waffenlos", basis + " − " + be + " + 0", (basis - be) + " + 1W6"});
+        final List<String> schild = new ArrayList<>();
+        for (SheetData.Schild sc : d.schilde) {
+            int mod = SheetData.num(sc.ini);
+            if (mod != 0) schild.add("mit " + sc.name + " zusätzlich " + vz(mod).replace(" ", ""));
+        }
+        float rowsH = 14 + rows.size() * 12.5f + (schild.isEmpty() ? 0 : 11 * schild.size() + 2);
+        float h = Math.max(62, rowsH + 22);
+        space(4);
+        atomic(h, (g, x, yy, w, hh) -> {
+            // linke Kachel: Behinderung
+            float bw = 150;
+            g.setColor(ACCENT_SOFT);
+            g.fill(new RoundRectangle2D.Float(x, yy, bw, hh, 8, 8));
+            g.setFont(F.bold(6.8f));
+            g.setColor(ACCENT.darker());
+            g.drawString("BEHINDERUNG (BE) GESAMT", x + 10, yy + 14);
+            g.setFont(F.bold(26));
+            g.setColor(ACCENT);
+            g.drawString(hatBe ? String.valueOf(be) : "–", x + 10, yy + 43);
+            g.setFont(F.reg(6.6f));
+            g.setColor(MUTED);
+            g.drawString("durch angelegte Rüstung", x + 44, yy + 34);
+            g.drawString("wirkt auf INI und Talente mit BE", x + 44, yy + 43);
+            // rechte Fläche: Initiative
+            float rx = x + bw + 8, rw = w - bw - 8;
+            g.setColor(FILL);
+            g.fill(new RoundRectangle2D.Float(rx, yy, rw, hh, 8, 8));
+            g.setFont(F.bold(6.8f));
+            g.setColor(MUTED);
+            g.drawString("INITIATIVE IM KAMPF", rx + 10, yy + 14);
+            g.setFont(F.reg(7.2f));
+            g.drawString("INI-Basis − BE + Waffen-/Schild-Mod. + 1W6", rx + 104, yy + 14);
+            float ly = yy + 30;
+            float c1 = rx + 10, c2 = rx + rw * 0.42f, c3 = rx + rw - 10;
+            for (String[] r : rows) {
+                g.setFont(F.bold(8));
+                g.setColor(INK);
+                drawFit(g, r[0], c1, ly, c2 - c1 - 6);
+                g.setFont(F.reg(7.6f));
+                g.setColor(MUTED);
+                g.drawString(r[1], c2, ly);
+                g.setFont(F.bold(8.5f));
+                g.setColor(INK);
+                right(g, "= " + r[2], c3, ly);
+                ly += 12.5f;
+            }
+            g.setFont(F.reg(7));
+            g.setColor(ACCENT);
+            for (String sline : schild) { g.drawString(sline, c1, ly); ly += 11; }
+        });
+    }
+
+    private static String vz(int v) { return v < 0 ? "− " + (-v) : "+ " + v; }
+
     private void waffenlos() {
         final List<String[]> items = new ArrayList<>();
         if (!d.raufenAt.isEmpty()) items.add(new String[]{"Raufen", "AT " + d.raufenAt + " · PA " + d.raufenPa + " · TP " + d.raufenTp});
         if (!d.ringenAt.isEmpty()) items.add(new String[]{"Ringen", "AT " + d.ringenAt + " · PA " + d.ringenPa + " · TP " + d.ringenTp});
-        if (!d.iniKampf.isEmpty()) items.add(new String[]{"Initiative", d.iniKampf});
         if (!d.gsInklBe.isEmpty()) items.add(new String[]{"GS inkl. BE", d.gsInklBe});
         if (items.isEmpty()) return;
         space(4);
