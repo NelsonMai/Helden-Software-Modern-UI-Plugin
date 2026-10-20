@@ -535,6 +535,15 @@ public final class HeroPanel extends JPanel {
         c.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) { maybe(e); }
             public void mouseReleased(MouseEvent e) { maybe(e); }
+            @Override public void mouseClicked(MouseEvent e) {
+                // Doppelklick: eigene Notiz zum Eintrag anlegen/bearbeiten
+                if (e.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(e)) return;
+                String n = nameAt.at(e);
+                if (n == null) return;
+                TooltipDB.Match m = db.find(n);
+                editor.accept(m != null ? m : new TooltipDB.Match(n, null, n));
+                showHero(hero);
+            }
             private void maybe(MouseEvent e) {
                 if (!e.isPopupTrigger()) return;
                 String n = nameAt.at(e);

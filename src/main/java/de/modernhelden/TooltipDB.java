@@ -225,7 +225,7 @@ public final class TooltipDB {
         if (e != null && !e.text.isEmpty()) {
             sb.append("<div style='margin-top:6px'>").append(esc(e.text)).append("</div>");
         }
-        sb.append("<div style='margin-top:6px;color:#9a9a9a;font-size:90%'>Strg+Umschalt+T: eigenen Text hinterlegen</div>");
+        sb.append("<div style='margin-top:6px;color:#9a9a9a;font-size:90%'>Doppelklick oder Strg+Umschalt+T: eigene Notiz</div>");
         sb.append("</div></html>");
         return sb.toString();
     }

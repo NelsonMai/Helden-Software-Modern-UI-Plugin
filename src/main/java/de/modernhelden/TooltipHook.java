@@ -47,9 +47,12 @@ public final class TooltipHook implements AWTEventListener {
     public boolean isEnabled() { return enabled; }
     public TooltipDB.Match getLastMatch() { return lastMatch; }
 
+    private Runnable editAction;
+
     public synchronized void install(final Runnable editAction) {
         if (installed) return;
         installed = true;
+        this.editAction = editAction;
         Toolkit.getDefaultToolkit().addAWTEventListener(this,
                 AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
         ToolTipManager tm = ToolTipManager.sharedInstance();
@@ -70,6 +73,7 @@ public final class TooltipHook implements AWTEventListener {
     public void eventDispatched(AWTEvent ev) {
         try {
             int id = ev.getID();
+            if (id == MouseEvent.MOUSE_CLICKED) { doppelklick((MouseEvent) ev); return; }
             if (id == MouseEvent.MOUSE_PRESSED || id == MouseEvent.MOUSE_WHEEL || id == KeyEvent.KEY_PRESSED
                     || id == MouseEvent.MOUSE_DRAGGED) {
                 hide();
@@ -88,6 +92,47 @@ public final class TooltipHook implements AWTEventListener {
         } catch (RuntimeException ignore) {
             // niemals die Original-Oberfläche stören
         }
+    }
+
+    /**
+     * Doppelklick auf einen Eintrag öffnet die eigene Notiz – aber nur dort, wo die Helden-Software
+     * selbst nichts mit einem Doppelklick macht (eigene Maus-Logik oder bearbeitbare Zelle).
+     */
+    private void doppelklick(MouseEvent e) {
+        if (!enabled || e.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(e) || e.isConsumed()) return;
+        Component comp = e.getComponent();
+        if (!(comp instanceof JComponent) || comp instanceof JToolTip) return;
+        JComponent c = (JComponent) comp;
+        if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) return;   // eigener Reiter regelt das selbst
+        if (!(c instanceof JTable || c instanceof JList || c instanceof JTree || c instanceof JLabel)) return;
+        String belegt = eigeneDoppelklickLogik(c, e.getPoint());
+        String text = textAt(c, e.getPoint());
+        TooltipDB.Match m = text == null ? null : db.find(text);
+        if (m == null && text != null && hero != null) {
+            HeroData.Talent z = hero.zauber(text);
+            if (z != null) m = new TooltipDB.Match(z.name, null, z.name);
+        }
+        log(c, "Doppelklick: " + text + (belegt != null ? " [belegt: " + belegt + "]" : ""), m);
+        if (m == null || belegt != null || editAction == null) return;
+        lastMatch = m;
+        hide();
+        SwingUtilities.invokeLater(editAction);
+    }
+
+    /** Liefert einen Grund, wenn die Komponente Doppelklicks selbst auswertet; sonst null. */
+    private static String eigeneDoppelklickLogik(JComponent c, Point p) {
+        if (c instanceof JTable) {
+            JTable t = (JTable) c;
+            int row = t.rowAtPoint(p), col = t.columnAtPoint(p);
+            if (row >= 0 && col >= 0 && t.isCellEditable(row, col)) return "bearbeitbare Zelle";
+        }
+        if (c instanceof JTree && ((JTree) c).isEditable()) return "bearbeitbarer Baum";
+        for (java.awt.event.MouseListener l : c.getMouseListeners()) {
+            String n = l.getClass().getName();
+            if (!n.startsWith("javax.") && !n.startsWith("java.") && !n.startsWith("com.formdev.")
+                    && !n.startsWith("sun.") && !n.startsWith("de.modernhelden.")) return n;
+        }
+        return null;
     }
 
     private void handle(JComponent c, MouseEvent e) {
