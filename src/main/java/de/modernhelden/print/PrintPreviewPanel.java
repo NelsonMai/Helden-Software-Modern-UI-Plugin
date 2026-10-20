@@ -35,7 +35,8 @@ public final class PrintPreviewPanel extends JPanel {
     private final JToggleButton modern = new JToggleButton("Modern"), original = new JToggleButton("Original");
     private final JComboBox<String> zoom = new JComboBox<>(ZOOMS);
     private final JCheckBox desc = new JCheckBox("Beschreibungen & eigene Notizen zu SF, Vor-/Nachteilen und Zaubern"), notes = new JCheckBox("Notizfelder und Linienseite (auch bei Zaubern)"),
-            meta = new JCheckBox("Meta-Talente zeigen (z. B. Wache halten, Kräuter suchen)");
+            meta = new JCheckBox("Meta-Talente zeigen (z. B. Wache halten, Kräuter suchen)"),
+            portrait = new JCheckBox("Portrait neben der Charakterbeschreibung");
     private final JLabel info = new JLabel();
     private final JPanel modernTools = new JPanel();
     private final JButton refreshBtn = new JButton("Aktualisieren"), pdf = new JButton("Als PDF speichern …"), print = new JButton("Drucken …");
@@ -55,6 +56,7 @@ public final class PrintPreviewPanel extends JPanel {
         desc.setSelected(!"false".equals(props.get("druck.beschreibungen")));
         notes.setSelected(!"false".equals(props.get("druck.notizen")));
         meta.setSelected(!"false".equals(props.get("druck.meta")));
+        portrait.setSelected(!"false".equals(props.get("druck.portrait")));
         String z = props.get("druck.zoom");
         zoom.setSelectedItem(z != null ? z : "Seitenbreite");
 
@@ -72,6 +74,7 @@ public final class PrintPreviewPanel extends JPanel {
 
         desc.addActionListener(e -> { save.accept("druck.beschreibungen", String.valueOf(desc.isSelected())); rebuild(); });
         notes.addActionListener(e -> { save.accept("druck.notizen", String.valueOf(notes.isSelected())); rebuild(); });
+        portrait.addActionListener(e -> { save.accept("druck.portrait", String.valueOf(portrait.isSelected())); rebuild(); });
         // Meta-Talente liefert die Helden-Software nur auf Anfrage – daher Daten neu holen
         meta.addActionListener(e -> { save.accept("druck.meta", String.valueOf(meta.isSelected())); dirty = true; refresh(); });
         zoom.addActionListener(e -> { save.accept("druck.zoom", String.valueOf(zoom.getSelectedItem())); pages.revalidate(); pages.repaint(); });
@@ -97,12 +100,20 @@ public final class PrintPreviewPanel extends JPanel {
         modernTools.add(zoom);
         modernTools.add(Box.createHorizontalStrut(8));
         final JPopupMenu optMenu = new JPopupMenu();
-        for (JCheckBox cb : new JCheckBox[]{desc, meta, notes}) {
+        for (JCheckBox cb : new JCheckBox[]{desc, meta, notes, portrait}) {
             final JCheckBox src = cb;
             final JCheckBoxMenuItem mi = new JCheckBoxMenuItem(cb.getText(), cb.isSelected());
             mi.addActionListener(e -> { src.setSelected(mi.isSelected()); for (java.awt.event.ActionListener l : src.getActionListeners()) l.actionPerformed(e); });
             optMenu.add(mi);
         }
+        optMenu.addSeparator();
+        JMenuItem bildWaehlen = new JMenuItem("Portrait wählen …");
+        bildWaehlen.setToolTipText("Bild (JPG, PNG, GIF, BMP) für den aktuellen Helden hinterlegen");
+        bildWaehlen.addActionListener(e -> portraitWaehlen());
+        optMenu.add(bildWaehlen);
+        JMenuItem bildWeg = new JMenuItem("Portrait entfernen (leeres Feld zum Zeichnen)");
+        bildWeg.addActionListener(e -> { save.accept(portraitKey(), ""); props.put(portraitKey(), ""); portraitCache = null; rebuild(); });
+        optMenu.add(bildWeg);
         optMenu.addSeparator();
         JMenuItem metaEin = new JMenuItem("Meta-Talente in der Helden-Software einschalten …");
         metaEin.setToolTipText("<html>Die Helden-Software berechnet Meta-Talente nur, wenn in ihren Druckeinstellungen<br>"
@@ -256,6 +267,8 @@ public final class PrintPreviewPanel extends JPanel {
         o.beschreibungen = desc.isSelected();
         o.notizseite = notes.isSelected();
         o.metatalente = meta.isSelected();
+        o.portrait = portrait.isSelected();
+        o.portraitBild = o.portrait ? portraitBild() : null;
         sheet = new ModernSheet(sheetData, db, o);
         info.setText(sheet.getNumberOfPages() + (sheet.getNumberOfPages() == 1 ? " Seite" : " Seiten"));
         boolean hatMeta = false;
@@ -266,6 +279,58 @@ public final class PrintPreviewPanel extends JPanel {
         print.setEnabled(true);
         pages.revalidate();
         pages.repaint();
+    }
+
+    // ------------------------------------------------------------ Portrait
+
+    private String portraitCachePfad;
+    private java.awt.image.BufferedImage portraitCache;
+
+    /** Pro Held gespeichert (in den Plugin-Einstellungen), Schlüssel aus dem Heldennamen. */
+    private String portraitKey() {
+        String n = sheetData == null || sheetData.name.isEmpty() ? "held" : sheetData.name;
+        return "druck.portrait.bild." + n.replaceAll("[^A-Za-z0-9ÄÖÜäöüß]+", "_");
+    }
+
+    /** Eigenes Bild aus den Plugin-Einstellungen, sonst das in der Helden-Software hinterlegte Portrait. */
+    private java.awt.image.BufferedImage portraitBild() {
+        String pfad = props.get(portraitKey());
+        if ((pfad == null || pfad.isEmpty()) && sheetData != null) pfad = sheetData.bildPfad;
+        if (pfad == null || pfad.trim().isEmpty()) return null;
+        if (pfad.equals(portraitCachePfad)) return portraitCache;
+        portraitCachePfad = pfad;
+        portraitCache = null;
+        try {
+            java.io.File f = new java.io.File(pfad);
+            if (f.isFile()) portraitCache = javax.imageio.ImageIO.read(f);
+        } catch (Exception ex) {
+            portraitCache = null;
+        }
+        return portraitCache;
+    }
+
+    private void portraitWaehlen() {
+        if (sheetData == null) return;
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Portrait für " + heroName + " wählen");
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Bilder (JPG, PNG, GIF, BMP)", "jpg", "jpeg", "png", "gif", "bmp"));
+        String alt = props.get(portraitKey());
+        if (alt != null && !alt.isEmpty()) fc.setSelectedFile(new java.io.File(alt));
+        if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+        java.io.File f = fc.getSelectedFile();
+        java.awt.image.BufferedImage img = null;
+        try { img = javax.imageio.ImageIO.read(f); } catch (Exception ignore) { }
+        if (img == null) {
+            JOptionPane.showMessageDialog(this, "Die Datei konnte nicht als Bild gelesen werden.", "Portrait", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String pfad = f.getAbsolutePath();
+        props.put(portraitKey(), pfad);
+        save.accept(portraitKey(), pfad);
+        portraitCachePfad = pfad;
+        portraitCache = img;
+        if (!portrait.isSelected()) { portrait.setSelected(true); save.accept("druck.portrait", "true"); }
+        rebuild();
     }
 
     private void doPrint() {

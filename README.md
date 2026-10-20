@@ -26,7 +26,9 @@ offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
   Zauber zeigen darunter die Anmerkung aus der Helden-Software und deine eigene Notiz (Strg+Umschalt+T
   über dem Zauber). Die Geldbörse listet Dukaten, Silbertaler, Heller und Kreuzer mit Gesamtwert und
   Umrechnung (1 D = 10 S = 100 H = 1000 K), Gewichte stehen in Stein mit kg in Klammern, und die
-  Notizseite hat ein Feld für die Charakterbeschreibung.
+  Notizseite hat ein Feld für die Charakterbeschreibung, daneben ein Portrait (unter *Optionen* ein- und
+  ausschaltbar; Bild per „Portrait wählen …“ je Held hinterlegen, sonst das Portrait aus der Helden-Software
+  oder ein leeres Feld zum Zeichnen). Das Inventar hat leere Zeilen zum Eintragen weiterer Gegenstände.
 * Tooltip an den Abenteuerpunkten (Reiter „Allgemein“ und Plugin-Reiter): AP aus der Erschaffung,
   jede AP-Vergabe aus den Ereignissen mit Datum und Anlass, Gesamt, Ausgaben nach Bereich und freie AP.
   Zauberkundige (und Geweihte) bekommen eine eigene Magie-Seite: Astral- bzw. Karmaenergie mit Zahlenleiste

@@ -67,7 +67,7 @@ public final class SheetData {
 
     public String name = "", rasse = "", kultur = "", profession = "", geschlecht = "", geburtstag = "", alter = "",
             groesse = "", gewicht = "", haarfarbe = "", augenfarbe = "", stand = "", titel = "", wundschwelle = "",
-            leReg = "", aspReg = "", aussehen = "", familie = "", stufe = "";
+            leReg = "", aspReg = "", aussehen = "", familie = "", stufe = "", bildPfad = "";
     public int apGesamt, apFrei;
     public boolean magisch, geweiht;
     public final Map<String, Wert> werte = new LinkedHashMap<>();
@@ -100,6 +100,7 @@ public final class SheetData {
         d.augenfarbe = text(a, "augenfarbe");
         d.stand = text(a, "stand");
         d.titel = text(a, "titel");
+        d.bildPfad = text(a, "bildPfad");
         d.rasse = text(a, "rasse");
         d.kultur = text(a, "kultur");
         d.wundschwelle = text(a, "wundschwelle");

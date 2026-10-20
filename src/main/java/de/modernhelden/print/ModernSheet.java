@@ -33,6 +33,9 @@ public final class ModernSheet implements Pageable, Printable {
         public boolean beschreibungen = true;
         public boolean metatalente = true;
         public boolean notizseite = true;
+        /** Portrait-Feld neben der Charakterbeschreibung (mit Bild oder leer zum Zeichnen/Einkleben) */
+        public boolean portrait = true;
+        public java.awt.image.BufferedImage portraitBild;
     }
 
     private interface Painter { void paint(Graphics2D g, float x, float y, float w, float h); }
@@ -861,6 +864,22 @@ public final class ModernSheet implements Pageable, Printable {
                 right(g, gg.gewichtStein.isEmpty() ? "" : gg.gewichtStein + " St. (" + gg.gewichtStein + " kg)", x + w - 3, base);
             }));
         }
+        // leere Zeilen zum Eintragen weiterer Gegenstände (gehören zu den Notizfeldern)
+        if (opt.notizseite) {
+            for (int k = 0; k < 10; k++) {
+                final boolean zebra = (i++ % 2) == 1;
+                items.add(new ColItem(14f, false, (g, x, yy, w, h) -> {
+                    if (zebra) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, h)); }
+                    g.setColor(LINE.darker());
+                    float base = yy + h - 3;
+                    g.draw(new Line2D.Float(x + 3, base, x + w - 72, base));
+                    g.draw(new Line2D.Float(x + w - 62, base, x + w - 30, base));
+                    g.setFont(F.reg(6.5f));
+                    g.setColor(MUTED);
+                    right(g, "St.", x + w - 3, base - 1);
+                }));
+            }
+        }
         columns(items, "Inventar");
         double unzen = 0;
         for (SheetData.Gegenstand gg : d.inventar) unzen += gg.unzen;
@@ -968,7 +987,10 @@ public final class ModernSheet implements Pageable, Printable {
         final float lineH = 17;
         final float h = 26 + zeilen * lineH + 6;
         if (y + h > BOTTOM) newPage();
-        atomic(h, (g, x, yy, w, hh) -> {
+        final boolean mitPortrait = opt.portrait;
+        final float portraitW = mitPortrait ? Math.round(h * 0.75f) : 0;   // Hochformat 3:4
+        atomic(h, (g, x, yy, wAll, hh) -> {
+            float w = mitPortrait ? wAll - portraitW - 10 : wAll;
             g.setColor(WHITE);
             g.fill(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
             g.setColor(LINE);
@@ -980,13 +1002,50 @@ public final class ModernSheet implements Pageable, Printable {
             g.drawString("Charakterbeschreibung", x + 18, yy + 15.5f);
             g.setFont(F.reg(7));
             g.setColor(MUTED);
-            right(g, "Persönlichkeit · Ziele & Motive · Ängste · Eigenheiten · Beziehungen", x + w - 10, yy + 15.5f);
+            String stich = "Persönlichkeit · Ziele & Motive · Ängste · Eigenheiten · Beziehungen";
+            float titelEnde = x + 18 + 110;
+            if (g.getFontMetrics().stringWidth(stich) > x + w - 10 - titelEnde) stich = "Persönlichkeit · Ziele · Ängste · Eigenheiten";
+            right(g, stich, x + w - 10, yy + 15.5f);
             g.setColor(LINE);
             for (int i = 1; i <= zeilen; i++) {
                 float ly = yy + 24 + i * lineH;
                 g.draw(new Line2D.Float(x + 12, ly, x + w - 12, ly));
             }
+            if (mitPortrait) portrait(g, x + wAll - portraitW, yy, portraitW, hh);
         });
+    }
+
+    /** Portrait-Rahmen: hinterlegtes Bild (zugeschnitten, mittig) oder leeres Feld zum Zeichnen/Einkleben. */
+    private void portrait(Graphics2D g, float x, float yy, float w, float h) {
+        RoundRectangle2D.Float box = new RoundRectangle2D.Float(x, yy, w, h, 8, 8);
+        java.awt.image.BufferedImage img = opt.portraitBild;
+        if (img != null) {
+            Shape alt = g.getClip();
+            g.clip(box);
+            // füllend skalieren und mittig zuschneiden
+            double s = Math.max(w / img.getWidth(), h / img.getHeight());
+            double iw = img.getWidth() * s, ih = img.getHeight() * s;
+            Object interp = g.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g.drawImage(img, (int) Math.round(x + (w - iw) / 2), (int) Math.round(yy + (h - ih) / 2),
+                    (int) Math.round(iw), (int) Math.round(ih), null);
+            if (interp != null) g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interp);
+            g.setClip(alt);
+            g.setColor(LINE);
+            g.draw(box);
+        } else {
+            g.setColor(WHITE);
+            g.fill(box);
+            g.setColor(LINE.darker());
+            g.setStroke(new BasicStroke(0.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1, new float[]{3, 3}, 0));
+            g.draw(box);
+            g.setStroke(new BasicStroke(1f));
+            g.setFont(F.bold(8));
+            g.setColor(MUTED);
+            center(g, "Portrait", x, w, yy + h / 2 - 2);
+            g.setFont(F.reg(6.5f));
+            center(g, "zeichnen oder einkleben", x, w, yy + h / 2 + 9);
+        }
     }
 
     private void paragraph(final String label, String text) {
