@@ -19,7 +19,7 @@ offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
 - **Reiter „Plugin: Modern-UI“**: moderne Heldenübersicht mit Eigenschaften, Basiswerten, filterbaren Talenten,
   Sonderfertigkeiten, Vor-/Nachteilen, Kampfwerten, Zaubern und Inventar.
 - **Moderne Druckvorschau** im Reiter „Druckvorschau“: neu gestalteter Heldenbogen (A4) mit Zustand
-  (LE/AU-Schwellen, Wundkästchen), Waffen, Rüstungszonen inkl. W20-Trefferzonen, Gesamt-BE und
+  (LE/AU-Schwellen, Wundkästchen), Waffen, Rüstungszonen inkl. Trefferzonen-Tabelle (Zufall, Reiter, gezielter Schlag, Wundfolgen, Wundkästchen je Zone), Gesamt-BE und
   Initiative-Rechnung je Waffe (INI-Basis − BE + Waffen-/Schild-Mod. + 1W6), Talenten mit Probe,
   Werten, BE und Steigerungsspalte, Inventar und Notizseite. Drucken, PDF-Export, Umschalter zur Original-Vorschau.
   Unter *Optionen* lassen sich Kurzbeschreibungen, Meta-Talente und die Notizseite ein- und ausblenden.
