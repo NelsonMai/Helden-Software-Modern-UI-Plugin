@@ -67,6 +67,53 @@ public final class Theme {
             }
             w.repaint();
         }
+        // erst nach dem Baum-Update, damit die Tabellen ihre neuen Renderer schon haben
+        SwingUtilities.invokeLater(Theme::aktualisiereTabellenRenderer);
+    }
+
+    /**
+     * Manche Tabellen der Helden-Software (z. B. „Info“-Knöpfe bei Vor-/Nachteilen und
+     * Sonderfertigkeiten) erzeugen ihre Zellen-Komponenten einmal und heben sie dauerhaft
+     * auf. Diese Komponenten hängen nicht im Fensterbaum und behielten sonst das Design,
+     * das beim ersten Zeichnen aktiv war – dadurch mischten sich mehrere Designs.
+     */
+    public static void aktualisiereTabellenRenderer() {
+        for (Window w : Window.getWindows()) {
+            try { tabellenIn(w); } catch (RuntimeException ignore) { }
+        }
+    }
+
+    private static void tabellenIn(Component c) {
+        if (c instanceof javax.swing.JTable) aktualisiere((javax.swing.JTable) c);
+        if (c instanceof Container) {
+            for (Component k : ((Container) c).getComponents()) tabellenIn(k);
+        }
+    }
+
+    private static void aktualisiere(javax.swing.JTable t) {
+        java.util.Set<Component> erledigt =
+                java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        javax.swing.table.TableColumnModel cm = t.getColumnModel();
+        int zeilen = t.getRowCount();
+        for (int ci = 0; ci < cm.getColumnCount(); ci++) {
+            javax.swing.table.TableColumn col = cm.getColumn(ci);
+            Object r = col.getCellRenderer(), e = col.getCellEditor();
+            // Komponenten-Renderer aktualisiert JTable.updateUI bereits selbst
+            if (r == null || r instanceof Component) continue;
+            javax.swing.table.TableCellRenderer tr = (javax.swing.table.TableCellRenderer) r;
+            boolean auchEditor = e == r;   // gleicher Cache für Anzeige und Bearbeitung
+            for (int row = 0; row < zeilen; row++) {
+                Component k;
+                try {
+                    k = tr.getTableCellRendererComponent(t, t.getValueAt(row, ci), false, false, row, ci);
+                } catch (RuntimeException ex) { continue; }
+                if (k != null && erledigt.add(k)) SwingUtilities.updateComponentTreeUI(k);
+            }
+            if (auchEditor && t.isEditing() && t.getEditorComponent() != null) {
+                SwingUtilities.updateComponentTreeUI(t.getEditorComponent());
+            }
+        }
+        if (!erledigt.isEmpty()) t.repaint();
     }
 
     // Farben für die eigene Ansicht
