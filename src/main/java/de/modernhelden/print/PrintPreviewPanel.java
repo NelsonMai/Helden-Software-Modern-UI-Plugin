@@ -34,7 +34,7 @@ public final class PrintPreviewPanel extends JPanel {
     private final JScrollPane scroll = new JScrollPane(pages);
     private final JToggleButton modern = new JToggleButton("Modern"), original = new JToggleButton("Original");
     private final JComboBox<String> zoom = new JComboBox<>(ZOOMS);
-    private final JCheckBox desc = new JCheckBox("Kurzbeschreibungen zu SF und Vor-/Nachteilen"), notes = new JCheckBox("Notizen und Linienseite"),
+    private final JCheckBox desc = new JCheckBox("Beschreibungen & eigene Notizen zu SF, Vor-/Nachteilen und Zaubern"), notes = new JCheckBox("Notizen und Linienseite"),
             meta = new JCheckBox("Meta-Talente zeigen (z. B. Wache halten, Kräuter suchen)");
     private final JLabel info = new JLabel();
     private final JPanel modernTools = new JPanel();

@@ -26,7 +26,7 @@ public final class SheetData {
     }
 
     public static final class Zauber {
-        public String name = "", probe = "", probenwerte = "", spalte = "", merkmale = "", rep = "";
+        public String name = "", probe = "", probenwerte = "", spalte = "", merkmale = "", rep = "", anmerkung = "";
         public int wert;
     }
 
@@ -53,7 +53,15 @@ public final class SheetData {
 
     public static final class Gegenstand {
         public String name = "", anzahl = "", gewichtStein = "", art = "";
+        public double unzen;
         public boolean angelegt;
+    }
+
+    public static final class Muenze {
+        public String name = "", kurz = "", waehrung = "";
+        public int anzahl;
+        /** Wert eines Stücks in Silbertalern */
+        public double wertS;
     }
 
     public String name = "", rasse = "", kultur = "", profession = "", geschlecht = "", geburtstag = "", alter = "",
@@ -72,6 +80,7 @@ public final class SheetData {
     public final List<Ruestung> ruestungen = new ArrayList<>();
     public final List<Gegenstand> inventar = new ArrayList<>();
     public final List<String> notizen = new ArrayList<>();
+    public final List<Muenze> muenzen = new ArrayList<>();
     public final Map<String, String> zonen = new LinkedHashMap<>();
     public String rsGesamt = "", beGesamt = "", ausweichen = "", iniKampf = "", gsInklBe = "", geld = "";
     public String raufenAt = "", raufenPa = "", raufenTp = "", ringenAt = "", ringenPa = "", ringenTp = "";
@@ -152,6 +161,8 @@ public final class SheetData {
             t.name = text(e, "name");
             t.probe = text(e, "probe");
             t.probenwerte = text(e, "probenwerte");
+            // Ritualkenntnis u. ä. haben keine Eigenschaftsprobe („--/--/--“ mit Platzhalterwerten)
+            if (t.probe.replace("/", "").replace("-", "").trim().isEmpty()) { t.probe = "–"; t.probenwerte = ""; }
             t.be = text(e, "behinderung");
             t.bereich = text(e, "bereich");
             t.spalte = text(e, "lernkomplexität");
@@ -174,6 +185,7 @@ public final class SheetData {
             z.spalte = first(e, "lernkomplexität", "komplexität");
             z.merkmale = first(e, "merkmale", "merkmal");
             z.rep = first(e, "repräsentation", "repraesentation", "rep");
+            z.anmerkung = first(e, "anmerkung", "anmerkungen", "zauberkommentar");
             if (!z.name.isEmpty()) d.zauber.add(z);
         }
 
@@ -184,6 +196,7 @@ public final class SheetData {
             String anz = text(e, "anzahl");
             x.anzahl = anz.isEmpty() ? "1" : anz;
             double unzen = dbl(text(e, "gesamtgewicht"));
+            x.unzen = unzen;
             x.gewichtStein = unzen > 0 ? fmt(unzen / 40.0) : "";
             x.angelegt = "true".equals(text(e, "angelegt"));
             x.art = text(e, "arten");
@@ -195,6 +208,13 @@ public final class SheetData {
             for (Element e : children(m)) {
                 int n = num(text(e, "anzahl"));
                 if (n != 0) l.add(n + " " + text(e, "namekurz"));
+                Muenze mz = new Muenze();
+                mz.name = text(e, "name");
+                mz.kurz = text(e, "namekurz");
+                mz.waehrung = text(e, "waehrung");
+                mz.anzahl = n;
+                mz.wertS = dbl(text(e, "wertinsilberstuecken"));
+                if (n != 0) d.muenzen.add(mz);
             }
             d.geld = String.join(" · ", l);
         }

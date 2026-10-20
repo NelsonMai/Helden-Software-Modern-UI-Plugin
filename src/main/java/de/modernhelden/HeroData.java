@@ -38,6 +38,7 @@ public final class HeroData {
     public final List<Talent> zauber = new ArrayList<>();
     public final List<Item> inventar = new ArrayList<>();
     public String geld = "";
+    public double geldSilber;
     /** Auswertung des Ereignisprotokolls (Herkunft von Talentwerten und SF). */
     public Herkunft herkunft = new Herkunft(null);
 
@@ -173,12 +174,23 @@ public final class HeroData {
         h.herkunft = new Herkunft(first(held, "ereignisse"));
         Element gb = first(held, "geldboerse");
         if (gb != null) {
-            List<String> m = new ArrayList<>();
+            // Mittelreich in fester Reihenfolge (Dukaten, Silbertaler, Heller, Kreuzer), danach andere Münzen
+            int[] mr = new int[Geld.NAMEN.length];
+            List<String> andere = new ArrayList<>();
+            double silber = 0;
             for (Element e : children(gb, "muenze")) {
                 int a = num(e.getAttribute("anzahl"));
-                if (a != 0) m.add(a + " " + e.getAttribute("name"));
+                if (a == 0) continue;
+                String w = e.getAttribute("waehrung");
+                int i = Geld.index(e.getAttribute("name"));
+                if (i >= 0 && (w.isEmpty() || "Mittelreich".equals(w))) { mr[i] += a; silber += a * Geld.WERT_S[i]; }
+                else andere.add(a + " " + e.getAttribute("name") + (w.isEmpty() ? "" : " (" + w + ")"));
             }
+            List<String> m = new ArrayList<>();
+            for (int i = 0; i < mr.length; i++) if (mr[i] != 0) m.add(Geld.anzeige(mr[i], i));
+            m.addAll(andere);
             h.geld = String.join(", ", m);
+            h.geldSilber = silber;
         }
         return h;
     }
@@ -195,6 +207,21 @@ public final class HeroData {
     }
 
     public Talent talent(String name) { return name == null ? null : talentByName.get(name); }
+
+    /** Zauber des Helden zu einem angezeigten Namen (auch mit Zusätzen wie Variante oder Wert); sonst null. */
+    public Talent zauber(String shown) {
+        if (shown == null) return null;
+        String t = shown.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+        for (Talent z : zauber) if (z.name.equalsIgnoreCase(t)) return z;
+        for (Talent z : zauber) {
+            String n = z.name;
+            if (t.length() > n.length() && t.regionMatches(true, 0, n, 0, n.length())) {
+                char c = t.charAt(n.length());
+                if (c == ' ' || c == '(' || c == ':' || c == ',') return z;
+            }
+        }
+        return null;
+    }
 
     /** "(GE/GE/KK)" -> "GE 14 · GE 14 · KK 15" */
     public String probeMitWerten(String probe) {

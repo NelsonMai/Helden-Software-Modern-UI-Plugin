@@ -238,7 +238,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
     private void editLastHovered() {
         TooltipDB.Match m = hook.getLastMatch();
         if (m == null) {
-            JOptionPane.showMessageDialog(frame, "Fahre zuerst mit der Maus über ein Talent, eine Sonderfertigkeit oder einen Vor-/Nachteil.",
+            JOptionPane.showMessageDialog(frame, "Fahre zuerst mit der Maus über ein Talent, eine Sonderfertigkeit, einen Vor-/Nachteil oder einen Zauber.",
                     "Modern-UI", JOptionPane.INFORMATION_MESSAGE);
             return;
         }

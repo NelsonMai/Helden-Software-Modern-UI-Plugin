@@ -23,6 +23,10 @@ offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
   Initiative-Rechnung je Waffe (INI-Basis − BE + Waffen-/Schild-Mod. + 1W6), Talenten mit Probe,
   Werten, BE und Steigerungsspalte, Inventar und Notizseite. Drucken, PDF-Export, Umschalter zur Original-Vorschau.
   Unter *Optionen* lassen sich Kurzbeschreibungen, Meta-Talente und die Notizseite ein- und ausblenden.
+  Zauber zeigen darunter die Anmerkung aus der Helden-Software und deine eigene Notiz (Strg+Umschalt+T
+  über dem Zauber). Die Geldbörse listet Dukaten, Silbertaler, Heller und Kreuzer mit Gesamtwert und
+  Umrechnung (1 D = 10 S = 100 H = 1000 K), Gewichte stehen in Stein mit kg in Klammern, und die
+  Notizseite hat ein Feld für die Charakterbeschreibung.
   Meta-Talente (z. B. Wache halten) berechnet die Helden-Software nur, wenn in ihren Druckeinstellungen „Metatalente“
   aktiv ist – der Eintrag *Meta-Talente in der Helden-Software einschalten …* öffnet diese Einstellungen direkt.
 

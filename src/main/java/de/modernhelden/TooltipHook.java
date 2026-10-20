@@ -94,6 +94,11 @@ public final class TooltipHook implements AWTEventListener {
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) { hide(); return; }
         String text = textAt(c, e.getPoint());
         TooltipDB.Match m = text == null ? null : db.find(text);
+        if (m == null && text != null && hero != null) {
+            // Zauber haben keine mitgelieferte Beschreibung – trotzdem Werte und eigene Notiz zeigen
+            HeroData.Talent z = hero.zauber(text);
+            if (z != null) m = new TooltipDB.Match(z.name, null, z.name);
+        }
         log(c, text, m);
         if (m == null) { hide(); return; }
         lastMatch = m;
@@ -164,6 +169,14 @@ public final class TooltipHook implements AWTEventListener {
         if (h == null) return x;
         HeroData.Talent t = h.talent(m.shown);
         if (t == null && m.entry != null) t = h.talent(m.entry.name);
+        HeroData.Talent z = t == null ? h.zauber(m.shown) : null;
+        if (z != null) {
+            x.put("Art", "Zauber");
+            x.put("Probe", h.probeMitWerten(z.probe));
+            x.put("ZfW", String.valueOf(z.wert));
+            if (!z.lernmethode.isEmpty()) x.put("Repräsentation", z.lernmethode);
+            return x;
+        }
         if (t != null) {
             String kw = h.kampfwerteText(t.name);
             if (kw != null) x.put("Werte", kw); else x.put("Probe", h.probeMitWerten(t.probe));

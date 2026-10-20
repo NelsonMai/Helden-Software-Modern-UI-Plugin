@@ -355,9 +355,16 @@ public final class HeroPanel extends JPanel {
     private JComponent inventarTab(HeroData h) {
         JPanel p = new JPanel(new BorderLayout(0, 8));
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
-        JLabel geld = new JLabel("Geldbörse: " + (h.geld.isEmpty() ? "leer" : h.geld));
+        String summe = h.geldSilber > 0 ? "  (= " + Geld.silber(h.geldSilber) + " Silbertaler)" : "";
+        JLabel geld = new JLabel("Geldbörse: " + (h.geld.isEmpty() ? "leer" : h.geld) + summe);
         geld.setFont(geld.getFont().deriveFont(Font.BOLD));
-        p.add(geld, BorderLayout.NORTH);
+        JLabel umr = new JLabel(Geld.UMRECHNUNG);
+        umr.setForeground(Theme.muted());
+        JPanel kopf = new JPanel(new GridLayout(2, 1, 0, 2));
+        kopf.setOpaque(false);
+        kopf.add(geld);
+        kopf.add(umr);
+        p.add(kopf, BorderLayout.NORTH);
         p.add(scroll(itemList(h.inventar, false)));
         return p;
     }
@@ -465,6 +472,15 @@ public final class HeroPanel extends JPanel {
                 HeroData.Talent t = hero.talent(n);
                 if (t != null) return talentTip(t);
                 TooltipDB.Match m = db.find(n);
+                HeroData.Talent z = hero.zauber(n);
+                if (z != null) {
+                    Map<String, String> x = new LinkedHashMap<>();
+                    x.put("Art", "Zauber");
+                    x.put("Probe", hero.probeMitWerten(z.probe));
+                    x.put("ZfW", String.valueOf(z.wert));
+                    if (!z.lernmethode.isEmpty()) x.put("Repräsentation", z.lernmethode);
+                    return db.html(m != null ? m : new TooltipDB.Match(z.name, null, z.name), x);
+                }
                 return m == null ? null : db.html(m, null);
             }
         };
