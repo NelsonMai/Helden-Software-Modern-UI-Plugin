@@ -100,7 +100,18 @@ public final class ModernSheet implements Pageable, Printable {
             g.setColor(INK);
             g.setFont(F.bold(21));
             float ny = yy + 22;
-            for (String l : nameLines) { g.drawString(l, x, ny); ny += 24; }
+            if (d.name.trim().isEmpty()) {
+                // kein Name hinterlegt: Linie zum Eintragen
+                g.setFont(F.bold(6.5f));
+                g.setColor(MUTED);
+                g.drawString("NAME", x, yy + 8);
+                g.setColor(LINE.darker());
+                g.draw(new Line2D.Float(x, yy + 24, x + w - 140, yy + 24));
+                g.setFont(F.bold(21));
+                g.setColor(INK);
+            } else {
+                for (String l : nameLines) { g.drawString(l, x, ny); ny += 24; }
+            }
             g.setFont(F.reg(9.5f));
             g.setColor(MUTED);
             float sy = yy + 38 + nameExtra;
@@ -269,7 +280,9 @@ public final class ModernSheet implements Pageable, Printable {
             int v = max;
             for (int row = 0; row < trackRows; row++) {
                 int n = basis + (row < extra ? 1 : 0);
-                float fw = (w - 2 * pad - fgap * (n - 1)) / n;          // Feldbreite: Reihe füllt die Breite
+                // Feldbreite: Reihe füllt die Breite – bei sehr kleinen Pools (unter 8 Feldern) aber nicht breiter als 1/8
+                int teiler = Math.max(n, 8);
+                float fw = (w - 2 * pad - fgap * (teiler - 1)) / teiler;
                 float cy = ly + row * (cell + 2.5f);
                 for (int col = 0; col < n; col++, v--) {
                     float cx = lx + col * (fw + fgap);
@@ -594,15 +607,23 @@ public final class ModernSheet implements Pageable, Printable {
 
     private void vorteile() {
         if (d.vorteile.isEmpty()) return;
-        heading("Vorteile & Nachteile", 30);
+        boolean vor = false, nach = false;
+        for (SheetData.Eintrag e : d.vorteile) { if (e.nachteil) nach = true; else vor = true; }
+        // nur eine Art vorhanden: keine leere Spalte mit Überschrift, sondern beide Spalten nutzen
+        String titel = vor && nach ? "Vorteile & Nachteile" : vor ? "Vorteile" : "Nachteile";
+        heading(titel, 30);
         List<ColItem> items = new ArrayList<>();
         float colW = colWidth();
-        items.add(labelItem("Vorteile"));
-        for (SheetData.Eintrag e : d.vorteile) if (!e.nachteil) items.add(entryItem(e.name, colW, null));
-        items.add(ColItem.BREAK);
-        items.add(labelItem("Nachteile"));
-        for (SheetData.Eintrag e : d.vorteile) if (e.nachteil) items.add(entryItem(e.name, colW, null));
-        columns(items, "Vorteile & Nachteile");
+        if (vor) {
+            if (nach) items.add(labelItem("Vorteile"));
+            for (SheetData.Eintrag e : d.vorteile) if (!e.nachteil) items.add(entryItem(e.name, colW, null));
+        }
+        if (vor && nach) items.add(ColItem.BREAK);
+        if (nach) {
+            if (vor) items.add(labelItem("Nachteile"));
+            for (SheetData.Eintrag e : d.vorteile) if (e.nachteil) items.add(entryItem(e.name, colW, null));
+        }
+        columns(items, titel);
     }
 
     /** Eigener Text oder Kurzbeschreibung zu einem Namen, sonst "". */
@@ -647,6 +668,9 @@ public final class ModernSheet implements Pageable, Printable {
     }
 
     private void talente() {
+        boolean irgendein = false;
+        for (SheetData.Talent t : d.talente) if (!t.meta || opt.metatalente) { irgendein = true; break; }
+        if (!irgendein) return;
         heading("Talente", 40);
         Map<String, List<SheetData.Talent>> groups = new LinkedHashMap<>();
         for (SheetData.Talent t : d.talente) {
@@ -785,7 +809,19 @@ public final class ModernSheet implements Pageable, Printable {
 
     /** Zauberübersicht: Probe, ZfW, AsP-Kosten (Feld zum Eintragen, falls leer), Eckdaten und Notizen. */
     private void zauberUebersicht() {
-        if (d.zauber.isEmpty()) return;
+        if (d.zauber.isEmpty()) {
+            // zauberkundig, aber noch keine Zauber: Linien zum Eintragen
+            if (!opt.notizseite) return;
+            space(8);
+            subheading("Zauber & Notizen", 40);
+            while (y + 17 <= BOTTOM) {
+                atomic(17, (g, x, yy, w, h) -> {
+                    g.setColor(LINE);
+                    g.draw(new Line2D.Float(x, yy + h - 2, x + w, yy + h - 2));
+                });
+            }
+            return;
+        }
         space(8);
         subheading("Zauber", 60);
         final float fullW = W - 2 * M;
@@ -1362,7 +1398,7 @@ public final class ModernSheet implements Pageable, Printable {
         g.setColor(LINE);
         g.draw(new Line2D.Float(M, fy - 9, W - M, fy - 9));
         g.setColor(MUTED);
-        g.drawString(d.name + "  ·  Heldenbogen  ·  " + datum, M, fy);
+        g.drawString((d.name.isEmpty() ? "" : d.name + "  ·  ") + "Heldenbogen  ·  " + datum, M, fy);
         right(g, "Seite " + (index + 1) + " / " + pages.size(), W - M, fy);
     }
 
