@@ -323,7 +323,7 @@ public final class ModernSheet implements Pageable, Printable {
         List<ColItem> items = new ArrayList<>();
         float colW = colWidth();
         for (SheetData.Eintrag e : d.sf) items.add(entryItem(e.name, colW, null));
-        columns(items);
+        columns(items, "Sonderfertigkeiten");
         space(6);
     }
 
@@ -337,7 +337,7 @@ public final class ModernSheet implements Pageable, Printable {
         items.add(ColItem.BREAK);
         items.add(labelItem("Nachteile"));
         for (SheetData.Eintrag e : d.vorteile) if (e.nachteil) items.add(entryItem(e.name, colW, null));
-        columns(items);
+        columns(items, "Vorteile & Nachteile");
     }
 
     private ColItem entryItem(final String name, float colW, String extra) {
@@ -351,16 +351,21 @@ public final class ModernSheet implements Pageable, Printable {
             }
         }
         final List<String> lines = desc.isEmpty() ? Collections.<String>emptyList() : wrap(desc, F.reg(7), colW - 10);
-        float h = 13 + lines.size() * 8.6f + (lines.isEmpty() ? 0 : 2);
+        // Lange Namen werden umbrochen statt abgeschnitten
+        final List<String> nameLines = wrap(name, F.bold(8.5f), colW - 8);
+        if (nameLines.isEmpty()) nameLines.add(name);
+        final float nameH = 10.5f * nameLines.size();
+        float h = 2.5f + nameH + lines.size() * 8.6f + (lines.isEmpty() ? 0 : 2);
         return new ColItem(h, false, (g, x, yy, w, hh) -> {
             g.setColor(ACCENT);
-            g.fill(new Rectangle2D.Float(x, yy + 4, 2f, 7));
+            g.fill(new Rectangle2D.Float(x, yy + 4, 2f, 7 + 10.5f * (nameLines.size() - 1)));
             g.setFont(F.bold(8.5f));
             g.setColor(INK);
-            drawFit(g, name, x + 7, yy + 10.5f, w - 8);
+            float ny = yy + 10.5f;
+            for (String n : nameLines) { g.drawString(n, x + 7, ny); ny += 10.5f; }
             g.setFont(F.reg(7));
             g.setColor(MUTED);
-            float ly = yy + 19.5f;
+            float ly = yy + nameH + 9;
             for (String l : lines) { g.drawString(l, x + 7, ly); ly += 8.6f; }
         });
     }
@@ -415,7 +420,7 @@ public final class ModernSheet implements Pageable, Printable {
             }
             items.add(new ColItem(6, false, (g, x, yy, w, h) -> { }));
         }
-        columns(items);
+        columns(items, "Talente");
     }
 
     private static String gruppenTitel(String b) {
@@ -518,7 +523,7 @@ public final class ModernSheet implements Pageable, Printable {
                 right(g, gg.gewichtStein.isEmpty() ? "" : gg.gewichtStein + " St.", x + w - 3, base);
             }));
         }
-        columns(items);
+        columns(items, "Inventar");
         if (!d.geld.isEmpty()) {
             space(4);
             atomic(22, (g, x, yy, w, h) -> {
@@ -674,7 +679,18 @@ public final class ModernSheet implements Pageable, Printable {
 
     private static float colWidth() { return (W - 2 * M - 16) / 2f; }
 
-    private void columns(List<ColItem> items) {
+    private void columns(List<ColItem> items) { columns(items, null); }
+
+    /** Fortsetzungs-Überschrift auf Folgeseiten, z. B. „Sonderfertigkeiten (Fortsetzung)“. */
+    private ColItem fortsetzung(final String titel) {
+        return new ColItem(18, false, (g, x, yy, w, h) -> {
+            g.setFont(F.bold(8));
+            g.setColor(MUTED);
+            g.drawString(titel + " (Fortsetzung)", x, yy + 11);
+        });
+    }
+
+    private void columns(List<ColItem> items, String titel) {
         float colW = colWidth(), gap = 16;
         int col = 0;
         float top = y, maxY = y;
@@ -699,7 +715,12 @@ public final class ModernSheet implements Pageable, Printable {
             if (y + need > BOTTOM) {
                 maxY = Math.max(maxY, y);
                 if (col == 0) { col = 1; y = top; }
-                else { newPage(); col = 0; top = y; maxY = y; }
+                else {
+                    newPage();
+                    col = 0;
+                    if (titel != null) place(18, fortsetzung(titel).p);
+                    top = y; maxY = y;
+                }
             }
             pages.get(pages.size() - 1).add(new Placed(it.p, M + col * (colW + gap), y, colW, it.h));
             y += it.h;
@@ -785,6 +806,14 @@ public final class ModernSheet implements Pageable, Printable {
         for (String para : text.split("\n")) {
             StringBuilder line = new StringBuilder();
             for (String word : para.trim().split("\\s+")) {
+                // einzelnes Wort länger als die Zeile: hart umbrechen
+                while (fm.stringWidth(word) > width && word.length() > 1) {
+                    int cut = word.length() - 1;
+                    while (cut > 1 && fm.stringWidth(word.substring(0, cut) + "-") > width) cut--;
+                    if (line.length() > 0) { out.add(line.toString()); line = new StringBuilder(); }
+                    out.add(word.substring(0, cut) + "-");
+                    word = word.substring(cut);
+                }
                 String cand = line.length() == 0 ? word : line + " " + word;
                 if (fm.stringWidth(cand) > width && line.length() > 0) {
                     out.add(line.toString());

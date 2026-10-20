@@ -73,6 +73,11 @@ public final class TooltipHook implements AWTEventListener {
             if (id == MouseEvent.MOUSE_PRESSED || id == MouseEvent.MOUSE_WHEEL || id == KeyEvent.KEY_PRESSED
                     || id == MouseEvent.MOUSE_DRAGGED) {
                 hide();
+                if (id == MouseEvent.MOUSE_WHEEL) {
+                    // Beim Scrollen auch einen normalen Swing-Tooltip schließen, sonst bleibt er stehen
+                    ToolTipManager tm = ToolTipManager.sharedInstance();
+                    if (tm.isEnabled()) { tm.setEnabled(false); tm.setEnabled(true); }
+                }
                 return;
             }
             if (!enabled || id != MouseEvent.MOUSE_MOVED) return;

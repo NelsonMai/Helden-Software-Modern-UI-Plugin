@@ -71,7 +71,7 @@ public final class Herkunft {
             if ("Auswahl".equals(e.obj) && name.equals(e.text)) auswahl = e.neu;
 
         if (erschaffung.isEmpty() && spaeter.isEmpty() && auswahl == null) {
-            out.add(new String[]{"Herkunft", "Startwert aus Rasse, Kultur und Profession (keine Steigerung protokolliert)"});
+            out.add(new String[]{"Startwert", "aus Rasse, Kultur und Profession (keine Steigerung protokolliert)"});
             return out;
         }
 
@@ -128,7 +128,7 @@ public final class Herkunft {
                     e.text + (ap != 0 ? " · " + ap + " AP" : "")});
         }
         if (out.isEmpty() && !ereignisse.isEmpty())
-            out.add(new String[]{"Herkunft", "bei der Erschaffung (Rasse, Kultur, Profession oder Kauf)"});
+            out.add(new String[]{"Erworben", "bei der Erschaffung (Rasse, Kultur, Profession oder Kauf)"});
         return out;
     }
 

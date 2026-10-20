@@ -228,6 +228,7 @@ S	Knaufschlag	Kampf		Kurzer Schlag mit dem Knauf der Waffe.
 S	Kampfstil*	Kampf		Waffenloser oder bewaffneter Kampfstil (z. B. Bornländisch, Hruruzat, Mercenario) mit eigenen Manövern und Boni.
 S	Akklimatisierung*	Allgemein		Gewöhnung an extremes Klima (Hitze oder Kälte); weniger Erschwernisse durch Temperatur.
 S	Berufsgeheimnis*	Allgemein		Spezielles Fachwissen eines Handwerks oder einer Zunft, das sonst kaum jemand kennt.
+S	Geländekunde*	Allgemein		Vertrautheit mit einem Geländetyp: Erleichterungen bei Natur-Talenten (Orientierung, Wildnisleben u. Ä.) in diesem Gelände.
 S	Dschungelkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Dschungel.
 S	Eiskundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im ewigen Eis.
 S	Gebirgskundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Gebirge.
@@ -293,6 +294,7 @@ V	Astrale Regeneration	Vorteil		Regeneriert Astralenergie schneller.
 V	Astralmacht	Vorteil		Mehr Astralenergie.
 V	Ausdauernd	Vorteil		Mehr Ausdauer, ermüdet langsamer.
 V	Balance	Vorteil		Hervorragender Gleichgewichtssinn; Vorteile beim Balancieren und gegen Stürze.
+V	Besonderer Besitz*	Vorteil		Ein außergewöhnlicher, wertvoller oder magischer Gegenstand im Besitz des Helden.
 V	Begabung für*	Vorteil		Begabung: das Steigern des Talents/Zaubers/der Gruppe ist billiger; Proben-Patzer werden abgemildert.
 V	Beidhändig	Vorteil		Beide Hände sind gleich geschickt; keine Abzüge mit der falschen Hand.
 V	Dämmerungssicht	Vorteil		Bessere Sicht bei schwachem Licht.

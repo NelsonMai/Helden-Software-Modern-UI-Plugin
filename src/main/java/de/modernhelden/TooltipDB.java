@@ -191,7 +191,7 @@ public final class TooltipDB {
             sb.append("</table>");
         }
         if (verlauf != null && !verlauf.isEmpty()) {
-            sb.append("<div style='margin-top:6px'><b>Herkunft des Werts</b></div>");
+            sb.append("<div style='margin-top:6px'><b>Herkunft</b></div>");
             sb.append("<table cellpadding=0 cellspacing=0>");
             for (String[] v : verlauf) {
                 sb.append("<tr><td style='color:#8a8a8a;padding-right:8px;white-space:nowrap'>").append(esc(v[0]))
