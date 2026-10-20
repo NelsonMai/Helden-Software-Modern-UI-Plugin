@@ -200,9 +200,12 @@ public final class ModernSheet implements Pageable, Printable {
      */
     private void energiePool(final String titel, final String kurz, final int max, final String reg, final String anlass) {
         if (max <= 0) return;
-        final float pad = 10, titleH = 22, cell = 14f;
+        final float pad = 10, titleH = 22;
+        final float cell = max >= 100 ? 16.5f : 14f;   // dreistellige Werte brauchen etwas mehr Platz
         final float innerW = W - 2 * M - 2 * pad;
-        final int perRow = Math.max(5, Math.min(35, (int) Math.floor((innerW + 2) / (cell + 0.5f) / 5) * 5));
+        // Zellen je Zeile (Vielfaches von 5), passend zur Breite inkl. der kleinen Gruppenabstände
+        int fit = (int) Math.floor((innerW + 1.5f) / (5 * (cell + 0.5f) + 1.5f)) * 5;
+        final int perRow = Math.max(5, Math.min(35, fit));
         final int cells = max + 1;
         final int trackRows = (cells + perRow - 1) / perRow;
         final float trackH = trackRows * (cell + 2.5f);
@@ -212,7 +215,7 @@ public final class ModernSheet implements Pageable, Printable {
         final float hintH = hint.size() * 8.8f + 4;
         final int logRows = 9;                                   // je Spalte, zwei Spalten
         final float logRowH = 14, logH = 13 + logRows * logRowH;
-        final float h = titleH + trackH + 4 + hintH + logH + pad;
+        final float h = titleH + 2 + trackH + 4 + hintH + logH + pad;
         space(2);
         atomic(h, (g, x, yy, w, hh) -> {
             g.setColor(FILL);
@@ -227,21 +230,20 @@ public final class ModernSheet implements Pageable, Printable {
             g.setColor(MUTED);
             g.drawString("max " + max + " " + kurz + (reg.isEmpty() ? "" : "   ·   " + reg), tx, yy + 17);
 
-            // Zahlenleiste: rechtsbündig, Fünfergruppen enden auf 5, 10, 15 …, 0 unten rechts
-            float lx = x + pad, ly = yy + titleH;
-            int offset = trackRows * perRow - cells;
+            // Zahlenleiste: Maximum oben links, dann absteigend zeilenweise bis 0; Fünfer-Werte hervorgehoben
+            float lx = x + pad, ly = yy + titleH + 2;
             for (int i = 0; i < cells; i++) {
-                int v = max - i, slot = i + offset;
-                int row = slot / perRow, col = slot % perRow;
-                float cx = lx + col * (cell + 0.5f) + (col / 5) * 1.5f - 1.5f * (perRow / 5 - 1) * 0, cy = ly + row * (cell + 2.5f);
+                int v = max - i;
+                int row = i / perRow, col = i % perRow;
+                float cx = lx + col * (cell + 0.5f) + (col / 5) * 1.5f, cy = ly + row * (cell + 2.5f);
                 boolean fuenf = v % 5 == 0;
                 g.setColor(WHITE);
                 g.fill(new RoundRectangle2D.Float(cx, cy, cell - 1.5f, cell - 1.5f, 3, 3));
                 g.setColor(fuenf ? ACCENT : LINE.darker());
                 g.draw(new RoundRectangle2D.Float(cx, cy, cell - 1.5f, cell - 1.5f, 3, 3));
-                g.setFont(fuenf ? F.bold(6f) : F.reg(5.8f));
+                g.setFont(fuenf ? F.bold(max >= 100 ? 6.3f : 6f) : F.reg(max >= 100 ? 6.1f : 5.8f));
                 g.setColor(fuenf ? ACCENT : MUTED);
-                center(g, String.valueOf(v), cx, cell - 1.5f, cy + 8.8f);
+                center(g, String.valueOf(v), cx, cell - 1.5f, cy + (cell - 1.5f) / 2 + 2.2f);
             }
             g.setFont(F.reg(6.8f));
             g.setColor(MUTED);
@@ -249,7 +251,7 @@ public final class ModernSheet implements Pageable, Printable {
             for (String l : hint) { g.drawString(l, lx, hy); hy += 8.8f; }
 
             // Verlaufsprotokoll in zwei Spalten
-            float py = ly + trackH + 4 + hintH;
+            float py = ly + trackH + 4 + hintH;   // ly enthält bereits den Abstand unter dem Titel
             float gap = 10, pw = (w - 2 * pad - gap) / 2;
             for (int k = 0; k < 2; k++) {
                 float px = x + pad + k * (pw + gap);
