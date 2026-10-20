@@ -1,0 +1,410 @@
+# Modern-UI Plugin – Tooltip-Daten (eigene Kurzbeschreibungen, keine Buchzitate)
+# Spalten: typ	name	gruppe	spalte	text
+# Ein Name mit * am Ende gilt als Präfix (z. B. "Kulturkunde*").
+# Eigene Texte bitte NICHT hier eintragen, sondern über das Kontextmenü „Eigenen Tooltip-Text bearbeiten…“
+# (landen in eigene-tooltips.tsv im Plugin-Ordner und haben Vorrang).
+T	Anderthalbhänder	Nahkampf		Lange Klingen, die ein- oder zweihändig geführt werden (Bastardschwert, Rondrakamm u. Ä.).
+T	Dolche	Nahkampf		Kurze Stichwaffen wie Dolch, Langdolch oder Linkhanddolch; oft als Zweitwaffe in der linken Hand.
+T	Fechtwaffen	Nahkampf		Leichte, schnelle Klingen (Florett, Rapier, Degen); profitieren von Gewandtheit statt Wucht.
+T	Hiebwaffen	Nahkampf		Einhändige Wuchtwaffen wie Streitkolben, Beil, Keule, Morgenstern oder Rabenschnabel.
+T	Infanteriewaffen	Nahkampf		Stangenwaffen der Fußtruppen (Hellebarde, Glefe, Partisane); große Reichweite.
+T	Kettenstäbe	Nahkampf		Gegliederte Stäbe wie Kettenstab oder Dreschflegel-ähnliche Waffen mit kurzer Kette.
+T	Kettenwaffen	Nahkampf		Waffen mit Kette zwischen Griff und Schlagkopf (z. B. Kettenmorgenstern, Ochsenherde); schwer zu parieren, selbst schlecht zur Parade geeignet.
+T	Lanzenreiten	Nahkampf		Kampf mit der Lanze vom galoppierenden Pferd aus; Schaden hängt stark von der Geschwindigkeit ab.
+T	Peitsche	Nahkampf		Kampf mit Peitsche; eher zum Entwaffnen, Fesseln oder Einschüchtern als für hohen Schaden.
+T	Raufen	Nahkampf		Waffenloser Kampf mit Fäusten, Tritten und Kopfstößen.
+T	Ringen	Nahkampf		Waffenloser Kampf durch Greifen, Werfen und Festhalten des Gegners.
+T	Säbel	Nahkampf		Gebogene Klingen (Säbel, Sklaventod, Khunchomer); gut für schnelle Hiebe.
+T	Schwerter	Nahkampf		Gerade, einhändig geführte Klingen wie Schwert, Kurzschwert oder Langschwert.
+T	Speere	Nahkampf		Speere und Spieße im Nahkampf; ermöglichen Abstand zum Gegner.
+T	Stäbe	Nahkampf		Kampfstab, Magierstab und ähnliche lange Holzwaffen; gut zur Verteidigung.
+T	Zweihandflegel	Nahkampf		Große Flegel und Kriegsflegel, beidhändig geführt.
+T	Zweihandhiebwaffen	Nahkampf		Schwere beidhändige Wuchtwaffen wie Barbarenstreitaxt, Felsspalter oder Kriegshammer.
+T	Zweihandschwerter/-säbel	Nahkampf		Große Klingen wie Zweihänder, Tuzakmesser oder Boronssichel; hoher Schaden, langsam.
+T	Armbrust	Fernkampf		Schießen mit Armbrüsten; leicht zu erlernen, aber langsames Nachladen.
+T	Belagerungswaffen	Fernkampf		Bedienen und Richten von Geschützen wie Rotze, Onager oder Ballista.
+T	Blasrohr	Fernkampf		Kleine Pfeile durch ein Rohr pusten – meist zusammen mit Gift eingesetzt.
+T	Bogen	Fernkampf		Schießen mit Kurz-, Lang- oder Kompositbögen; große Reichweite, schnelle Schussfolge.
+T	Diskus	Fernkampf		Werfen von Wurfscheiben und Wurfringen.
+T	Schleuder	Fernkampf		Steine oder Bleikugeln mit Schleuder oder Stockschleuder verschießen.
+T	Wurfbeile	Fernkampf		Wurfbeile, Wurfäxte und Wurfkeulen.
+T	Wurfmesser	Fernkampf		Wurfmesser, Wurfdolche und Wurfsterne.
+T	Wurfspeere	Fernkampf		Wurfspeere, Speere und Wurfspieße; der klassische Jagd- und Kriegswurf.
+T	Akrobatik	Körperlich		Sprünge, Salti, Balancieren und spektakuläre Bewegungen; auch um Stürze abzufangen.
+T	Athletik	Körperlich		Laufen, Springen, Werfen, Heben – alles, was rohe körperliche Leistungsfähigkeit verlangt.
+T	Fliegen	Körperlich		Steuern eines Fluges (Hexenbesen, Flugzauber, eigene Flügel).
+T	Gaukeleien	Körperlich		Jonglieren, Taschenspielertricks und kleine Kunststücke zur Unterhaltung.
+T	Klettern	Körperlich		Wände, Felsen, Bäume oder Seile hinauf- und hinabklettern.
+T	Körperbeherrschung	Körperlich		Kontrolle über den eigenen Körper: Gleichgewicht halten, Stürze abrollen, ausweichen. Wichtig auch im Kampf.
+T	Reiten	Körperlich		Reittiere sicher führen; im Kampf Grundlage für berittenes Kämpfen.
+T	Schleichen	Körperlich		Sich lautlos bewegen, um nicht gehört zu werden.
+T	Schwimmen	Körperlich		Über Wasser bleiben und schwimmen; Rüstung macht es deutlich schwerer.
+T	Selbstbeherrschung	Körperlich		Schmerzen, Angst und Versuchungen widerstehen; hilft z. B. bei Wunden, Folter oder Erschöpfung.
+T	Sich verstecken	Körperlich		Einen Unterschlupf finden und unentdeckt bleiben.
+T	Singen	Körperlich		Gesang zur Unterhaltung, für Rituale oder als Ablenkung.
+T	Sinnenschärfe	Körperlich		Wahrnehmung mit allen Sinnen: Geräusche hören, Spuren oder Hinterhalte bemerken. Eines der meistgewürfelten Talente.
+T	Skifahren	Körperlich		Fortbewegung auf Skiern im Schnee.
+T	Stimmen imitieren	Körperlich		Stimmen und Tierlaute täuschend echt nachahmen.
+T	Tanzen	Körperlich		Höfische Tänze, Volkstänze oder Ritualtänze ausführen.
+T	Taschendiebstahl	Körperlich		Unbemerkt Dinge aus Taschen und Beuteln entwenden.
+T	Zechen	Körperlich		Alkohol vertragen, ohne die Kontrolle zu verlieren.
+T	Betören	Gesellschaft		Andere durch Charme und Anziehung für sich einnehmen.
+T	Etikette	Gesellschaft		Umgangsformen, Anreden und Benimmregeln in gehobener Gesellschaft.
+T	Gassenwissen	Gesellschaft		Sich in Städten und der Unterwelt zurechtfinden: Kontakte, Hehler, Gerüchte.
+T	Lehren	Gesellschaft		Wissen und Fertigkeiten verständlich an andere weitergeben.
+T	Menschenkenntnis	Gesellschaft		Absichten, Lügen und Stimmungen anderer durchschauen.
+T	Schauspielerei	Gesellschaft		Rollen spielen und Gefühle glaubhaft vortäuschen.
+T	Schriftlicher Ausdruck	Gesellschaft		Briefe, Reden und Texte überzeugend formulieren.
+T	Sich verkleiden	Gesellschaft		Aussehen durch Kleidung, Schminke und Haltung verändern.
+T	Überreden	Gesellschaft		Andere kurzfristig durch Redegewandtheit, Schmeichelei oder Druck zu etwas bringen.
+T	Überzeugen	Gesellschaft		Andere mit Argumenten dauerhaft von etwas überzeugen.
+T	Fährtensuchen	Natur		Spuren von Tieren und Personen finden, deuten und verfolgen.
+T	Fallen stellen	Natur		Jagdfallen und Schlingen bauen und aufstellen.
+T	Fesseln/Entfesseln	Natur		Knoten knüpfen, Gefangene sicher binden oder sich selbst befreien.
+T	Fischen/Angeln	Natur		Fische mit Angel, Netz oder Speer fangen.
+T	Orientierung	Natur		Himmelsrichtungen bestimmen und den Weg finden, auch ohne Karte.
+T	Wettervorhersage	Natur		Das Wetter der nächsten Stunden oder Tage einschätzen.
+T	Wildnisleben	Natur		Überleben in der Wildnis: Lagerplatz, Nahrung, Wasser und Schutz finden.
+T	Anatomie	Wissen		Aufbau von Körpern bei Mensch und Tier; nützlich für Heilkunde und Obduktion.
+T	Baukunst	Wissen		Planen und Beurteilen von Gebäuden, Brücken und Befestigungen.
+T	Brett-/Kartenspiel	Wissen		Regeln und Taktik von Spielen wie Boltan oder Rote und Weiße Kamele.
+T	Geografie	Wissen		Kenntnis von Ländern, Städten, Flüssen und Gebirgen Aventuriens.
+T	Geschichtswissen	Wissen		Wissen über historische Ereignisse, Herrscher und Epochen.
+T	Gesteinskunde	Wissen		Gesteine, Erze und Mineralien erkennen und beurteilen.
+T	Götter und Kulte	Wissen		Wissen über Götter, Kirchen, Feiertage und religiöse Bräuche.
+T	Heraldik	Wissen		Wappen, Adelshäuser und deren Symbole erkennen.
+T	Hüttenkunde	Wissen		Wissen über Verhüttung und Metallgewinnung.
+T	Kriegskunst	Wissen		Taktik, Strategie und Truppenführung.
+T	Kryptographie	Wissen		Geheimschriften erstellen und entschlüsseln.
+T	Magiekunde	Wissen		Theoretisches Wissen über Magie, Zauber, Artefakte und magische Wesen.
+T	Mechanik	Wissen		Funktionsweise von Maschinen, Hebeln und Getrieben.
+T	Pflanzenkunde	Wissen		Pflanzen erkennen, ihre Wirkung (Heil-, Gift-, Nutzpflanze) kennen und sie finden.
+T	Philosophie	Wissen		Denkschulen, Logik und Weltbilder.
+T	Rechnen	Wissen		Arithmetik, Buchführung und Geometrie.
+T	Rechtskunde	Wissen		Gesetze, Rechte und Gerichtsbarkeit verschiedener Regionen.
+T	Sagen und Legenden	Wissen		Mythen, Heldensagen und alte Geschichten kennen – oft mit wahrem Kern.
+T	Schätzen	Wissen		Wert von Waren, Kunstwerken und Edelsteinen einschätzen.
+T	Sprachenkunde	Wissen		Theoretisches Wissen über Sprachen und Schriften; hilft beim Erkennen fremder Sprachen.
+T	Staatskunst	Wissen		Diplomatie, Hofintrigen und Verwaltung.
+T	Sternkunde	Wissen		Sternbilder, Kalender und Himmelserscheinungen.
+T	Tierkunde	Wissen		Tiere erkennen, ihr Verhalten und ihre Gefährlichkeit einschätzen.
+T	Abrichten	Handwerk		Tiere zähmen und ihnen Kommandos beibringen.
+T	Ackerbau	Handwerk		Feldarbeit, Aussaat und Ernte.
+T	Alchimie	Handwerk		Herstellen und Analysieren von Elixieren, Tränken und Giften.
+T	Bergbau	Handwerk		Stollen anlegen, Erz abbauen, Gefahren unter Tage erkennen.
+T	Bogenbau	Handwerk		Bögen und Pfeile herstellen und reparieren.
+T	Boote fahren	Handwerk		Ruder- und kleine Segelboote steuern.
+T	Brauer	Handwerk		Bier und andere gegorene Getränke herstellen.
+T	Drucker	Handwerk		Bücher und Schriften drucken.
+T	Fahrzeug lenken	Handwerk		Kutschen, Karren und Wagen fahren.
+T	Falschspiel	Handwerk		Beim Spiel betrügen, ohne erwischt zu werden – oder Betrüger erkennen.
+T	Feinmechanik	Handwerk		Feine Mechanismen wie Schlösser, Uhren oder Fallenmechaniken bauen.
+T	Feuersteinbearbeitung	Handwerk		Werkzeuge und Waffen aus Feuerstein herstellen.
+T	Fleischer	Handwerk		Schlachten, Zerlegen und Haltbarmachen von Fleisch.
+T	Gerber/Kürschner	Handwerk		Häute gerben und Pelze verarbeiten.
+T	Glaskunst	Handwerk		Glas blasen und formen.
+T	Grobschmied	Handwerk		Eisen schmieden: Werkzeuge, Hufeisen, einfache Waffen und Reparaturen.
+T	Handel	Handwerk		Feilschen, Waren einkaufen und gewinnbringend verkaufen.
+T	Hauswirtschaft	Handwerk		Haushaltsführung, Vorratshaltung und Organisation.
+T	Heilkunde: Gift	Handwerk		Vergiftungen erkennen und behandeln.
+T	Heilkunde: Krankheiten	Handwerk		Krankheiten erkennen und behandeln.
+T	Heilkunde: Seele	Handwerk		Geistige Leiden, Ängste und Wahnvorstellungen behandeln.
+T	Heilkunde: Wunden	Handwerk		Wunden versorgen, Blutungen stillen und die Heilung beschleunigen.
+T	Holzbearbeitung	Handwerk		Schnitzen, Zimmern und Bearbeiten von Holz.
+T	Instrumentenbauer	Handwerk		Musikinstrumente bauen.
+T	Kartografie	Handwerk		Karten zeichnen und lesen.
+T	Kochen	Handwerk		Speisen zubereiten – von Lagerfeuerkost bis Festmahl.
+T	Kristallzucht	Handwerk		Kristalle für magische Zwecke züchten.
+T	Lederarbeiten	Handwerk		Gegenstände aus Leder herstellen und reparieren (Rüstung, Taschen, Sättel).
+T	Malen/Zeichnen	Handwerk		Bilder malen, Skizzen und Porträts anfertigen.
+T	Maurer	Handwerk		Mauern errichten und Steinbauten ausbessern.
+T	Metallguss	Handwerk		Metalle in Formen gießen.
+T	Musizieren	Handwerk		Instrumente spielen.
+T	Schlösser knacken	Handwerk		Schlösser ohne Schlüssel öffnen.
+T	Schnaps brennen	Handwerk		Spirituosen destillieren.
+T	Schneidern	Handwerk		Kleidung nähen und ausbessern.
+T	Seefahrt	Handwerk		Arbeit an Bord großer Schiffe: Segel, Takelage, Navigation auf See.
+T	Seiler	Handwerk		Seile und Taue herstellen.
+T	Steinmetz	Handwerk		Steine behauen und Skulpturen fertigen.
+T	Steinschneider/Juwelier	Handwerk		Edelsteine schleifen und Schmuck fertigen.
+T	Stellmacher	Handwerk		Räder und Wagen bauen.
+T	Stoffe färben	Handwerk		Textilien färben.
+T	Tätowieren	Handwerk		Tätowierungen stechen.
+T	Töpfern	Handwerk		Gefäße aus Ton formen und brennen.
+T	Viehzucht	Handwerk		Nutztiere halten, pflegen und züchten.
+T	Webkunst	Handwerk		Stoffe weben.
+T	Winzer	Handwerk		Wein anbauen und keltern.
+T	Zimmermann	Handwerk		Dachstühle, Fachwerk und große Holzkonstruktionen bauen.
+T	Sprachen kennen*	Sprache		Eine Sprache sprechen und verstehen. Der Talentwert zeigt, wie fließend; die Komplexität bestimmt den Höchstwert.
+T	Lesen/Schreiben*	Schrift		Eine Schrift lesen und schreiben. Die Komplexität bestimmt den Höchstwert.
+T	Liturgiekenntnis*	Gabe		Kenntnis der Liturgien einer Gottheit; Grundlage für das Wirken von Liturgien (Geweihte).
+T	Ritualkenntnis*	Gabe		Beherrschung der Rituale einer magischen Tradition (z. B. Stab-, Hexen- oder Druidenrituale).
+T	Empathie	Gabe		Gefühle anderer intuitiv spüren.
+T	Gefahreninstinkt	Gabe		Drohende Gefahr vorausahnen, oft bevor sie sichtbar ist.
+T	Magiegespür	Gabe		Magische Wirkungen und Kraftquellen spüren.
+T	Prophezeien	Gabe		Bruchstückhafte Visionen der Zukunft empfangen.
+T	Tierempathie*	Gabe		Gefühlsbindung zu Tieren, um sie zu beruhigen oder zu lenken.
+T	Zwergennase	Gabe		Zwergischer Instinkt für verborgene Gänge, Fallen und Hohlräume im Gestein.
+T	Geister*	Gabe		Schamanistische Gabe im Umgang mit Geistern (rufen, binden, bannen, aufnehmen).
+T	Geräuschhexerei	Gabe		Unbewusste Fähigkeit, Geräusche und Poltern zu erzeugen.
+T	Prospektorensinn	Gabe		Gespür für Erz- und Edelsteinvorkommen.
+T	Schwarze Gabe*	Gabe		Dämonische Gabe aus einem Pakt. Mächtig, aber mit hohem Preis für die Seele.
+S	Aufmerksamkeit	Kampf		Erhöht die Wachsamkeit: Überraschungen und Hinterhalte treffen den Helden schwerer; Grundlage für Kampfgespür.
+S	Ausfall	Kampf		Offensive Serie von Attacken, die den Gegner zurückdrängt; der Angreifer verzichtet dabei auf Verteidigung.
+S	Ausweichen I	Kampf		Verbessert den Ausweichen-Wert, um Angriffen ohne Parade zu entgehen.
+S	Ausweichen II	Kampf		Weitere Verbesserung des Ausweichens (setzt Ausweichen I voraus).
+S	Ausweichen III	Kampf		Höchste Stufe des Ausweichens (setzt Ausweichen II voraus).
+S	Befreiungsschlag	Kampf		Ein weit ausholender Schlag gegen mehrere Gegner gleichzeitig, um sich Luft zu verschaffen.
+S	Beidhändiger Kampf I	Kampf		Ermöglicht den Einsatz von zwei Waffen mit geringeren Abzügen; Zweitwaffe kann zusätzlich angreifen oder parieren.
+S	Beidhändiger Kampf II	Kampf		Volle Ausnutzung zweier Waffen: noch weniger Einschränkungen beim Kampf mit beiden Händen.
+S	Berittener Schütze	Kampf		Fernkampf vom Pferderücken aus mit geringeren Erschwernissen.
+S	Betäubungsschlag	Kampf		Schlag, der den Gegner bewusstlos machen soll statt ihn zu töten.
+S	Binden	Kampf		Die gegnerische Waffe nach einer Parade binden, um den eigenen nächsten Angriff zu erleichtern.
+S	Blindkampf	Kampf		Kämpfen ohne Sicht, gestützt auf Gehör und Gespür.
+S	Defensiver Kampfstil	Kampf		Kampfweise, die auf sichere Verteidigung ausgelegt ist.
+S	Doppelangriff	Kampf		Mit zwei Waffen gleichzeitig angreifen (benötigt Beidhändigen Kampf).
+S	Eisenhagel	Kampf		Schnelles Werfen mehrerer Wurfwaffen kurz hintereinander.
+S	Entwaffnen	Kampf		Dem Gegner per Manöver die Waffe aus der Hand schlagen.
+S	Festnageln	Kampf		Einen Gegner mit Stangenwaffe oder Speer auf Distanz halten.
+S	Finte	Kampf		Täuschungsangriff: Die eigene Attacke wird erschwert, die Parade des Gegners noch stärker.
+S	Formation	Kampf		Kämpfen in geschlossener Reihe mit Verbündeten (Schildwall, Speerreihe).
+S	Gegenhalten	Kampf		Einem Angriff mit eigener Attacke begegnen statt zu parieren.
+S	Geschützmeister	Kampf		Geschütze schneller und präziser einsetzen.
+S	Gezielter Stich	Kampf		Präziser Stich in eine Lücke der Rüstung; ignoriert Rüstungsschutz teilweise.
+S	Halbschwert	Kampf		Das Schwert an der Klinge greifen für kraftvolle Stiche gegen Gerüstete.
+S	Hammerschlag	Kampf		Ein einziger, alles vernichtender Schlag mit voller Wucht – kostet aber die ganze Kampfrunde.
+S	Improvisierte Waffen	Kampf		Mit Stühlen, Flaschen und anderen Alltagsgegenständen ohne die üblichen Abzüge kämpfen.
+S	Kampf im Wasser	Kampf		Geringere Abzüge beim Kämpfen in hüfthohem oder tiefem Wasser.
+S	Kampfgespür	Kampf		Die Lage im Kampf instinktiv erfassen; verbessert Initiative und Reaktion auf Überraschungen.
+S	Kampfreflexe	Kampf		Erhöht die Initiative deutlich – der Held reagiert im Kampf schneller.
+S	Klingensturm	Kampf		Wirbelnde Serie schneller Klingenangriffe.
+S	Klingentänzer	Kampf		Meisterliche Beweglichkeit im Klingenkampf: fließende, schnelle Bewegungen und hohe Initiative.
+S	Klingenwand	Kampf		Mehrere Paraden pro Runde mit der Klinge.
+S	Kreuzblock	Kampf		Parade mit zwei gekreuzten Waffen, besonders stabil gegen schwere Schläge.
+S	Kriegsreiterei	Kampf		Berittener Nahkampf ohne die normalen Einschränkungen.
+S	Linkhand	Kampf		Eine Parierwaffe oder zweite Waffe in der linken Hand nutzen; Grundlage für Parierwaffen und Beidhändigen Kampf.
+S	Meisterparade	Kampf		Eine besonders gute Parade, die einen Vorteil für den Gegenschlag verschafft.
+S	Meisterschütze	Kampf		Höchste Präzision im Fernkampf; schnelles und genaues Zielen.
+S	Niederwerfen	Kampf		Den Gegner mit Wucht zu Boden schicken.
+S	Parierwaffen I	Kampf		Parieren mit einer Zweitwaffe (Linkhanddolch u. Ä.) mit geringeren Abzügen.
+S	Parierwaffen II	Kampf		Parierwaffe nahezu ohne Abzüge einsetzen.
+S	Reiterkampf	Kampf		Grundlegender Nahkampf vom Pferd aus.
+S	Rüstungsgewöhnung I	Kampf		Der Held hat sich an eine bestimmte Rüstung gewöhnt; deren Behinderung wirkt sich weniger aus.
+S	Rüstungsgewöhnung II	Kampf		Gewöhnung an alle Rüstungen: Behinderung durch Rüstung allgemein geringer.
+S	Rüstungsgewöhnung III	Kampf		Höchste Rüstungsgewöhnung: Behinderung durch Rüstung stark reduziert.
+S	Scharfschütze	Kampf		Gezielte Schüsse auf bestimmte Körperstellen und bessere Präzision mit einer Fernkampfwaffe.
+S	Schildkampf I	Kampf		Verbessert die Parade mit dem Schild und schaltet Schild-Manöver frei.
+S	Schildkampf II	Kampf		Weitere Verbesserung des Schildkampfes (setzt Schildkampf I voraus).
+S	Schildspalter	Kampf		Angriff, der gezielt den gegnerischen Schild zerstören soll.
+S	Schnellladen*	Kampf		Eine Fernkampfwaffe (Bogen/Armbrust) schneller nachladen.
+S	Schnellziehen	Kampf		Waffe ziehen oder wechseln, ohne Zeit zu verlieren.
+S	Sturmangriff	Kampf		Angriff aus vollem Lauf mit zusätzlichem Schaden.
+S	Tod von Links	Kampf		Überraschender Angriff mit der Waffe in der linken Hand.
+S	Todesstoß	Kampf		Präziser, tödlicher Stoß auf einen wehrlosen oder geschwächten Gegner.
+S	Umreißen	Kampf		Den Gegner von den Beinen holen.
+S	Unterwasserkampf	Kampf		Kämpfen unter Wasser mit geringeren Abzügen.
+S	Waffe zerbrechen	Kampf		Angriff auf die Waffe des Gegners, um sie zu zerstören.
+S	Waffenmeister*	Kampf		Meisterliche Beherrschung einer bestimmten Waffe mit individuellen Vorteilen.
+S	Waffenspezialisierung*	Kampf		Spezialisierung auf eine Waffenart: kleine Boni auf Attacke und Parade mit dieser Waffe.
+S	Wuchtschlag	Kampf		Mehr Kraft in den Schlag legen: Attacke wird erschwert, dafür steigt der Schaden.
+S	Windmühle	Kampf		Abwehr, die die Wucht des gegnerischen Schlags gegen ihn selbst lenkt.
+S	Rundumschlag	Kampf		Weit ausholender Schlag gegen alle Gegner im Umkreis.
+S	Sprungtritt	Kampf		Waffenloses Manöver: Tritt aus dem Sprung.
+S	Hoher Tritt	Kampf		Waffenloses Manöver: hoher Tritt gegen Kopf oder Oberkörper.
+S	Fußfeger	Kampf		Waffenloses Manöver: Gegner mit einem Tritt gegen die Beine zu Fall bringen.
+S	Handkante	Kampf		Waffenloses Manöver: harter Schlag mit der Handkante.
+S	Kopfstoß	Kampf		Waffenloses Manöver: Stoß mit dem Kopf.
+S	Knie	Kampf		Waffenloses Manöver: Kniestoß im Nahkampf.
+S	Gerade	Kampf		Waffenloses Manöver: gerader, schneller Fausthieb.
+S	Griff	Kampf		Ringer-Manöver: den Gegner packen.
+S	Klammer	Kampf		Ringer-Manöver: den Gegner umklammern und festhalten.
+S	Halten	Kampf		Ringer-Manöver: einen gepackten Gegner am Boden halten.
+S	Biss	Kampf		Waffenloses Manöver: zubeißen.
+S	Auspendeln	Kampf		Waffenloses Manöver: Ausweichen durch Oberkörperbewegung.
+S	Block	Kampf		Waffenloses Manöver: Abwehr mit Armen.
+S	Beinarbeit	Kampf		Geschickte Schritte, um Position und Abstand zu kontrollieren.
+S	Eisenarm	Kampf		Abwehr von Waffen mit gepanzertem oder abgehärtetem Arm.
+S	Knaufschlag	Kampf		Kurzer Schlag mit dem Knauf der Waffe.
+S	Kampfstil*	Kampf		Waffenloser oder bewaffneter Kampfstil (z. B. Bornländisch, Hruruzat, Mercenario) mit eigenen Manövern und Boni.
+S	Akklimatisierung*	Allgemein		Gewöhnung an extremes Klima (Hitze oder Kälte); weniger Erschwernisse durch Temperatur.
+S	Berufsgeheimnis*	Allgemein		Spezielles Fachwissen eines Handwerks oder einer Zunft, das sonst kaum jemand kennt.
+S	Dschungelkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Dschungel.
+S	Eiskundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im ewigen Eis.
+S	Gebirgskundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Gebirge.
+S	Höhlenkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten in Höhlen.
+S	Maraskankundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten auf Maraskan.
+S	Meereskundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten auf See und an Küsten.
+S	Steppenkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten in der Steppe.
+S	Sumpfkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Sumpf.
+S	Waldkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Wald.
+S	Wüstenkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten in der Wüste.
+S	Eiserner Wille I	Allgemein		Erhöhte Willenskraft gegen Beeinflussung und Furcht.
+S	Eiserner Wille II	Allgemein		Noch stärkere Willenskraft (setzt Eisernen Willen I voraus).
+S	Fälscher	Allgemein		Dokumente, Siegel und Handschriften fälschen.
+S	Kulturkunde*	Allgemein		Vertrautheit mit einer fremden Kultur: keine Abzüge bei gesellschaftlichen Proben in dieser Kultur.
+S	Nandusgefälliges Wissen	Allgemein		Erleichtert den Zugriff auf Wissen und gelehrte Recherche.
+S	Ortskenntnis*	Allgemein		Gute Kenntnis eines bestimmten Ortes (Stadt, Region); Erleichterungen bei Orientierung, Gassenwissen u. Ä. dort.
+S	Rosstäuscher	Allgemein		Pferde aufhübschen und ihren Wert verschleiern – oder solche Tricks erkennen.
+S	Talentspezialisierung*	Allgemein		Spezialisierung innerhalb eines Talents: Proben im Spezialgebiet sind erleichtert.
+S	Standfest	Allgemein		Schwer umzuwerfen; Vorteile gegen Niederwerfen und auf schwankendem Untergrund.
+S	Wache halten*	Allgemein		Bleibt bei der Nachtwache länger aufmerksam.
+S	Schnelles Umziehen	Allgemein		Kleidung oder Rüstung besonders schnell wechseln.
+S	Runenkunde	Allgemein		Wissen um die Bedeutung und Kraft von Runen.
+S	Zweihändiger Kampf	Kampf		Kampf mit zwei Waffen.
+S	Repräsentation*	Magie		Magische Tradition (z. B. Gildenmagie, Hexe, Elf), in der der Held Zauber beherrscht.
+S	Merkmalskenntnis*	Magie		Vertiefte Kenntnis eines Zaubermerkmals: Zauber mit diesem Merkmal lernt man leichter.
+S	Astrale Meditation	Magie		LE in AsP umwandeln.
+S	Große Meditation	Magie		Ritual, das die maximale Astralenergie dauerhaft erhöht.
+S	Konzentrationsstärke	Magie		Auch unter Störungen und Ablenkung zaubern.
+S	Gedankenschutz	Magie		Schutz gegen Gedankenlesen und Beherrschungsmagie.
+S	Kraftkontrolle	Magie		Zauber mit geringerem AsP-Verbrauch wirken.
+S	Kraftlinienmagie I	Magie		Kraftlinien zum Zaubern nutzen.
+S	Kraftlinienmagie II	Magie		Kraftlinien noch besser nutzen.
+S	Kraftspeicher	Magie		AsP in einem Artefakt speichern.
+S	Fernzauberei	Magie		Größere Reichweite für Zauber.
+S	Aura verhüllen	Magie		Die eigene magische Aura vor Entdeckung verbergen.
+S	Blutmagie	Magie		Lebenskraft (eigene oder fremde) für Zauber nutzen – meist verboten.
+S	Matrixgeber	Magie		Verbesserte Fähigkeit, Artefakte zu erschaffen.
+S	Ritualkenntnis*	Magie		Kenntnis der Rituale einer Tradition.
+S	Liturgie:*	Liturgie		Liturgie eines Geweihten: ein göttliches Wunder, das mit Karmaenergie gewirkt wird.
+S	Akoluth*	Karma		Laienanhänger einer Kirche, der kleine Segnungen sprechen kann.
+S	Karmalqueste	Karma		Queste, die die Karmaenergie eines Geweihten dauerhaft erhöht.
+S	Hexenfluch:*	Magie		Hexenfluch: eine typische Schadensmagie der Hexen.
+S	Elfenlied:*	Magie		Elfenlied: magischer Gesang der Elfen mit besonderer Wirkung.
+S	Druidisches Dolchritual:*	Magie		Ritual zur Weihe und Stärkung des Druidendolches.
+S	Druidisches Herrschaftsritual:*	Magie		Druidenritual zur Beherrschung anderer Wesen.
+S	Keulenritual:*	Magie		Ritual der Waldmenschen-Schamanen zur Stärkung der Keule.
+S	Kugelzauber:*	Magie		Ritual zur Kristallkugel eines Magiers.
+S	Stabzauber:*	Magie		Ritual zum Magierstab (z. B. Bindung, Fackel, Seil).
+S	Schalenzauber:*	Magie		Ritual zur Alchimistenschale.
+S	Schlangenring-Zauber:*	Magie		Ritual zum Schlangenring der Geoden.
+S	Kristallomantisches Ritual:*	Magie		Ritual der Kristallomanten.
+S	Gabe des Odûn:*	Magie		Gabe der Durro-Dûn-Tradition.
+S	Runen:*	Magie		Runenritual der Thorwaler- oder Zwergentradition.
+S	Dämonenbindung I	Magie		Dämonen beschwören und binden.
+S	Dämonenbindung II	Magie		Mächtigere Dämonen beschwören und binden.
+S	Exorzist	Karma		Fachwissen im Austreiben von Dämonen und Geistern.
+V	Akademische Ausbildung*	Vorteil		Ausbildung an einer Akademie: verbilligt bestimmte Steigerungen (Kampf, Wissen oder Magie je nach Art).
+V	Adlige Abstammung	Vorteil		Der Held stammt aus einem Adelshaus; gesellschaftliche Vorteile, ggf. Erbe.
+V	Adliges Erbe	Vorteil		Der Held erbt Adelstitel und Besitz.
+V	Altersresistenz	Vorteil		Der Held altert langsamer.
+V	Amtsadel	Vorteil		Adelsrang durch ein Amt.
+V	Astrale Regeneration	Vorteil		Regeneriert Astralenergie schneller.
+V	Astralmacht	Vorteil		Mehr Astralenergie.
+V	Ausdauernd	Vorteil		Mehr Ausdauer, ermüdet langsamer.
+V	Balance	Vorteil		Hervorragender Gleichgewichtssinn; Vorteile beim Balancieren und gegen Stürze.
+V	Begabung für*	Vorteil		Begabung: das Steigern des Talents/Zaubers/der Gruppe ist billiger; Proben-Patzer werden abgemildert.
+V	Beidhändig	Vorteil		Beide Hände sind gleich geschickt; keine Abzüge mit der falschen Hand.
+V	Dämmerungssicht	Vorteil		Bessere Sicht bei schwachem Licht.
+V	Eidetisches Gedächtnis	Vorteil		Fotografisches Gedächtnis.
+V	Eisern	Vorteil		Höhere Wundschwelle: Der Held steckt Wunden besser weg.
+V	Entfernungssinn	Vorteil		Entfernungen sehr genau abschätzen; hilfreich im Fernkampf.
+V	Flink	Vorteil		Schneller zu Fuß (höhere Geschwindigkeit).
+V	Gefahreninstinkt	Vorteil		Spürt drohende Gefahr.
+V	Glück	Vorteil		Der Held kann ab und zu Würfe wiederholen.
+V	Glück im Spiel	Vorteil		Erleichterungen bei Glücksspielen.
+V	Gutaussehend	Vorteil		Attraktiv; Vorteile bei sozialen Proben.
+V	Guter Ruf	Vorteil		Ruhm und Ansehen in der Welt.
+V	Gutes Gedächtnis	Vorteil		Merkt sich Dinge leicht.
+V	Herausragende Eigenschaft*	Vorteil		Eine Eigenschaft darf über das übliche Maximum hinaus steigen.
+V	Herausragender Sinn*	Vorteil		Ein Sinn (Sicht, Gehör, Geruch, Tastsinn) ist außergewöhnlich scharf.
+V	Herausragendes Aussehen	Vorteil		Außergewöhnlich schön.
+V	Hitzeresistenz	Vorteil		Verträgt Hitze besser.
+V	Hohe Lebenskraft	Vorteil		Mehr Lebensenergie.
+V	Hohe Magieresistenz	Vorteil		Höhere Magieresistenz.
+V	Innerer Kompass	Vorteil		Findet immer die Himmelsrichtung.
+V	Kälteresistenz	Vorteil		Verträgt Kälte besser.
+V	Kampfrausch	Vorteil		Im Kampf verfällt der Held in Raserei: stärker, aber unkontrolliert.
+V	Linkshänder	Vorteil		Kämpft links – manche Gegner sind darauf schlechter vorbereitet.
+V	Magiegespür	Vorteil		Spürt Magie.
+V	Nachtsicht	Vorteil		Sieht bei Nacht fast so gut wie bei Tag.
+V	Natürlicher Rüstungsschutz	Vorteil		Dicke Haut oder Schuppen bieten Schutz.
+V	Resistenz gegen*	Vorteil		Widerstandsfähiger gegen Gifte bzw. Krankheiten.
+V	Immunität gegen*	Vorteil		Völlig unempfindlich gegen bestimmte Gifte/Krankheiten.
+V	Richtungssinn	Vorteil		Verirrt sich praktisch nie.
+V	Schlangenmensch	Vorteil		Außergewöhnlich gelenkig.
+V	Schnelle Heilung	Vorteil		Regeneriert Lebensenergie schneller.
+V	Schwer zu verzaubern	Vorteil		Magie wirkt schlechter auf den Helden.
+V	Soziale Anpassungsfähigkeit	Vorteil		Fühlt sich in jeder sozialen Schicht schnell zu Hause.
+V	Sprachgefühl	Vorteil		Lernt Sprachen leicht.
+V	Talentschub	Vorteil		Startbonus auf ein Talent.
+V	Tierfreund	Vorteil		Tiere fassen schnell Vertrauen.
+V	Titularadel	Vorteil		Adelstitel ohne Land.
+V	Verbindungen	Vorteil		Nützliche Kontakte zu einflussreichen Personen.
+V	Veteran	Vorteil		Kampferfahrung; zusätzliche Kampf-SF zu Beginn.
+V	Vollzauberer	Vorteil		Der Held ist ein voller Zauberkundiger mit Astralenergie.
+V	Halbzauberer	Vorteil		Der Held hat begrenzte magische Fähigkeiten.
+V	Viertelzauberer	Vorteil		Kleine magische Begabung.
+V	Vom Schicksal begünstigt	Vorteil		Das Schicksal meint es gut mit dem Helden – mehr Glück.
+V	Wohlklang	Vorteil		Angenehme Stimme; Vorteile beim Singen und Überzeugen.
+V	Zäher Hund	Vorteil		Hält Schmerzen und Erschöpfung besser aus.
+V	Zeitgefühl	Vorteil		Weiß immer etwa, wie spät es ist.
+V	Aberglaube	Nachteil		Glaubt an Omen und Zeichen; reagiert auf schlechte Vorzeichen unruhig. Wert = Stärke.
+V	Angst vor*	Nachteil		Phobie vor etwas Bestimmtem; Konfrontation erfordert Selbstbeherrschung. Wert = Stärke.
+V	Arroganz	Nachteil		Überheblich gegenüber anderen; Proben gegen das Ausleben. Wert = Stärke.
+V	Autoritätsgläubig	Nachteil		Folgt Autoritäten fast blind.
+V	Behäbig	Nachteil		Langsamer als andere.
+V	Blutrausch	Nachteil		Gerät im Kampf in einen unkontrollierten Blutrausch.
+V	Dunkelangst	Nachteil		Angst in der Dunkelheit.
+V	Einäugig	Nachteil		Nur ein Auge; Abzüge beim Fernkampf und Sehen.
+V	Eitelkeit	Nachteil		Sehr auf das eigene Aussehen bedacht.
+V	Feind	Nachteil		Ein mächtiger Gegner verfolgt den Helden.
+V	Festgefügtes Denken	Nachteil		Schwer neue Ideen anzunehmen.
+V	Fettleibig	Nachteil		Übergewicht: weniger beweglich.
+V	Geiz	Nachteil		Gibt ungern Geld aus. Wert = Stärke.
+V	Gerechtigkeitswahn	Nachteil		Muss gegen jede wahrgenommene Ungerechtigkeit einschreiten. Wert = Stärke.
+V	Gesucht	Nachteil		Der Held wird von der Obrigkeit gesucht.
+V	Glasknochen	Nachteil		Knochen brechen leicht.
+V	Goldgier	Nachteil		Kann Reichtümern kaum widerstehen. Wert = Stärke.
+V	Größenwahn	Nachteil		Maßlose Selbstüberschätzung.
+V	Heimwehkrank	Nachteil		Leidet fern der Heimat.
+V	Hitzeempfindlichkeit	Nachteil		Verträgt Hitze schlecht; Abzüge in heißem Klima.
+V	Höhenangst	Nachteil		Angst in großer Höhe. Wert = Stärke.
+V	Impulsiv	Nachteil		Handelt, ohne nachzudenken.
+V	Jähzorn	Nachteil		Neigt zu plötzlichen Wutausbrüchen. Wert = Stärke.
+V	Kälteempfindlichkeit	Nachteil		Verträgt Kälte schlecht.
+V	Kleinwüchsig	Nachteil		Deutlich kleiner als üblich.
+V	Krankheitsanfällig	Nachteil		Erkrankt leichter.
+V	Kurzatmig	Nachteil		Weniger Ausdauer.
+V	Lahm	Nachteil		Ein Bein ist eingeschränkt; langsamer.
+V	Lichtempfindlich	Nachteil		Grelles Licht blendet stark.
+V	Medium	Nachteil		Zieht Geister und Wesenheiten an.
+V	Meeresangst	Nachteil		Angst vor dem offenen Meer.
+V	Miserable Eigenschaft*	Nachteil		Eine Eigenschaft ist schwer zu steigern.
+V	Moralkodex*	Nachteil		Bindender Verhaltenskodex (z. B. einer Kirche); Verstöße haben Folgen.
+V	Nachtblind	Nachteil		Sieht im Dunkeln schlecht.
+V	Neid	Nachteil		Missgönnt anderen ihren Besitz oder Erfolg.
+V	Neugier	Nachteil		Kann Geheimnissen kaum widerstehen. Wert = Stärke.
+V	Niedrige Lebenskraft	Nachteil		Weniger Lebensenergie.
+V	Niedrige Magieresistenz	Nachteil		Anfälliger für Magie.
+V	Pechmagnet	Nachteil		Unglück verfolgt den Helden.
+V	Platzangst	Nachteil		Angst in engen Räumen.
+V	Prinzipientreue	Nachteil		Hält eisern an bestimmten Grundsätzen fest. Wert = Stärke.
+V	Rachsucht	Nachteil		Vergisst keine Kränkung und sinnt auf Rache. Wert = Stärke.
+V	Randgruppe	Nachteil		Gehört einer gesellschaftlich ausgegrenzten Gruppe an.
+V	Raumangst	Nachteil		Angst vor weiten, offenen Flächen.
+V	Schlafwandler	Nachteil		Wandelt nachts im Schlaf umher.
+V	Schlechte Regeneration	Nachteil		Regeneriert Lebensenergie langsamer.
+V	Schlechter Ruf	Nachteil		Ist für schlechte Taten bekannt; soziale Nachteile. Wert = Stärke.
+V	Schulden	Nachteil		Der Held schuldet jemandem Geld.
+V	Selbstgespräche	Nachteil		Redet mit sich selbst.
+V	Sprachfehler	Nachteil		Stottert oder lispelt.
+V	Spielsucht	Nachteil		Kann Glücksspielen kaum widerstehen.
+V	Streitsucht	Nachteil		Sucht Streit.
+V	Sucht*	Nachteil		Abhängigkeit von einer Substanz.
+V	Tollpatsch	Nachteil		Ungeschickt; Patzer häufiger.
+V	Totenangst	Nachteil		Angst vor Toten und Untoten.
+V	Unansehnlich	Nachteil		Wenig attraktiv.
+V	Unfähigkeit für*	Nachteil		Ein Talent/eine Gruppe ist schwerer zu lernen und zu nutzen.
+V	Unfrei	Nachteil		Leibeigen oder Sklave.
+V	Ungebildet	Nachteil		Wissenstalente sind schwer zu lernen.
+V	Unstet	Nachteil		Hält es nirgends lange aus.
+V	Verpflichtungen	Nachteil		Gegenüber Orden, Herrn oder Familie verpflichtet.
+V	Verschwendungssucht	Nachteil		Gibt Geld mit vollen Händen aus.
+V	Verwöhnt	Nachteil		An Luxus gewöhnt.
+V	Vorurteile gegen*	Nachteil		Starke Vorurteile gegen eine Gruppe. Wert = Stärke.
+V	Weltfremd*	Nachteil		Kennt sich in einem Lebensbereich nicht aus.
+V	Widerwärtiges Aussehen	Nachteil		Abstoßendes Aussehen.
+V	Wilde Magie	Nachteil		Zauber geraten oft außer Kontrolle.
+V	Zwergenwuchs	Nachteil		Kleinwuchs.
+V	Übler Geruch	Nachteil		Riecht unangenehm.

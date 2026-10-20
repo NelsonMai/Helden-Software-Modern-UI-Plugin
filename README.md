@@ -1,0 +1,69 @@
+# Modern-UI für die Helden-Software (DSA 4.1)
+
+Ein Plugin für die [Helden-Software](https://www.helden-software.de/), das ihr eine moderne Oberfläche gibt.
+Alle Funktionen der Helden-Software bleiben unverändert erhalten. Das Plugin nutzt ausschließlich die
+offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
+
+## Funktionen
+
+- **Modernes Design für die ganze Software**: hell oder dunkel, inklusive aller Dialoge
+  (Steigern, Erschaffung, Ausrüstung …). Umschaltbar unter *Erweiterungen → Modern-UI*, auch zurück zum Original.
+- **Tooltips** zu Talenten, Sonderfertigkeiten sowie Vor- und Nachteilen – auch in den Original-Dialogen.
+  Bei eigenen Talenten mit Probe und Eigenschaftswerten, TaW, BE bzw. AT/PA.
+- **Eigene Tooltip-Texte**: Maus über einen Eintrag, `Strg+Umschalt+T`. Gespeichert in
+  `helden/plugins/modern-ui/eigene-tooltips.tsv` (nur lokal, nicht im Repository).
+- **Reiter „Plugin: Modern-UI“**: moderne Heldenübersicht mit Eigenschaften, Basiswerten, filterbaren Talenten,
+  Sonderfertigkeiten, Vor-/Nachteilen, Kampfwerten, Zaubern und Inventar.
+- **Moderne Druckvorschau** im Reiter „Druckvorschau“: neu gestalteter Heldenbogen (A4) mit Zustand
+  (LE/AU-Schwellen, Wundkästchen), Waffen, Rüstungszonen inkl. W20-Trefferzonen, Talenten mit Probe,
+  Werten, BE und Steigerungsspalte, Inventar und Notizseite. Drucken, PDF-Export, Umschalter zur Original-Vorschau.
+
+## Installation
+
+1. Helden-Software beenden.
+2. `ModernUI-Plugin.jar` aus den [Releases](../../releases) bzw. den Build-Artefakten herunterladen.
+3. In den Plugin-Ordner kopieren:
+   - Windows: `C:\Users\<Name>\helden\plugins\`
+   - macOS: `/Users/<Name>/helden/plugins/`
+   - Linux: `~/helden/plugins/`
+4. Helden-Software starten.
+
+Deinstallation: JAR aus dem Plugin-Ordner löschen.
+
+## Selbst bauen
+
+Voraussetzung: JDK 8 oder neuer.
+
+```sh
+./build.sh            # Ergebnis: build/ModernUI-Plugin.jar
+```
+
+Das Skript lädt FlatLaf von Maven Central (oder nimmt das JAR aus `FLATLAF_JAR`).
+Die Helden-Software selbst wird zum Bauen **nicht** benötigt: Der Ordner `api-stubs/` enthält nur die
+Signaturen der drei verwendeten Plugin-Schnittstellen. Sie werden zum Kompilieren genutzt, aber nicht
+ins Plugin gepackt – zur Laufzeit liefert die Helden-Software die echten Klassen.
+
+GitHub Actions baut bei jedem Push automatisch und hängt das JAR als Artefakt an.
+Ein Tag `vX.Y.Z` erzeugt zusätzlich ein Release mit dem JAR.
+
+## Aufbau
+
+| Pfad | Inhalt |
+|---|---|
+| `src/main/java/de/modernhelden/ModernHeldenPlugin.java` | Einstiegspunkt (Plugin-Schnittstelle, Menü, Einstellungen) |
+| `.../Theme.java` | Umschalten des Designs (FlatLaf hell/dunkel/Original) |
+| `.../TooltipHook.java`, `TooltipDB.java` | Globale Tooltips und Tooltip-Daten |
+| `.../HeroPanel.java`, `HeroData.java` | Reiter „Plugin: Modern-UI“ |
+| `.../print/` | Moderne Druckvorschau, Heldenbogen-Layout, PDF-Export |
+| `src/main/resources/de/modernhelden/tooltips.tsv` | Kurzbeschreibungen (eigene Formulierungen) |
+| `api-stubs/` | Platzhalter der Plugin-Schnittstelle, nur zum Kompilieren |
+
+## Hinweise
+
+- Die Kurzbeschreibungen sind eigene Zusammenfassungen, keine Regeltexte. Maßgeblich sind die Regelbücher
+  und die Berechnungen der Helden-Software.
+- Die Helden-Software ist nicht Teil dieses Repositories und darf hier nicht eingecheckt werden.
+- *Das Schwarze Auge* und *Aventurien* sind eingetragene Marken der Ulisses Spiele GmbH. Dieses Projekt ist
+  ein inoffizielles Fan-Projekt und steht in keiner Verbindung zu Ulisses Spiele oder den Entwicklern der
+  Helden-Software.
+- Enthält [FlatLaf](https://www.formdev.com/flatlaf/) (Apache-Lizenz 2.0, siehe `LICENSE-FlatLaf.txt`).

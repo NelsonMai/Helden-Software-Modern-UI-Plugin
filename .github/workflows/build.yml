@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Plugin bauen
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then export VERSION="${GITHUB_REF_NAME#v}"; fi
+          ./build.sh
+
+      - name: JAR als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: ModernUI-Plugin
+          path: build/ModernUI-Plugin.jar
+
+      - name: Release anlegen (bei Tags v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/ModernUI-Plugin.jar
+          generate_release_notes: true

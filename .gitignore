@@ -1,0 +1,21 @@
+# Build
+build/
+lib/
+*.class
+
+# Proprietäre Helden-Software – niemals einchecken
+helden.jar
+**/helden.jar
+
+# Persönliche Daten
+*.xml
+!.github/**/*.xml
+eigene-tooltips.tsv
+modern-ui/
+
+# IDE / System
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
