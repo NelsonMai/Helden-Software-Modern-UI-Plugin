@@ -68,6 +68,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         hook.setEnabled(!"false".equals(props.get("tooltips")));
         hook.install(this::editLastHovered);
         if (new File(baseDir, "debug").isDirectory()) hook.debugLog = new File(new File(baseDir, "debug"), "hook.log");
+        if (new File(baseDir, "debug").isDirectory()) IconSwap.debugLog = new File(new File(baseDir, "debug"), "icons.log");
         refreshTimer = new Timer(250, e -> refresh());
         refreshTimer.setRepeats(false);
         d.addChangeListener(e -> refreshTimer.restart());

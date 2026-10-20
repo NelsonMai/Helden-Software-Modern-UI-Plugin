@@ -5,6 +5,7 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,15 +41,17 @@ public final class Theme {
                 UIManager.setLookAndFeel(laf);
                 // Plugin wird über einen eigenen ClassLoader geladen – Swing muss die UI-Klassen dort finden
                 UIManager.getLookAndFeelDefaults().put("ClassLoader", Theme.class.getClassLoader());
-                UIManager.put("Component.arc", 8);
-                UIManager.put("Button.arc", 8);
-                UIManager.put("TextComponent.arc", 6);
-                UIManager.put("ScrollBar.showButtons", false);
-                UIManager.put("ScrollBar.width", 12);
-                UIManager.put("TabbedPane.showTabSeparators", true);
-                UIManager.put("Table.showHorizontalLines", true);
-                UIManager.put("Table.intercellSpacing", new Dimension(0, 1));
-                UIManager.put("ToolTip.border", BorderFactory.createEmptyBorder(6, 8, 6, 8));
+                UIDefaults ld = UIManager.getLookAndFeelDefaults();   // nur für dieses Design, nicht global
+                ld.put("Component.arc", 8);
+                ld.put("Button.arc", 8);
+                ld.put("TextComponent.arc", 6);
+                ld.put("ScrollBar.showButtons", false);
+                ld.put("ScrollBar.width", 12);
+                ld.put("TabbedPane.showTabSeparators", true);
+                ld.put("Table.showHorizontalLines", true);
+                ld.put("Table.intercellSpacing", new Dimension(0, 1));
+                ld.put("ToolTip.border", BorderFactory.createEmptyBorder(6, 8, 6, 8));
+                felderUnterscheidbar(DUNKEL.equals(mode));
             }
             current = mode;
         } catch (Exception e) {
@@ -69,6 +72,57 @@ public final class Theme {
         }
         // erst nach dem Baum-Update, damit die Tabellen ihre neuen Renderer schon haben
         SwingUtilities.invokeLater(Theme::aktualisiereTabellenRenderer);
+        // eigene Symbole nur in den modernen Designs
+        final boolean modernJetzt = isModern();
+        SwingUtilities.invokeLater(() -> IconSwap.setModern(modernJetzt));
+    }
+
+    /**
+     * Farben, mit denen sich Felder, Zeilen und Spalten deutlicher voneinander abheben:
+     * Zebra-Streifen, sichtbare Gitterlinien, lesbare Markierung, klar abgesetzte Eingabefelder.
+     */
+    private static void felderUnterscheidbar(boolean dunkel) {
+        // nur in die Standardwerte des aktiven FlatLaf-Designs schreiben – das Original-Design bleibt unberührt
+        UIDefaults d = UIManager.getLookAndFeelDefaults();
+        if (dunkel) {
+            d.put("Table.background", new ColorUIResource(0x45484a));
+            d.put("Table.alternateRowColor", new ColorUIResource(0x3a3d3f));
+            d.put("Table.gridColor", new ColorUIResource(0x5a5e61));
+            d.put("Table.selectionBackground", new ColorUIResource(0x8a5532));
+            d.put("Table.selectionForeground", new ColorUIResource(Color.WHITE));
+            d.put("Table.selectionInactiveBackground", new ColorUIResource(0x6a4630));
+            d.put("Table.selectionInactiveForeground", new ColorUIResource(Color.WHITE));
+            d.put("TableHeader.background", new ColorUIResource(0x34373a));
+            d.put("TableHeader.separatorColor", new ColorUIResource(0x5a5e61));
+            d.put("TableHeader.bottomSeparatorColor", new ColorUIResource(0x6e7377));
+            d.put("Component.borderColor", new ColorUIResource(0x666b70));
+            d.put("TextField.background", new ColorUIResource(0x2f3133));
+            d.put("FormattedTextField.background", new ColorUIResource(0x2f3133));
+            d.put("TextField.inactiveBackground", new ColorUIResource(0x3c3f41));
+            d.put("ComboBox.background", new ColorUIResource(0x2f3133));
+            d.put("List.background", new ColorUIResource(0x45484a));
+            d.put("ScrollPane.background", new ColorUIResource(0x45484a));
+        } else {
+            d.put("Table.background", new ColorUIResource(Color.WHITE));
+            d.put("Table.alternateRowColor", new ColorUIResource(0xf6f1eb));
+            d.put("Table.gridColor", new ColorUIResource(0xe2dbd2));
+            d.put("Table.selectionBackground", new ColorUIResource(0xf1d6c3));
+            d.put("Table.selectionForeground", new ColorUIResource(0x1e1e1e));
+            d.put("Table.selectionInactiveBackground", new ColorUIResource(0xf5e4d8));
+            d.put("Table.selectionInactiveForeground", new ColorUIResource(0x1e1e1e));
+            d.put("TableHeader.background", new ColorUIResource(0xece6de));
+            d.put("TableHeader.separatorColor", new ColorUIResource(0xd6cec4));
+            d.put("TableHeader.bottomSeparatorColor", new ColorUIResource(0xc9bfb3));
+            d.put("Component.borderColor", new ColorUIResource(0xbdb5ab));
+            d.put("TextField.background", new ColorUIResource(Color.WHITE));
+            d.put("FormattedTextField.background", new ColorUIResource(Color.WHITE));
+            d.put("TextField.inactiveBackground", new ColorUIResource(0xeeebe7));
+            d.put("ComboBox.background", new ColorUIResource(Color.WHITE));
+        }
+        d.put("Table.showVerticalLines", true);
+        d.put("Table.showHorizontalLines", true);
+        d.put("Table.intercellSpacing", new Dimension(1, 1));
+        d.put("Component.focusWidth", 1);
     }
 
     /**

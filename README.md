@@ -4,6 +4,13 @@ Ein Plugin für die [Helden-Software](https://www.helden-software.de/), das ihr 
 Alle Funktionen der Helden-Software bleiben unverändert erhalten. Das Plugin nutzt ausschließlich die
 offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
 
+### Moderne Designs: Felder und Symbole
+* Tabellen der Helden-Software mit Zebra-Streifen, sichtbaren Spaltenlinien und gut lesbarer Markierung;
+  bearbeitbare Felder sind weiß, reine Anzeigefelder leicht getönt.
+* Eigene, gezeichnete Symbole (Werkzeugleiste, Dialoge, Meldungen, Markierungen wie Basistalent,
+  Hauszauber, Leittalent …) – nur in „Modern hell“ und „Modern dunkel“. Im Design „Original“ erscheinen
+  wieder die ursprünglichen Symbole und Tabellen.
+
 ## Funktionen
 
 - **Modernes Design für die ganze Software**: hell oder dunkel, inklusive aller Dialoge
