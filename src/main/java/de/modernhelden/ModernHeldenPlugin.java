@@ -215,6 +215,14 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         return null;
     }
 
+    /**
+     * Liest bzw. setzt die Druckeinstellung „Metatalente drucken“ des Helden in der Helden-Software.
+     * Die Software berechnet Meta-Talente nur, wenn sie aktiv ist; das Plugin schaltet sie
+     * daher nur für die Dauer der Abfrage ein und stellt den alten Wert wieder her.
+     * @param heldenkey Schlüssel des Helden
+     * @param wert null = nur lesen
+     * @return bisheriger Wert oder null, falls nicht verfügbar
+     */
     /** Berechnete Heldendaten (inkl. Waffen, Rüstung, Kampfwerte) über die Plugin-Schnittstelle. */
     private Document heldDaten() {
         try {

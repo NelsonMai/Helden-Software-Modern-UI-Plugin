@@ -21,6 +21,7 @@ public final class SheetData {
     public static final class Talent {
         public String name = "", probe = "", probenwerte = "", be = "", bereich = "", spalte = "", spez = "", k = "";
         public String at = "", pa = "";
+        public boolean meta;
         public int wert;
     }
 
@@ -156,6 +157,7 @@ public final class SheetData {
             t.spalte = text(e, "lernkomplexität");
             t.spez = text(e, "spezialisierungen");
             t.k = text(e, "sprachkomplexität");
+            t.meta = "true".equals(text(e, "metatalent"));
             t.at = text(e, "at");
             t.pa = text(e, "pa");
             t.wert = num(text(e, "wert"));

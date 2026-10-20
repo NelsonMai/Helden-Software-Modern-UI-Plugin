@@ -34,7 +34,8 @@ public final class PrintPreviewPanel extends JPanel {
     private final JScrollPane scroll = new JScrollPane(pages);
     private final JToggleButton modern = new JToggleButton("Modern"), original = new JToggleButton("Original");
     private final JComboBox<String> zoom = new JComboBox<>(ZOOMS);
-    private final JCheckBox desc = new JCheckBox("Kurzbeschreibungen zu SF und Vor-/Nachteilen"), null0 = new JCheckBox("Talente mit TaW 0 zeigen"), notes = new JCheckBox("Notizen und Linienseite");
+    private final JCheckBox desc = new JCheckBox("Kurzbeschreibungen zu SF und Vor-/Nachteilen"), null0 = new JCheckBox("Talente mit TaW 0 zeigen"), notes = new JCheckBox("Notizen und Linienseite"),
+            meta = new JCheckBox("Meta-Talente zeigen (z. B. Wache halten, Kräuter suchen)");
     private final JLabel info = new JLabel();
     private final JPanel modernTools = new JPanel();
     private final JButton refreshBtn = new JButton("Aktualisieren"), pdf = new JButton("Als PDF speichern …"), print = new JButton("Drucken …");
@@ -54,6 +55,7 @@ public final class PrintPreviewPanel extends JPanel {
         desc.setSelected(!"false".equals(props.get("druck.beschreibungen")));
         null0.setSelected(!"false".equals(props.get("druck.taw0")));
         notes.setSelected(!"false".equals(props.get("druck.notizen")));
+        meta.setSelected(!"false".equals(props.get("druck.meta")));
         String z = props.get("druck.zoom");
         zoom.setSelectedItem(z != null ? z : "Seitenbreite");
 
@@ -72,6 +74,8 @@ public final class PrintPreviewPanel extends JPanel {
         desc.addActionListener(e -> { save.accept("druck.beschreibungen", String.valueOf(desc.isSelected())); rebuild(); });
         null0.addActionListener(e -> { save.accept("druck.taw0", String.valueOf(null0.isSelected())); rebuild(); });
         notes.addActionListener(e -> { save.accept("druck.notizen", String.valueOf(notes.isSelected())); rebuild(); });
+        // Meta-Talente liefert die Helden-Software nur auf Anfrage – daher Daten neu holen
+        meta.addActionListener(e -> { save.accept("druck.meta", String.valueOf(meta.isSelected())); dirty = true; refresh(); });
         zoom.addActionListener(e -> { save.accept("druck.zoom", String.valueOf(zoom.getSelectedItem())); pages.revalidate(); pages.repaint(); });
         refreshBtn.addActionListener(e -> { dirty = true; refresh(); });
         pdf.addActionListener(e -> exportPdf());
@@ -95,14 +99,24 @@ public final class PrintPreviewPanel extends JPanel {
         modernTools.add(zoom);
         modernTools.add(Box.createHorizontalStrut(8));
         final JPopupMenu optMenu = new JPopupMenu();
-        for (JCheckBox cb : new JCheckBox[]{desc, null0, notes}) {
+        for (JCheckBox cb : new JCheckBox[]{desc, null0, meta, notes}) {
             final JCheckBox src = cb;
             final JCheckBoxMenuItem mi = new JCheckBoxMenuItem(cb.getText(), cb.isSelected());
             mi.addActionListener(e -> { src.setSelected(mi.isSelected()); for (java.awt.event.ActionListener l : src.getActionListeners()) l.actionPerformed(e); });
             optMenu.add(mi);
         }
+        optMenu.addSeparator();
+        JMenuItem metaEin = new JMenuItem("Meta-Talente in der Helden-Software einschalten …");
+        metaEin.setToolTipText("<html>Die Helden-Software berechnet Meta-Talente nur, wenn in ihren Druckeinstellungen<br>"
+                + "„Metatalente“ aktiv ist. Öffnet diese Einstellungen.</html>");
+        metaEin.addActionListener(e -> oeffneDruckeinstellungen());
+        optMenu.add(metaEin);
         final JButton optBtn = new JButton("Optionen ▾");
-        optBtn.addActionListener(e -> optMenu.show(optBtn, 0, optBtn.getHeight()));
+        optBtn.addActionListener(e -> {
+            // Menü liegt außerhalb des Komponentenbaums: aktuelles Design vor dem Anzeigen übernehmen
+            SwingUtilities.updateComponentTreeUI(optMenu);
+            optMenu.show(optBtn, 0, optBtn.getHeight());
+        });
         modernTools.add(optBtn);
         bar.add(modernTools);
         bar.add(Box.createHorizontalGlue());
@@ -156,9 +170,53 @@ public final class PrintPreviewPanel extends JPanel {
         refreshBtn.setVisible(mod);
         info.setVisible(mod);
         save.accept("druck.modus", mod ? "modern" : "original");
-        if (mod) refresh();
+        if (mod) { dirty = true; refresh(); }
         revalidate();
         repaint();
+    }
+
+    /**
+     * Öffnet die Druckeinstellungen der Original-Druckvorschau (Zahnrad), in denen u. a.
+     * „Metatalente“ eingeschaltet wird. Danach werden die Daten neu geladen.
+     */
+    private void oeffneDruckeinstellungen() {
+        AbstractButton zahnrad = originalComp == null ? null : findeZahnrad(originalComp);
+        if (zahnrad == null) {
+            JOptionPane.showMessageDialog(this, "Bitte in der Original-Druckvorschau über das Zahnrad „Metatalente“ aktivieren.",
+                    "Meta-Talente", JOptionPane.INFORMATION_MESSAGE);
+            showMode(false);
+            return;
+        }
+        java.util.Set<Window> vorher = new java.util.HashSet<>();
+        for (Window w : Window.getWindows()) if (w.isShowing()) vorher.add(w);
+        zahnrad.doClick();
+        dirty = true;
+        refresh();
+        // Einstellungsfenster ist nicht modal: nach dem Schließen die Daten neu laden
+        for (Window w : Window.getWindows()) {
+            if (!w.isShowing() || vorher.contains(w)) continue;
+            w.addComponentListener(new java.awt.event.ComponentAdapter() {
+                @Override public void componentHidden(java.awt.event.ComponentEvent e) { markDirty(); }
+            });
+            w.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override public void windowClosed(java.awt.event.WindowEvent e) { markDirty(); }
+            });
+        }
+    }
+
+    /** Erste Schaltfläche ohne Text, aber mit Symbol – in der Original-Vorschau das Zahnrad. */
+    private static AbstractButton findeZahnrad(Container c) {
+        for (Component ch : c.getComponents()) {
+            if (ch instanceof AbstractButton) {
+                AbstractButton b = (AbstractButton) ch;
+                if (b.getIcon() != null && (b.getText() == null || b.getText().trim().isEmpty())) return b;
+            }
+            if (ch instanceof Container) {
+                AbstractButton b = findeZahnrad((Container) ch);
+                if (b != null) return b;
+            }
+        }
+        return null;
     }
 
     /** Daten haben sich geändert – beim nächsten Anzeigen neu aufbauen. */
@@ -200,8 +258,13 @@ public final class PrintPreviewPanel extends JPanel {
         o.beschreibungen = desc.isSelected();
         o.talenteOhneWert = null0.isSelected();
         o.notizseite = notes.isSelected();
+        o.metatalente = meta.isSelected();
         sheet = new ModernSheet(sheetData, db, o);
         info.setText(sheet.getNumberOfPages() + (sheet.getNumberOfPages() == 1 ? " Seite" : " Seiten"));
+        boolean hatMeta = false;
+        for (SheetData.Talent t : sheetData.talente) hatMeta |= t.meta;
+        info.setToolTipText(meta.isSelected() && !hatMeta
+                ? "Keine Meta-Talente: in den Druckeinstellungen der Helden-Software „Metatalente“ aktivieren (Optionen ▾)" : null);
         pdf.setEnabled(true);
         print.setEnabled(true);
         pages.revalidate();

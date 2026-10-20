@@ -30,6 +30,7 @@ public final class ModernSheet implements Pageable, Printable {
     public static final class Options {
         public boolean beschreibungen = true;
         public boolean talenteOhneWert = true;
+        public boolean metatalente = true;
         public boolean notizseite = true;
     }
 
@@ -377,9 +378,12 @@ public final class ModernSheet implements Pageable, Printable {
         Map<String, List<SheetData.Talent>> groups = new LinkedHashMap<>();
         for (SheetData.Talent t : d.talente) {
             if (!opt.talenteOhneWert && t.wert == 0) continue;
-            String g = t.bereich.isEmpty() ? "Sonstige" : t.bereich;
+            if (t.meta && !opt.metatalente) continue;
+            String g = t.meta ? "Meta-Talente" : (t.bereich.isEmpty() ? "Sonstige" : t.bereich);
             groups.computeIfAbsent(g, k -> new ArrayList<>()).add(t);
         }
+        List<SheetData.Talent> meta = groups.remove("Meta-Talente");
+        if (meta != null) groups.put("Meta-Talente", meta);
         List<ColItem> items = new ArrayList<>();
         for (Map.Entry<String, List<SheetData.Talent>> e : groups.entrySet()) {
             final String title = gruppenTitel(e.getKey());
