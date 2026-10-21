@@ -737,6 +737,7 @@ public final class ModernSheet implements Pageable, Printable {
         for (SheetData.Talent t : d.talente) if (!t.meta || opt.metatalente) { irgendein = true; break; }
         if (!irgendein) return;
         heading("Talente", 40);
+        final boolean[] mitMeister = {false};
         Map<String, List<SheetData.Talent>> groups = new LinkedHashMap<>();
         for (SheetData.Talent t : d.talente) {
             if (t.meta && !opt.metatalente) continue;
@@ -773,12 +774,34 @@ public final class ModernSheet implements Pageable, Printable {
             for (final SheetData.Talent t : e.getValue()) {
                 final boolean zebra = (i++ % 2) == 1;
                 // lange Talentnamen umbrechen statt abschneiden
-                final List<String> nl = wrap(t.name, F.reg(8), talentCols(colWidth())[1] - 4);
+                final float nameBreite = talentCols(colWidth())[1];
+                if (t.meister) mitMeister[0] = true;
+                // Meisterhandwerk: Kürzel „MH“ hinter dem Namen – passt es nicht, eine eigene Zeile darunter
+                final float tag = t.meister ? mhBreite() + 4 : 0;
+                final Font nf = F.reg(8);
+                final List<String> nl = wrap(t.name, nf, nameBreite - 4);
                 if (nl.isEmpty()) nl.add(t.name);
-                items.add(new ColItem(12.5f + (nl.size() - 1) * 9.5f, false,
-                        (g, x, yy, w, h) -> talentRow(g, t, nl, kampf, sprache, zebra, x, yy, w, h)));
+                float letzte = mg.getFontMetrics(nf).stringWidth(nl.get(nl.size() - 1));
+                final boolean mhUnten = t.meister && letzte + 4 + tag > nameBreite - 4;
+                // Spezialisierung: hinter Name bzw. Kürzel, wenn sie dort vollständig passt – sonst eigene Zeile(n) darunter
+                final List<String> sl = new ArrayList<>();
+                if (!t.spez.isEmpty()) {
+                    float rest = mhUnten ? nameBreite - 6 - tag - 10 : nameBreite - letzte - tag - 10;
+                    if (mg.getFontMetrics(F.reg(6.5f)).stringWidth(t.spez) > rest)
+                        sl.addAll(wrap(t.spez, F.reg(6.5f), nameBreite - 10));
+                }
+                items.add(new ColItem(12.5f + (nl.size() - 1) * 9.5f + (mhUnten ? 9 : 0) + sl.size() * 7.5f, false,
+                        (g, x, yy, w, h) -> talentRow(g, t, nl, sl, mhUnten, kampf, sprache, zebra, x, yy, w, h)));
             }
             items.add(new ColItem(6, false, (g, x, yy, w, h) -> { }));
+        }
+        if (mitMeister[0]) {
+            items.add(new ColItem(14, false, (g, x, yy, w, h) -> {
+                float tx = mhZeichnen(g, x + 3, yy + 9);
+                g.setFont(F.reg(7));
+                g.setColor(MUTED);
+                g.drawString("= Meisterhandwerk", tx + 4, yy + 9);
+            }));
         }
         columns(items, "Talente");
     }
@@ -807,8 +830,25 @@ public final class ModernSheet implements Pageable, Printable {
                 x0 + name + werte, be, x0 + name + werte + be, sp, x0 + name + werte + be + sp, taw};
     }
 
-    private void talentRow(Graphics2D g, SheetData.Talent t, List<String> nameLines, boolean kampf, boolean sprache, boolean zebra,
-                           float x, float yy, float w, float h) {
+    /** Schrift des Kürzels „MH“ – eine Stufe kleiner als die Spezialisierung. */
+    private static Font mhSchrift() { return F.reg(5.5f); }
+
+    /** Breite des Kürzels „MH“ (Meisterhandwerk). */
+    private float mhBreite() { return mg.getFontMetrics(mhSchrift()).stringWidth("MH") + 5; }
+
+    /** Zeichnet das Kürzel „MH“ als kleine Plakette auf der Zeile der Spezialisierung; liefert das rechte Ende. */
+    private float mhZeichnen(Graphics2D g, float x, float base) {
+        float w = mhBreite();
+        g.setColor(ACCENT);
+        g.fill(new RoundRectangle2D.Float(x, base - 6.1f, w, 7.6f, 3.5f, 3.5f));
+        g.setFont(mhSchrift());
+        g.setColor(WHITE);
+        g.drawString("MH", x + 2.5f, base - 0.5f);
+        return x + w;
+    }
+
+    private void talentRow(Graphics2D g, SheetData.Talent t, List<String> nameLines, List<String> spezLines, boolean mhUnten, boolean kampf,
+                           boolean sprache, boolean zebra, float x, float yy, float w, float h) {
         if (zebra) {
             g.setColor(FILL);
             g.fill(new Rectangle2D.Float(x, yy, w, h));
@@ -822,10 +862,21 @@ public final class ModernSheet implements Pageable, Printable {
         for (String l : nameLines) { g.drawString(l, c[0] + 3, nb); nb += 9.5f; }
         String last = nameLines.get(nameLines.size() - 1);
         float nameW = g.getFontMetrics().stringWidth(last);
-        if (!t.spez.isEmpty() && nameW + 12 < c[1]) {
+        float zeile = nb - 9.5f;                       // Grundlinie der letzten Namenszeile
+        float hinten = c[0] + 3 + nameW + 4;           // dort geht es hinter dem Namen weiter
+        if (t.meister) {
+            if (mhUnten) { zeile += 9; hinten = mhZeichnen(g, c[0] + 9, zeile) + 4; }
+            else hinten = mhZeichnen(g, hinten, zeile) + 4;
+        }
+        if (!t.spez.isEmpty()) {
             g.setFont(F.reg(6.5f));
             g.setColor(ACCENT);
-            drawFit(g, t.spez, c[0] + 3 + nameW + 4, nb - 9.5f, c[1] - nameW - 10);
+            if (spezLines.isEmpty()) {
+                g.drawString(t.spez, hinten, zeile);   // passt vollständig hinter Name bzw. Kürzel
+            } else {
+                float sb = zeile + 7.5f;
+                for (String l : spezLines) { g.drawString(l, c[0] + 9, sb); sb += 7.5f; }
+            }
         }
         g.setFont(F.reg(7.2f));
         g.setColor(MUTED);

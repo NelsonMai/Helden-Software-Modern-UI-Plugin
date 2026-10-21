@@ -22,6 +22,8 @@ public final class SheetData {
         public String name = "", probe = "", probenwerte = "", be = "", bereich = "", spalte = "", spez = "", k = "";
         public String at = "", pa = "";
         public boolean meta;
+        /** Vorteil „Meisterhandwerk“ für dieses Talent (laut Helden-Software). */
+        public boolean meister;
         public int wert;
     }
 
@@ -181,6 +183,7 @@ public final class SheetData {
             t.spez = text(e, "spezialisierungen");
             t.k = text(e, "sprachkomplexität");
             t.meta = "true".equals(text(e, "metatalent"));
+            t.meister = "true".equals(text(e, "meisterhandwerk"));
             t.at = text(e, "at");
             t.pa = text(e, "pa");
             t.wert = num(text(e, "wert"));
