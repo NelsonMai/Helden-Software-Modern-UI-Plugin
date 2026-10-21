@@ -138,6 +138,11 @@ public final class IconSwap {
         }
     }
 
+    static void debugText(String t) {
+        if (debugLog == null || !geloggt.add(t)) return;
+        try (java.io.FileWriter w = new java.io.FileWriter(debugLog, true)) { w.write(t + "\n"); } catch (java.io.IOException ignore) { }
+    }
+
     private static void log(String desc, JComponent c) {
         if (debugLog == null || desc == null || !geloggt.add(desc)) return;
         try (java.io.FileWriter w = new java.io.FileWriter(debugLog, true)) {

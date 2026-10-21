@@ -97,6 +97,11 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
     public JComponent getPanel() {
         if (panel == null) {
             panel = new HeroPanel(db, this::editTooltip);
+            panel.setRueckgaengig(e -> {
+                String f = Rueckgaengig.ausfuehren(frame, e.time, e.text);
+                refresh();
+                return f;
+            });
             SwingUtilities.invokeLater(this::refresh);
         }
         return panel;

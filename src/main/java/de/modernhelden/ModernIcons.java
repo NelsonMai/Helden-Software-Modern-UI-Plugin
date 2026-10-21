@@ -427,6 +427,15 @@ public final class ModernIcons {
             g.draw(pfad(9, 14, 12, 17, 15, 14));
         });
 
+        def("verlauf", (g, fg, a2) -> {       // Uhr mit Pfeil zurück
+            g.setColor(fg);
+            g.draw(new Arc2D.Double(4, 4, 16, 16, 200, 290, Arc2D.OPEN));
+            linie(g, 12, 8, 12, 12);
+            linie(g, 12, 12, 15, 14);
+            g.setColor(a2);
+            g.draw(pfad(3, 7, 4.5, 12.5, 9, 10));
+        });
+
         // ---------------- Meldungen
         def("caution", (g, fg, a) -> warnDreieck(g, GELB));
         def("warn", SYMBOLE.get("caution"));

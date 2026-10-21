@@ -36,6 +36,10 @@ public final class HeroPanel extends JPanel {
 
     private final TooltipDB db;
     private final Consumer<TooltipDB.Match> editor;
+    /** Macht ein Ereignis rückgängig; liefert null bei Erfolg, sonst die Fehlermeldung. */
+    private java.util.function.Function<Herkunft.Ereignis, String> rueckgaengig;
+
+    public void setRueckgaengig(java.util.function.Function<Herkunft.Ereignis, String> f) { this.rueckgaengig = f; }
     private HeroData hero;
     private final JPanel content = new JPanel(new BorderLayout());
     private JTabbedPane tabs;
@@ -94,6 +98,7 @@ public final class HeroPanel extends JPanel {
             tabs.addTab("Kampf", ModernIcons.nurModern("kampf", 16), kampfTab(h));
             if (!h.zauber.isEmpty()) tabs.addTab("Zauber (" + h.zauber.size() + ")", ModernIcons.nurModern("zauber", 16), zauberTab(h));
             tabs.addTab("Inventar", ModernIcons.nurModern("inventar", 16), inventarTab(h));
+            if (h.herkunft != null) tabs.addTab("Verlauf", ModernIcons.nurModern("verlauf", 16), verlaufTab(h));
             if (lastTab >= 0 && lastTab < tabs.getTabCount()) tabs.setSelectedIndex(lastTab);
             JPanel wrap = new JPanel(new BorderLayout());
             wrap.setBorder(new EmptyBorder(0, 12, 12, 12));
@@ -527,6 +532,95 @@ public final class HeroPanel extends JPanel {
             p.add(l, BorderLayout.SOUTH);
         }
         return p;
+    }
+
+    // ---------------------------------------------------------------- Verlauf / Rückgängig
+
+    private JComponent verlaufTab(final HeroData h) {
+        final List<Herkunft.Ereignis> ev = h.herkunft.rueckgaengigMoeglich();
+        String[] cols = {"Datum", "Aktion", "Eintrag", "Änderung", "AP"};
+        List<Object[]> data = new ArrayList<>();
+        for (Herkunft.Ereignis e : ev) {
+            String aend = e.alt.isEmpty() && e.neu.isEmpty() ? "" : erster(e.alt) + " → " + erster(e.neu);
+            int ap = -num(e.ap);
+            data.add(new Object[]{h.herkunft.datum(e), e.text, e.obj, aend, ap == 0 ? "" : String.valueOf(ap)});
+        }
+        final JTable table = new JTable(data.toArray(new Object[0][]), cols) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        styleTable(table);
+        table.getColumnModel().getColumn(0).setPreferredWidth(90);
+        table.getColumnModel().getColumn(1).setPreferredWidth(190);
+        table.getColumnModel().getColumn(2).setPreferredWidth(260);
+        table.getColumnModel().getColumn(3).setPreferredWidth(90);
+        table.getColumnModel().getColumn(4).setPreferredWidth(60);
+        for (int i = 0; i < cols.length; i++) {
+            javax.swing.table.TableColumn col = table.getColumnModel().getColumn(i);
+            col.setCellRenderer(new TabellenStil.Zebra(col.getCellRenderer()));
+        }
+        final JButton undo = new JButton("Rückgängig machen …");
+        undo.setIcon(ModernIcons.nurModern("refresh", 16));
+        undo.setEnabled(false);
+        final JLabel hinweis = new JLabel(ev.isEmpty()
+                ? "Keine Steigerungen oder Sonderfertigkeiten nach der Erschaffung vorhanden."
+                : "Eintrag wählen, um ihn rückgängig zu machen. Die AP werden erstattet.");
+        hinweis.setForeground(Theme.muted());
+        table.getSelectionModel().addListSelectionListener(e -> {
+            int r = table.getSelectedRow();
+            if (r < 0) { undo.setEnabled(false); return; }
+            Herkunft.Ereignis x = ev.get(r);
+            Herkunft.Ereignis spaeter = h.herkunft.spaeteresZuSelbem(x);
+            if (spaeter != null) {
+                undo.setEnabled(false);
+                hinweis.setText("Erst die spätere Änderung an „" + x.obj + "“ vom " + h.herkunft.datum(spaeter) + " rückgängig machen.");
+            } else {
+                undo.setEnabled(rueckgaengig != null);
+                int ap = -num(x.ap);
+                String was = x.text.startsWith("Sonderfertigkeit") ? "entfernen"
+                        : x.text.endsWith("aktivieren") ? "deaktivieren"
+                        : "zurück auf " + erster(x.alt);
+                hinweis.setText("<html>" + esc(x.obj) + " " + was + (ap > 0 ? " · <b>" + ap + " AP</b> zurück" : "") + "</html>");
+            }
+        });
+        undo.addActionListener(e -> {
+            int r = table.getSelectedRow();
+            if (r < 0 || rueckgaengig == null) return;
+            Herkunft.Ereignis x = ev.get(r);
+            int ap = -num(x.ap);
+            StringBuilder msg = new StringBuilder("<html><div style='width:360px'><b>" + esc(x.text) + ": " + esc(x.obj) + "</b>");
+            if (!x.alt.isEmpty() || !x.neu.isEmpty()) msg.append("<br>Wert ").append(esc(erster(x.neu))).append(" → ").append(esc(erster(x.alt)));
+            msg.append("<br>Erstattung: <b>").append(ap).append(" AP</b>");
+            if (x.info.contains("SE")) msg.append("<br><br>Für diese Steigerung wurde eine <b>Spezielle Erfahrung</b> genutzt. "
+                    + "Sie wird nicht automatisch zurückgegeben – bei Bedarf das SE-Häkchen im Reiter „Talente“ wieder setzen.");
+            if (x.text.startsWith("Sonderfertigkeit")) {
+                List<String> spaeter = h.herkunft.spaetereSonderfertigkeiten(x);
+                if (!spaeter.isEmpty()) msg.append("<br><br>Danach erworben: ").append(esc(String.join(", ", spaeter)))
+                        .append(". Bitte prüfen, ob eine davon „").append(esc(x.obj)).append("“ voraussetzt.");
+            }
+            msg.append("<br><br>Die Änderung wird erst mit dem nächsten Speichern des Helden dauerhaft.</div></html>");
+            int ok = JOptionPane.showConfirmDialog(this, msg.toString(), "Rückgängig machen", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (ok != JOptionPane.OK_OPTION) return;
+            String fehler = rueckgaengig.apply(x);
+            if (fehler != null) JOptionPane.showMessageDialog(this, fehler, "Rückgängig machen", JOptionPane.WARNING_MESSAGE);
+        });
+        JPanel unten = new JPanel(new BorderLayout(8, 0));
+        unten.setOpaque(false);
+        unten.add(hinweis, BorderLayout.CENTER);
+        unten.add(undo, BorderLayout.EAST);
+        JPanel p = new JPanel(new BorderLayout(0, 8));
+        p.setBorder(new EmptyBorder(10, 10, 10, 10));
+        p.add(scroll(table), BorderLayout.CENTER);
+        p.add(unten, BorderLayout.SOUTH);
+        return p;
+    }
+
+    private static String erster(String s) {
+        int i = s.indexOf(';');
+        return i >= 0 ? s.substring(0, i) : s;
+    }
+
+    private static int num(String s) {
+        try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 0; }
     }
 
     // ---------------------------------------------------------------- Hilfsfunktionen

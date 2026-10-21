@@ -56,6 +56,23 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
 |---|---|
 | ![Tooltip mit Herkunft eines Talentwerts](docs/bilder/tooltip-herkunft.png) | ![Tooltip mit Herkunft der Abenteuerpunkte](docs/bilder/tooltip-ap.png) |
 
+### Steigerungen rückgängig machen
+
+Im Reiter „Plugin: Modern-UI“ → *Verlauf* stehen alle Steigerungen und erworbenen Sonderfertigkeiten aus
+dem Ereignisprotokoll (neueste zuerst). Ein Eintrag lässt sich mit *Rückgängig machen …* zurücknehmen;
+die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
+
+- Möglich für: Talent, Zauber, Nahkampftalent (inkl. AT/PA-Verteilung) und Eigenschaft steigern,
+  Talent aktivieren, Sonderfertigkeit hinzugefügt. Erschaffung und AP-Vergaben bleiben unangetastet.
+- Es muss die jeweils letzte Änderung an diesem Talent/dieser SF sein (z. B. erst „Rechnen 3 → 4“,
+  dann „Rechnen 2 → 3“). Andere Talente dürfen danach gesteigert worden sein.
+- Das Zurückrechnen übernimmt die Helden-Software selbst (ihre eigene Undo-Logik). Sie prüft vorher, ob der
+  aktuelle Wert noch zum Ereignis passt; sonst wird nichts verändert.
+- Eine dabei genutzte Spezielle Erfahrung wird nicht automatisch zurückgegeben. Bei Sonderfertigkeiten
+  weist der Dialog auf später erworbene SF hin, die sie eventuell voraussetzen.
+- Dauerhaft wird die Änderung erst beim Speichern des Helden. Vorher eine Sicherung des Helden anzulegen,
+  ist trotzdem empfehlenswert.
+
 ### Reiter „Plugin: Modern-UI“
 
 Eine kompakte Heldenübersicht: Eigenschaften und Basiswerte als Kacheln, filterbare Talentliste mit
@@ -132,6 +149,7 @@ Deinstallation: JAR aus dem Plugin-Ordner löschen. Die Helden-Software sieht da
 | Eigene Notiz anlegen | Doppelklick auf einen Eintrag, oder Maus darüber und `Strg+Umschalt+T`, oder im Plugin-Reiter per Rechtsklick |
 | Ordner mit den Notizen öffnen | *Erweiterungen → Modern-UI → Ordner mit eigenen Tooltip-Texten öffnen* |
 | Heldenbogen drucken / als PDF | Reiter *Druckvorschau* → *Drucken …* bzw. *PDF …* |
+| Steigerung / SF rückgängig machen | Reiter *Plugin: Modern-UI* → *Verlauf* → Eintrag wählen → *Rückgängig machen …* |
 
 Doppelklick öffnet die Notiz nur dort, wo die Helden-Software selbst nichts mit einem Doppelklick macht
 (z. B. nicht in bearbeitbaren Zellen).
@@ -168,6 +186,7 @@ Datei `VERSION`.
 | `TabellenStil.java` | Zebra-Streifen und Gitterlinien für die Tabellen der Helden-Software |
 | `TooltipHook.java`, `TooltipDB.java` | Globale Tooltips, Doppelklick-Notizen, Kurzbeschreibungen und eigene Notizen |
 | `Herkunft.java` | Auswertung des Ereignisprotokolls (Herkunft von Werten und Abenteuerpunkten) |
+| `Rueckgaengig.java` | Steigerungen/SF über die Undo-Logik der Helden-Software zurücknehmen |
 | `HeroPanel.java`, `HeroData.java` | Reiter „Plugin: Modern-UI“ |
 | `Geld.java` | Münzen, Reihenfolge und Umrechnung |
 | `print/` | Druckvorschau, Heldenbogen-Layout (`ModernSheet`), Datenaufbereitung, PDF-Export |

@@ -13,11 +13,46 @@ import java.util.*;
 public final class Herkunft {
 
     /** Ein Eintrag aus dem Ereignisprotokoll der Helden-Software. */
-    static final class Ereignis {
-        String text = "", obj = "", alt = "", neu = "", info = "", kommentar = "", ap = "";
-        long time;
+    public static final class Ereignis {
+        public String text = "", obj = "", alt = "", neu = "", info = "", kommentar = "", ap = "";
+        public long time;
         int order;
     }
+
+    /** Alle Ereignisse nach der Erschaffung, die die Helden-Software rückgängig machen kann – neueste zuerst. */
+    public List<Ereignis> rueckgaengigMoeglich() {
+        List<Ereignis> out = new ArrayList<>();
+        for (Ereignis e : ereignisse) if (Rueckgaengig.unterstuetzt(e.text) && e.time > 0) out.add(e);
+        Collections.reverse(out);
+        return out;
+    }
+
+    /**
+     * Gibt es nach diesem Ereignis noch ein späteres zum selben Talent/Zauber/zur selben Eigenschaft bzw. SF?
+     * Dann muss zuerst das spätere rückgängig gemacht werden.
+     */
+    public Ereignis spaeteresZuSelbem(Ereignis e) {
+        boolean danach = false;
+        for (Ereignis x : ereignisse) {
+            if (x == e) { danach = true; continue; }
+            if (danach && Rueckgaengig.unterstuetzt(x.text) && x.obj.equals(e.obj)) return x;
+        }
+        return null;
+    }
+
+    /** Sonderfertigkeiten, die nach diesem Ereignis erworben wurden (mögliche Abhängigkeiten). */
+    public List<String> spaetereSonderfertigkeiten(Ereignis e) {
+        List<String> l = new ArrayList<>();
+        boolean danach = false;
+        for (Ereignis x : ereignisse) {
+            if (x == e) { danach = true; continue; }
+            if (danach && x.text.startsWith("Sonderfertigkeit")) l.add(x.obj);
+        }
+        return l;
+    }
+
+    /** Datum als Text. */
+    public String datum(Ereignis e) { return e.time > 0 ? datum.format(new Date(e.time)) : ""; }
 
     private final List<Ereignis> ereignisse = new ArrayList<>();
     private final SimpleDateFormat datum = new SimpleDateFormat("dd.MM.yyyy");
