@@ -307,6 +307,31 @@ public final class ModernIcons {
             linie(g, 4, 12, 19, 12);
             g.draw(pfad(14, 7, 19, 12, 14, 17));
         });
+        def("ordner", (g, fg, a) -> {         // geschlossener Ordner (Baumknoten)
+            g.setColor(fg);
+            Path2D o = pfad(3, 7, 3, 5, 9, 5, 11, 7, 21, 7, 21, 19, 3, 19);
+            o.closePath();
+            g.draw(o);
+            g.setColor(a);
+            linie(g, 3, 10.5, 21, 10.5);
+        });
+        def("ordnerauf", (g, fg, a) -> {      // geöffneter Ordner
+            g.setColor(fg);
+            g.draw(pfad(3, 19, 3, 5, 9, 5, 11, 7, 19, 7, 19, 10));
+            g.setColor(a);
+            Path2D f = pfad(3, 19, 6, 10, 22, 10, 19, 19);
+            f.closePath();
+            g.draw(f);
+        });
+        def("eintrag", (g, fg, a) -> {        // Blatt im Baum: Dokument
+            g.setColor(fg);
+            Path2D d = pfad(6, 3, 14, 3, 18, 7, 18, 21, 6, 21);
+            d.closePath();
+            g.draw(d);
+            g.setColor(a);
+            linie(g, 9, 12, 15, 12);
+            linie(g, 9, 16, 15, 16);
+        });
         def("user", (g, fg, a) -> {
             g.setColor(fg);
             g.draw(new Ellipse2D.Double(8, 3.5, 8, 8));

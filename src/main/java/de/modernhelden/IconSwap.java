@@ -74,7 +74,15 @@ public final class IconSwap {
 
     private static void komponente(JComponent c) {
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) return;
-        if (c instanceof JTable) TabellenStil.anwenden((JTable) c, modern);
+        if (c instanceof JTable) {
+            TabellenStil.anwenden((JTable) c, modern);
+            zellenSymbole((JTable) c);
+        }
+        if (c instanceof JTree) {
+            geaendert = false;
+            baumRenderer(((JTree) c).getCellRenderer());
+            if (geaendert) c.repaint();
+        }
         if (ErschaffungsLayout.KLASSE.equals(c.getClass().getName())) ErschaffungsLayout.anwenden(c, modern);
         if (c instanceof AbstractButton) {
             AbstractButton b = (AbstractButton) c;
@@ -96,22 +104,86 @@ public final class IconSwap {
 
     private interface Setter { void set(Icon i); }
 
+    /** Ordner-/Eintragssymbole eines Baum-Renderers (z. B. Gruppenliste, Gruppenvergleich). */
+    private static void baumRenderer(Object r) {
+        if (!(r instanceof javax.swing.tree.DefaultTreeCellRenderer)) return;
+        javax.swing.tree.DefaultTreeCellRenderer d = (javax.swing.tree.DefaultTreeCellRenderer) r;
+        slot(d, "baumZu", d.getClosedIcon(), d::setClosedIcon, "ordner");
+        slot(d, "baumAuf", d.getOpenIcon(), d::setOpenIcon, "ordnerauf");
+        slot(d, "baumBlatt", d.getLeafIcon(), d::setLeafIcon, "eintrag");
+    }
+
+    /**
+     * Tabellen, deren Zellen-Komponenten nicht im Fensterbaum hängen: eigene Renderer der Helden-Software
+     * (z. B. zwischengespeicherte Löschknöpfe im Inventar) und Bäume als Renderer (Gruppenvergleich).
+     */
+    private static void zellenSymbole(JTable t) {
+        // nur neu prüfen, wenn sich Design, Zeilen oder Spalten geändert haben
+        String stand = modern + ":" + t.getRowCount() + ":" + t.getColumnCount();
+        if (stand.equals(t.getClientProperty("modernhelden.zellen"))) return;
+        t.putClientProperty("modernhelden.zellen", stand);
+        geaendert = false;
+        java.util.Set<Object> erledigt = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        javax.swing.table.TableColumnModel cm = t.getColumnModel();
+        int zeilen = Math.min(t.getRowCount(), 300);
+        for (int ci = 0; ci < cm.getColumnCount(); ci++) {
+            Object r = cm.getColumn(ci).getCellRenderer();
+            if (r instanceof TabellenStil.Zebra) r = ((TabellenStil.Zebra) r).original;
+            if (r == null) {
+                try { r = t.getDefaultRenderer(t.getColumnClass(ci)); } catch (RuntimeException ex) { continue; }
+                if (r instanceof TabellenStil.Zebra) r = ((TabellenStil.Zebra) r).original;
+            }
+            if (r == null) continue;
+            if (r instanceof JTree) { baumRenderer(((JTree) r).getCellRenderer()); continue; }
+            if (r instanceof javax.swing.tree.DefaultTreeCellRenderer) { baumRenderer(r); continue; }
+            if (r instanceof Component || !(r instanceof javax.swing.table.TableCellRenderer)) continue;
+            if (!r.getClass().getName().startsWith("helden.")) continue;     // nur eigene Renderer der Helden-Software
+            javax.swing.table.TableCellRenderer tr = (javax.swing.table.TableCellRenderer) r;
+            for (int row = 0; row < zeilen; row++) {
+                Component k;
+                try {
+                    k = tr.getTableCellRendererComponent(t, t.getValueAt(row, ci), false, false, row, ci);
+                } catch (RuntimeException ex) { continue; }
+                if ((k instanceof AbstractButton || k instanceof JLabel) && erledigt.add(k)) komponente((JComponent) k);
+            }
+        }
+        // Renderer-Komponenten werden nur beim Zeichnen benutzt – neu zeichnen, damit die Symbole sofort stimmen
+        if (geaendert) t.repaint();
+    }
+
+    private static boolean geaendert;
+
     private static void slot(JComponent c, String name, Icon aktuell, Setter set) {
+        slot(c, name, aktuell, set, null);
+    }
+
+    /** @param ersatz Symbol für Bilder ohne bekannte Beschreibung (z. B. Ordner aus dem Original-Design), sonst null */
+    private static void slot(JComponent c, String name, Icon aktuell, Setter set, String ersatz) {
         String prop = ORIG + name;
         Object orig = c.getClientProperty(prop);
         if (!modern) {
             // zurück zum Original
-            if (orig instanceof Icon && aktuell instanceof ModernIcons.VektorIcon) set.set((Icon) orig);
+            if (orig instanceof Icon && aktuell instanceof ModernIcons.VektorIcon) { set.set((Icon) orig); geaendert = true; }
             if (orig != null) c.putClientProperty(prop, null);
             return;
         }
         if (aktuell == null || aktuell instanceof ModernIcons.VektorIcon) return;
-        if (!(aktuell instanceof ImageIcon)) return;
-        String desc = ((ImageIcon) aktuell).getDescription();
-        String key = ModernIcons.schluessel(desc);
-        if (key == null) { log(desc, c); return; }
+        String key = null;
+        if (aktuell instanceof ImageIcon) {
+            String desc = ((ImageIcon) aktuell).getDescription();
+            key = ModernIcons.schluessel(desc);
+            if (key == null && ersatz == null) { log(desc, c); return; }
+        } else if (ersatz == null) {
+            return;
+        }
+        if (key == null) key = ersatz;
         c.putClientProperty(prop, aktuell);
-        set.set(ModernIcons.icon(key, aktuell.getIconWidth(), aktuell.getIconHeight()));
+        int w = aktuell.getIconWidth(), h = aktuell.getIconHeight();
+        if (w <= 0 || h <= 0) { w = 16; h = 16; }
+        // das 10-px-„X“ im Inventar etwas größer, damit es lesbar bleibt
+        if ("minidelete".equals(key) && w < 14) { w = 14; h = 14; }
+        set.set(ModernIcons.icon(key, w, h));
+        geaendert = true;
     }
 
     /** Statische Symbole der Helden-Software (z. B. Basistalent, Hauszauber in Listen) austauschen. */

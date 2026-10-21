@@ -32,7 +32,8 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
 - **Gut unterscheidbare Felder:** Tabellen mit Zebra-Streifen, Spaltenlinien und gut lesbarer Markierung.
   Bearbeitbare Eingabefelder sind hell, reine Anzeigefelder leicht getönt.
 - **Eigene Symbole:** über 40 neu gezeichnete Symbole für Werkzeugleiste, Dialoge, Meldungen und die
-  Markierungen in Talent- und Zauberlisten (Basistalent, Hauszauber, Leittalent …). Sie passen sich
+  Markierungen in Talent- und Zauberlisten (Basistalent, Hauszauber, Leittalent …), außerdem für die
+  Heldengruppen, die Ordner im Gruppenvergleich und die Löschknöpfe im Inventar. Sie passen sich
   hellem und dunklem Design an. Im Design *Original* erscheinen wieder die ursprünglichen Symbole.
 
 | Modern dunkel | Neue Symbole (hell und dunkel) |
