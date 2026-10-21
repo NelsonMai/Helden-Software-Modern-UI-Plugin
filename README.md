@@ -68,8 +68,13 @@ die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
   dann „Rechnen 2 → 3“). Andere Talente dürfen danach gesteigert worden sein.
 - Das Zurückrechnen übernimmt die Helden-Software selbst (ihre eigene Undo-Logik). Sie prüft vorher, ob der
   aktuelle Wert noch zum Ereignis passt; sonst wird nichts verändert.
-- Eine dabei genutzte Spezielle Erfahrung wird nicht automatisch zurückgegeben. Bei Sonderfertigkeiten
-  weist der Dialog auf später erworbene SF hin, die sie eventuell voraussetzen.
+- Eine dabei genutzte Spezielle Erfahrung wird nicht automatisch zurückgegeben.
+- **Sonderfertigkeiten mit Voraussetzung:** Setzen andere SF des Helden die gewählte voraus (auch über mehrere
+  Stufen, z. B. Parierwaffen I → Binden → Entwaffnen), zeigt der Dialog einen Warnhinweis mit allen betroffenen
+  SF und der Gesamterstattung. Nach Bestätigung werden sie mit zurückgesetzt (neueste zuerst). Grundlage sind die
+  Voraussetzungen der Helden-Software selbst; bei „oder“-Voraussetzungen bleibt eine SF erhalten, solange der Held
+  noch eine andere Alternative besitzt (z. B. Binden mit Meisterparade). SF ohne Eintrag im Verlauf (etwa von der
+  Erschaffung) werden im Hinweis genannt, aber nicht automatisch entfernt.
 - Dauerhaft wird die Änderung erst beim Speichern des Helden. Vorher eine Sicherung des Helden anzulegen,
   ist trotzdem empfehlenswert.
 

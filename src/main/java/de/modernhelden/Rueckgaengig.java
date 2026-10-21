@@ -94,6 +94,122 @@ public final class Rueckgaengig {
         }
     }
 
+    // ------------------------------------------------------------------ Voraussetzungen von SF
+
+    /**
+     * Welche Sonderfertigkeiten des Helden setzen {@code sf} (direkt oder über eine andere betroffene SF)
+     * voraus? Grundlage sind die Bedingungen, die die Helden-Software selbst zu jeder SF kennt.
+     * Geprüft werden alle SF des Helden; die Namen aus {@code reihenfolge} kommen zuerst (in deren Reihenfolge).
+     */
+    public static List<String> abhaengige(Frame frame, String sf, List<String> reihenfolge) {
+        List<String> out = new ArrayList<>();
+        try {
+            Object action = undoAction(frame);
+            Object gui = action == null ? null : feldVomTyp(action, "helden.gui.A");
+            Object held = gui == null ? null : methodeMitRueckgabe(gui, "helden.framework.held.H");
+            if (held == null) return out;
+            java.util.Map<String, Object> sfObjekte = sonderfertigkeiten(held);
+            List<String> kandidaten = new ArrayList<>();
+            if (reihenfolge != null) for (String k : reihenfolge) if (!kandidaten.contains(k)) kandidaten.add(k);
+            List<String> rest = new ArrayList<>(sfObjekte.keySet());
+            java.util.Collections.sort(rest);
+            for (String k : rest) if (!kandidaten.contains(k)) kandidaten.add(k);
+            java.util.Set<String> entfernt = new java.util.HashSet<>();
+            entfernt.add(sf);
+            boolean neu = true;
+            while (neu) {                                  // transitiv: auch Abhängige von Abhängigen
+                neu = false;
+                for (String k : kandidaten) {
+                    if (entfernt.contains(k)) continue;
+                    Object o = sfObjekte.get(k);
+                    if (o == null) continue;
+                    Object bed = aufrufen(o, "getBedingungen");
+                    if (bed != null && status(bed, entfernt, sfObjekte.keySet()) == WEG) { entfernt.add(k); neu = true; }
+                }
+            }
+            for (String k : kandidaten) if (!k.equals(sf) && entfernt.contains(k)) out.add(k);
+        } catch (Exception ignore) {
+            // im Zweifel keine Abhängigkeiten melden
+        }
+        return out;
+    }
+
+    /** Alle SF-Objekte des Helden nach Anzeigenamen (inkl. Auswahl wie „Kulturkunde (Thorwal)“). */
+    private static java.util.Map<String, Object> sonderfertigkeiten(Object held) throws Exception {
+        java.util.Map<String, Object> m = new java.util.HashMap<>();
+        for (Method me : alleMethoden(held.getClass())) {
+            if (me.getParameterCount() != 0 || !Iterable.class.isAssignableFrom(me.getReturnType())) continue;
+            Object l;
+            try {
+                me.setAccessible(true);
+                l = me.invoke(held);
+            } catch (Exception ex) { continue; }
+            if (!(l instanceof Iterable)) continue;
+            for (Object o : (Iterable<?>) l) {
+                if (o == null || !o.getClass().getName().startsWith("helden.framework.sonderfertigkeit")) continue;
+                // gewählte Varianten (z. B. Talentspezialisierungen) ausklappen
+                Object exp = aufrufen(o, "expandiereGewaehlte");
+                if (exp instanceof java.util.Collection) {
+                    for (Object x : (java.util.Collection<?>) exp) if (x != null) m.putIfAbsent(String.valueOf(x).trim(), x);
+                }
+                m.putIfAbsent(String.valueOf(o).trim(), o);
+            }
+        }
+        return m;
+    }
+
+    private static final int OK = 0, FEHLT = 1, WEG = 2;
+
+    /**
+     * Zustand einer Bedingung (Baum aus UND/ODER), wenn die SF in {@code weg} entfernt werden:
+     * OK = weiterhin erfüllt, WEG = nicht mehr erfüllt, weil eine entfernte SF fehlt,
+     * FEHLT = verweist auf eine SF, die der Held ohnehin nicht besitzt (zählt als Alternative nicht).
+     * Bei ODER bleibt die Bedingung erfüllt, solange der Held noch eine andere Alternative besitzt.
+     */
+    private static int status(Object bed, java.util.Set<String> weg, java.util.Set<String> besitzt) throws Exception {
+        String cls = bed.getClass().getName();
+        if (cls.endsWith("BedingungsVerknuepfung")) {
+            Object kinder = aufrufen(bed, "getBedingungen");
+            Object art = aufrufen(bed, "getVerknuepfungsArt");
+            String a = art == null ? "" : String.valueOf(art).toUpperCase(java.util.Locale.ROOT);
+            boolean oder = a.contains("OR") || a.contains("ODER");
+            if (!(kinder instanceof java.util.Collection) || ((java.util.Collection<?>) kinder).isEmpty()) return OK;
+            boolean einOk = false, einWeg = false, einFehlt = false;
+            for (Object k : (java.util.Collection<?>) kinder) {
+                int st = k == null ? OK : status(k, weg, besitzt);
+                einOk |= st == OK;
+                einWeg |= st == WEG;
+                einFehlt |= st == FEHLT;
+            }
+            if (oder) return einOk ? OK : einWeg ? WEG : FEHLT;
+            return einWeg ? WEG : einFehlt ? FEHLT : OK;
+        }
+        // einzelne Bedingung: verweist sie auf eine SF?
+        for (Class<?> c = bed.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                if (Modifier.isStatic(f.getModifiers())) continue;
+                if (!f.getType().getName().startsWith("helden.framework.sonderfertigkeit")) continue;
+                f.setAccessible(true);
+                Object v = f.get(bed);
+                if (v == null) continue;
+                String n = String.valueOf(v).trim();
+                if (weg.contains(n)) return WEG;
+                if (!besitzt.contains(n)) return FEHLT;
+                return OK;
+            }
+        }
+        return OK;
+    }
+
+    private static Object aufrufen(Object o, String name) {
+        try {
+            Method m = o.getClass().getMethod(name);
+            return m.invoke(o);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // ------------------------------------------------------------------ Reflection-Hilfen
 
     /** Die Undo-Aktion der Helden-Software aus dem Menü „Bearbeiten“. */

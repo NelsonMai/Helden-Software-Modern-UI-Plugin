@@ -40,6 +40,11 @@ public final class HeroPanel extends JPanel {
     private java.util.function.Function<Herkunft.Ereignis, String> rueckgaengig;
 
     public void setRueckgaengig(java.util.function.Function<Herkunft.Ereignis, String> f) { this.rueckgaengig = f; }
+
+    /** Liefert zu einer SF die später erworbenen SF, die sie voraussetzen. */
+    private java.util.function.BiFunction<String, List<String>, List<String>> abhaengige;
+
+    public void setAbhaengige(java.util.function.BiFunction<String, List<String>, List<String>> f) { this.abhaengige = f; }
     private HeroData hero;
     private final JPanel content = new JPanel(new BorderLayout());
     private JTabbedPane tabs;
@@ -592,15 +597,54 @@ public final class HeroPanel extends JPanel {
             msg.append("<br>Erstattung: <b>").append(ap).append(" AP</b>");
             if (x.info.contains("SE")) msg.append("<br><br>Für diese Steigerung wurde eine <b>Spezielle Erfahrung</b> genutzt. "
                     + "Sie wird nicht automatisch zurückgegeben – bei Bedarf das SE-Häkchen im Reiter „Talente“ wieder setzen.");
-            if (x.text.startsWith("Sonderfertigkeit")) {
-                List<String> spaeter = h.herkunft.spaetereSonderfertigkeiten(x);
-                if (!spaeter.isEmpty()) msg.append("<br><br>Danach erworben: ").append(esc(String.join(", ", spaeter)))
-                        .append(". Bitte prüfen, ob eine davon „").append(esc(x.obj)).append("“ voraussetzt.");
+            // Sonderfertigkeiten, die diese voraussetzen, werden mit zurückgesetzt (spätere zuerst)
+            final List<Herkunft.Ereignis> mit = new ArrayList<>();
+            boolean warnung = false;
+            if (x.text.startsWith("Sonderfertigkeit") && abhaengige != null) {
+                List<String> dep = abhaengige.apply(x.obj, h.herkunft.andereSonderfertigkeiten(x));
+                List<String> ohneEreignis = new ArrayList<>(dep);
+                for (Herkunft.Ereignis y : ev)
+                    if (y != x && y.text.startsWith("Sonderfertigkeit") && dep.contains(y.obj)) {
+                        if (!mit.contains(y)) mit.add(y);
+                        ohneEreignis.remove(y.obj);
+                    }
+                ohneEreignis.remove(x.obj);
+                if (!mit.isEmpty()) {
+                    int summe = ap;
+                    StringBuilder namen = new StringBuilder();
+                    for (Herkunft.Ereignis y : mit) {
+                        summe += -num(y.ap);
+                        namen.append("<br>&nbsp;• ").append(esc(y.obj)).append(" (").append(-num(y.ap)).append(" AP)");
+                    }
+                    msg.append("<br><br><b style='color:#c0392b'>⚠ Achtung:</b> Folgende Sonderfertigkeiten setzen „")
+                            .append(esc(x.obj)).append("“ voraus und werden <b>mit zurückgesetzt</b>:").append(namen)
+                            .append("<br>Erstattung insgesamt: <b>").append(summe).append(" AP</b>");
+                }
+                if (!ohneEreignis.isEmpty()) {
+                    StringBuilder namen = new StringBuilder();
+                    for (String n : ohneEreignis) namen.append("<br>&nbsp;• ").append(esc(n));
+                    msg.append("<br><br><b style='color:#c0392b'>⚠ Achtung:</b> Auch diese Sonderfertigkeiten setzen „")
+                            .append(esc(x.obj)).append("“ voraus, stehen aber nicht im Verlauf (z. B. bei der Erschaffung erworben) "
+                            + "und können nicht automatisch zurückgesetzt werden:").append(namen)
+                            .append("<br>Sie bleiben erhalten, ihre Voraussetzung ist danach aber nicht mehr erfüllt.");
+                }
+                warnung = !dep.isEmpty();
             }
             msg.append("<br><br>Die Änderung wird erst mit dem nächsten Speichern des Helden dauerhaft.</div></html>");
-            int ok = JOptionPane.showConfirmDialog(this, msg.toString(), "Rückgängig machen", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+            int ok = JOptionPane.showConfirmDialog(this, msg.toString(), "Rückgängig machen", JOptionPane.OK_CANCEL_OPTION,
+                    warnung ? JOptionPane.WARNING_MESSAGE : JOptionPane.QUESTION_MESSAGE);
             if (ok != JOptionPane.OK_OPTION) return;
-            String fehler = rueckgaengig.apply(x);
+            // erst die abhängigen (neueste zuerst – ev ist bereits nach Datum absteigend sortiert), dann die gewählte SF
+            String fehler = null;
+            List<String> erledigt = new ArrayList<>();
+            for (Herkunft.Ereignis y : mit) {
+                fehler = rueckgaengig.apply(y);
+                if (fehler != null) { fehler = "„" + y.obj + "“: " + fehler; break; }
+                erledigt.add(y.obj);
+            }
+            if (fehler == null) fehler = rueckgaengig.apply(x);
+            if (fehler != null && !erledigt.isEmpty())
+                fehler += "\n\nBereits zurückgesetzt: " + String.join(", ", erledigt) + ".";
             if (fehler != null) JOptionPane.showMessageDialog(this, fehler, "Rückgängig machen", JOptionPane.WARNING_MESSAGE);
         });
         JPanel unten = new JPanel(new BorderLayout(8, 0));

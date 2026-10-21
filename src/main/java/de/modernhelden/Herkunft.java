@@ -40,14 +40,11 @@ public final class Herkunft {
         return null;
     }
 
-    /** Sonderfertigkeiten, die nach diesem Ereignis erworben wurden (mögliche Abhängigkeiten). */
-    public List<String> spaetereSonderfertigkeiten(Ereignis e) {
+    /** Alle übrigen rückgängig machbaren SF-Ereignisse (neueste zuerst) – mögliche Abhängigkeiten. */
+    public List<String> andereSonderfertigkeiten(Ereignis e) {
         List<String> l = new ArrayList<>();
-        boolean danach = false;
-        for (Ereignis x : ereignisse) {
-            if (x == e) { danach = true; continue; }
-            if (danach && x.text.startsWith("Sonderfertigkeit")) l.add(x.obj);
-        }
+        for (Ereignis x : rueckgaengigMoeglich())
+            if (x != e && x.text.startsWith("Sonderfertigkeit") && !l.contains(x.obj)) l.add(x.obj);
         return l;
     }
 
