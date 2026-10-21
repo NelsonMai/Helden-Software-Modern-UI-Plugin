@@ -17,6 +17,7 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
   - [Reiter „Plugin: Modern-UI“](#reiter-plugin-modern-ui)
   - [Moderner Heldenbogen](#moderner-heldenbogen)
 - [Installation](#installation)
+  - [Automatische Aktualisierung](#automatische-aktualisierung)
 - [Bedienung](#bedienung)
 - [Selbst bauen](#selbst-bauen)
 - [Aufbau des Quellcodes](#aufbau-des-quellcodes)
@@ -146,6 +147,24 @@ abgeschnitten.
 
 Deinstallation: JAR aus dem Plugin-Ordner löschen. Die Helden-Software sieht danach wieder genau so aus wie vorher.
 
+### Automatische Aktualisierung
+
+Das Plugin aktualisiert sich selbst, wenn in der Helden-Software unter *Einstellungen → Updater →
+Automatisch Updaten* die automatische Aktualisierung (der `autoUpdater`) eingeschaltet ist. Der autoUpdater
+selbst aktualisiert nur die Helden-Software, nicht die Plugins – deshalb übernimmt das Plugin das selbst:
+
+- Höchstens einmal am Tag, kurz nach dem Start, wird das neueste Release dieses Repositorys abgefragt.
+- Eine neuere Version wird heruntergeladen und geprüft: SHA-256-Prüfsumme aus der GitHub-Antwort,
+  Plugin-Kennung und Versionsnummer im JAR. Passt etwas nicht, wird der Download verworfen.
+- Installiert wird beim Beenden der Helden-Software (unter Windows ist die laufende Plugin-Datei gesperrt):
+  Ein kleiner Hilfsprozess ersetzt `ModernUI-Plugin.jar`, die neue Version ist ab dem nächsten Start aktiv.
+  Die bisherige Version liegt als Sicherung in `helden/plugins/modern-ui/update/ModernUI-Plugin-vorher.jar`,
+  das Protokoll in `update.log` daneben.
+- Von Hand: *Erweiterungen → Modern-UI → Nach Updates suchen …* (funktioniert auch bei ausgeschalteter
+  automatischer Aktualisierung).
+
+Die automatische Aktualisierung funktioniert ab Version 1.16.0 – ältere Versionen einmalig von Hand ersetzen.
+
 ## Bedienung
 
 | Was | Wie |
@@ -156,6 +175,7 @@ Deinstallation: JAR aus dem Plugin-Ordner löschen. Die Helden-Software sieht da
 | Ordner mit den Notizen öffnen | *Erweiterungen → Modern-UI → Ordner mit eigenen Tooltip-Texten öffnen* |
 | Heldenbogen drucken / als PDF | Reiter *Druckvorschau* → *Drucken …* bzw. *PDF …* |
 | Steigerung / SF rückgängig machen | Reiter *Plugin: Modern-UI* → *Verlauf* → Eintrag wählen → *Rückgängig machen …* |
+| Nach Updates suchen | *Erweiterungen → Modern-UI → Nach Updates suchen …* (automatisch: siehe [Automatische Aktualisierung](#automatische-aktualisierung)) |
 
 Doppelklick öffnet die Notiz nur dort, wo die Helden-Software selbst nichts mit einem Doppelklick macht
 (z. B. nicht in bearbeitbaren Zellen).
@@ -179,8 +199,9 @@ der drei verwendeten Plugin-Schnittstellen. Sie dienen nur zum Kompilieren und w
 
 GitHub Actions baut bei jedem Push und hängt das JAR als Artefakt an. Bei einem über die GitHub-Oberfläche
 veröffentlichten Release (oder einem Tag `vX.Y.Z`) wird das JAR automatisch an das Release angehängt.
-Die Versionsnummer kommt aus dem Tag, wenn er wie eine Version aussieht (z. B. `v1.13.2`), sonst aus der
-Datei `VERSION`.
+Die Versionsnummer kommt aus dem Tag, wenn er wie eine Version aussieht (z. B. `v1.16.0` oder `v.1.16.0`),
+sonst aus der Datei `VERSION`. Für die automatische Aktualisierung muss das Release veröffentlicht (kein
+Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das erledigt der Workflow.
 
 ## Aufbau des Quellcodes
 
@@ -195,6 +216,8 @@ Datei `VERSION`.
 | `Rueckgaengig.java` | Steigerungen/SF über die Undo-Logik der Helden-Software zurücknehmen |
 | `HeroPanel.java`, `HeroData.java` | Reiter „Plugin: Modern-UI“ |
 | `Geld.java` | Münzen, Reihenfolge und Umrechnung |
+| `update/` | Automatische Aktualisierung über GitHub-Releases (`PluginUpdate`) und Installationshelfer (`UpdateInstaller`) |
+| `ErschaffungsLayout.java` | Platzierung des GP/AP-Felds im Erschaffungsdialog (moderne Designs) |
 | `print/` | Druckvorschau, Heldenbogen-Layout (`ModernSheet`), Datenaufbereitung, PDF-Export |
 | `src/main/resources/.../tooltips.tsv` | Kurzbeschreibungen (eigene Formulierungen) |
 | `api-stubs/` | Platzhalter der Plugin-Schnittstelle, nur zum Kompilieren |

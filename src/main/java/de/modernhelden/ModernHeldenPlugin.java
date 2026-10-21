@@ -43,6 +43,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
     private File baseDir;
     private Timer refreshTimer;
     private static boolean themeApplied;
+    private static de.modernhelden.update.PluginUpdate update;
 
     // ------------------------------------------------------------ HeldenPlugin
 
@@ -69,6 +70,10 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         hook.install(this::editLastHovered);
         if (new File(baseDir, "debug").isDirectory()) hook.debugLog = new File(new File(baseDir, "debug"), "hook.log");
         if (new File(baseDir, "debug").isDirectory()) IconSwap.debugLog = new File(new File(baseDir, "debug"), "icons.log");
+        if (update == null) {
+            update = new de.modernhelden.update.PluginUpdate(baseDir, ModernHeldenPlugin.class, VERSION, frame);
+            update.beimStart();
+        }
         refreshTimer = new Timer(250, e -> refresh());
         refreshTimer.setRepeats(false);
         d.addChangeListener(e -> refreshTimer.restart());
@@ -151,6 +156,9 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         });
         l.add(folder);
         l.add(new JSeparator());
+        JMenuItem upd = new JMenuItem("Nach Updates suchen …");
+        upd.addActionListener(e -> updateSuchen());
+        l.add(upd);
         JMenuItem about = new JMenuItem("Über Modern-UI …");
         about.addActionListener(e -> JOptionPane.showMessageDialog(frame,
                 "<html><b>Modern-UI " + VERSION + "</b><br><br>"
@@ -158,10 +166,35 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
                         + "Die Kurzbeschreibungen sind eigene Zusammenfassungen, keine Regeltexte.<br>"
                         + "Maßgeblich sind die Regelbücher und die Berechnungen der Helden-Software.<br><br>"
                         + "Eigene Tooltip-Texte: " + db.getUserFile() + "<br>"
+                        + "Automatische Aktualisierung: " + (de.modernhelden.update.PluginUpdate.heldenAutoUpdate()
+                            ? "ein (folgt der Einstellung der Helden-Software)" : "aus (in der Helden-Software ausgeschaltet)") + "<br>"
                         + "Design-Bibliothek: FlatLaf (Apache-Lizenz 2.0)</html>",
                 "Modern-UI", JOptionPane.INFORMATION_MESSAGE));
         l.add(about);
         return l;
+    }
+
+    /** Manuelle Prüfung über das Menü – unabhängig von der automatischen Prüfung. */
+    private void updateSuchen() {
+        if (update == null) return;
+        if (update.laeuft()) {
+            JOptionPane.showMessageDialog(frame, "Die Prüfung läuft bereits.", "Modern-UI", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        final Cursor alt = frame != null ? frame.getCursor() : null;
+        if (frame != null) frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        new Thread(() -> {
+            final de.modernhelden.update.PluginUpdate.Ergebnis r = update.pruefen();
+            SwingUtilities.invokeLater(() -> {
+                if (frame != null) frame.setCursor(alt);
+                String text = r.text;
+                if (!de.modernhelden.update.PluginUpdate.heldenAutoUpdate() && !r.neu && !text.startsWith("Update-Prüfung"))
+                    text = "<html>" + text + "<br><br>Die automatische tägliche Prüfung ist aus, weil in der Helden-Software<br>"
+                            + "„automatisch aktualisieren“ ausgeschaltet ist.</html>";
+                JOptionPane.showMessageDialog(frame, text, "Modern-UI",
+                        text.startsWith("Update-Prüfung") ? JOptionPane.WARNING_MESSAGE : JOptionPane.INFORMATION_MESSAGE);
+            });
+        }, "Modern-UI-Update-manuell").start();
     }
 
     // ------------------------------------------------------------ Logik

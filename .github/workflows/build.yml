@@ -27,8 +27,9 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then export VERSION="${GITHUB_REF_NAME#v}"; fi
-          if [ -n "${RELEASE_TAG}" ]; then export VERSION="${RELEASE_TAG#v}"; fi
+          # Tags wie v1.16.0 oder v.1.16.0 → 1.16.0
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then VERSION="${GITHUB_REF_NAME#v}"; export VERSION="${VERSION#.}"; fi
+          if [ -n "${RELEASE_TAG}" ]; then VERSION="${RELEASE_TAG#v}"; export VERSION="${VERSION#.}"; fi
           ./build.sh
 
       - name: JAR als Artefakt hochladen
