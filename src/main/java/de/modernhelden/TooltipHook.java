@@ -73,6 +73,28 @@ public final class TooltipHook implements AWTEventListener {
         return null;
     }
 
+    /** Gegenstandsvorlagen (Liste „Gegenstände“ beim Hinzufügen): Tooltip mit den Werten der Helden-Software. */
+    private boolean vorlageTooltip(JList<?> l, MouseEvent e) {
+        int i = l.locationToIndex(e.getPoint());
+        if (i < 0 || l.getCellBounds(i, i) == null || !l.getCellBounds(i, i).contains(e.getPoint())) return false;
+        Object el = l.getModel().getElementAt(i);
+        if (!VorlagenInfo.istVorlage(el)) return false;
+        String key = System.identityHashCode(l) + "|vorlage|" + i;
+        if (key.equals(shownKey)) return true;
+        if (popup != null) hidePopupOnly();
+        Map<String, String> x = VorlagenInfo.angaben(el);
+        String name = VorlagenInfo.name(el);
+        // Gegenstände nicht mit gleichnamigen Talenten/SF verknüpfen (z. B. Parierwaffe „Linkhand“)
+        TooltipDB.Match m = new TooltipDB.Match(name, null, name);
+        lastMatch = m;
+        pendingKey = key;
+        pendingComp = l;
+        pendingHtml = db.html(m, x);
+        pendingScreen = e.getLocationOnScreen();
+        showTimer.restart();
+        return true;
+    }
+
     /** Tooltip für eine Zeile der Inventartabelle; true, wenn einer angezeigt wird. */
     private boolean inventarTooltip(JTable t, MouseEvent e) {
         int row = t.rowAtPoint(e.getPoint());
@@ -87,8 +109,7 @@ public final class TooltipHook implements AWTEventListener {
         if (popup != null) hidePopupOnly();
         Map<String, String> x = new LinkedHashMap<>();
         InventarInfo.werte(sd, g, x);
-        TooltipDB.Match m = db.find(g.name);
-        if (m == null) m = new TooltipDB.Match(g.name, null, g.name);
+        TooltipDB.Match m = new TooltipDB.Match(g.name, null, g.name);   // nicht mit gleichnamigen SF verknüpfen
         lastMatch = m;
         pendingKey = key;
         pendingComp = t;
@@ -211,6 +232,7 @@ public final class TooltipHook implements AWTEventListener {
         if (c instanceof JTable && hero != null && istInventarTabelle((JTable) c)) {
             if (inventarTooltip((JTable) c, e)) return;
         }
+        if (c instanceof JList && vorlageTooltip((JList<?>) c, e)) return;
         String text = textAt(c, e.getPoint());
         TooltipDB.Match m = text == null ? null : db.find(text);
         if (m == null && text != null && hero != null) {

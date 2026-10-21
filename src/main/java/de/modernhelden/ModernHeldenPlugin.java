@@ -49,7 +49,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
 
     @Override public String getType() { return DATEN; }
     @Override public String getMenuName() { return "Modern-UI"; }
-    @Override public String getToolTipText() { return "Moderne Oberfläche und Tooltips für Talente und Sonderfertigkeiten"; }
+    @Override public String getToolTipText() { return "Moderne Oberfläche, Heldenübersicht und erweiterte Tooltips"; }
     @Override public ImageIcon getIcon() { return new ImageIcon(icon(16)); }
     @Override public void doWork(JFrame f) { click(); }
 
@@ -74,6 +74,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         });
         if (new File(baseDir, "debug").isDirectory()) hook.debugLog = new File(new File(baseDir, "debug"), "hook.log");
         if (new File(baseDir, "debug").isDirectory()) IconSwap.debugLog = new File(new File(baseDir, "debug"), "icons.log");
+        if (new File(baseDir, "debug").isDirectory()) VorlagenInfo.debugLog = new File(new File(baseDir, "debug"), "vorlagen.log");
         if (update == null) {
             update = new de.modernhelden.update.PluginUpdate(baseDir, ModernHeldenPlugin.class, VERSION, frame);
             update.beimStart();
@@ -106,6 +107,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
     public JComponent getPanel() {
         if (panel == null) {
             panel = new HeroPanel(db, this::editTooltip);
+            panel.setTooltipsAn(hook::isEnabled);
             panel.setAbhaengige((sf, spaeter) -> Rueckgaengig.abhaengige(frame, sf, spaeter));
             panel.setDruckDaten(() -> {
                 Document d = heldDaten();
@@ -143,10 +145,12 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
             l.add(it);
         }
         l.add(new JSeparator());
-        final JCheckBoxMenuItem tips = new JCheckBoxMenuItem("Tooltips für Talente & Sonderfertigkeiten", hook.isEnabled());
+        final JCheckBoxMenuItem tips = new JCheckBoxMenuItem("Erweiterte Tooltips anzeigen", hook.isEnabled());
         tips.addActionListener(e -> {
             hook.setEnabled(tips.isSelected());
             saveProp("tooltips", String.valueOf(tips.isSelected()));
+            // Reiter „Plugin: Modern-UI“ neu aufbauen, damit der Schalter auch dort sofort gilt
+            if (panel != null) refresh();
         });
         l.add(tips);
         JMenuItem edit = new JMenuItem("Tooltip-Text des zuletzt gezeigten Eintrags bearbeiten …");

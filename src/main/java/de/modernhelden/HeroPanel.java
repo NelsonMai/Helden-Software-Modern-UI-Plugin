@@ -46,6 +46,10 @@ public final class HeroPanel extends JPanel {
 
     public void setAbhaengige(java.util.function.BiFunction<String, List<String>, List<String>> f) { this.abhaengige = f; }
     private HeroData hero;
+    /** Schalter „Erweiterte Tooltips anzeigen“ – gilt auch für diesen Reiter. */
+    private java.util.function.BooleanSupplier tooltipsAn = () -> true;
+
+    public void setTooltipsAn(java.util.function.BooleanSupplier b) { this.tooltipsAn = b; }
     private final JPanel content = new JPanel(new BorderLayout());
     private JTabbedPane tabs;
     private int lastTab;
@@ -146,8 +150,10 @@ public final class HeroPanel extends JPanel {
         frei.setForeground(h.freieAp > 0 ? Theme.accent() : Theme.muted());
         String apTip = TooltipDB.htmlInfo("Abenteuerpunkte: " + h.ap, "Woher die AP kommen und wofür sie ausgegeben wurden",
                 h.herkunft.abenteuerpunkte(h.ap, h.freieAp));
-        apl.setToolTipText(apTip);
-        frei.setToolTipText(apTip);
+        if (tooltipsAn.getAsBoolean()) {
+            apl.setToolTipText(apTip);
+            frei.setToolTipText(apTip);
+        }
         ap.add(apl);
         ap.add(frei);
         p.add(ap, BorderLayout.EAST);
@@ -195,7 +201,7 @@ public final class HeroPanel extends JPanel {
         v.setFont(v.getFont().deriveFont(Font.BOLD, v.getFont().getSize2D() * 1.45f));
         t.add(k, BorderLayout.NORTH);
         t.add(v, BorderLayout.CENTER);
-        t.setToolTipText(tip);
+        if (tooltipsAn.getAsBoolean()) t.setToolTipText(tip);
         t.putClientProperty("modernhelden.own", true);
         return t;
     }
@@ -266,6 +272,7 @@ public final class HeroPanel extends JPanel {
         talentModel = new TalentModel(h);
         final JTable table = new JTable(talentModel) {
             @Override public String getToolTipText(MouseEvent e) {
+                if (!tooltipsAn.getAsBoolean()) return null;
                 int r = rowAtPoint(e.getPoint());
                 if (r < 0) return null;
                 Row row = talentModel.rows.get(r);
@@ -389,7 +396,7 @@ public final class HeroPanel extends JPanel {
         String summe = h.geldSilber > 0 ? "  (= " + Geld.silber(h.geldSilber) + " Silbertaler)" : "";
         JLabel geld = new JLabel("Geldbörse: " + (h.geld.isEmpty() ? "leer" : h.geld) + summe);
         geld.setFont(geld.getFont().deriveFont(Font.BOLD));
-        JLabel umr = new JLabel(Geld.UMRECHNUNG);
+        JLabel umr = new JLabel(Geld.UMRECHNUNG + "   ·   1 Stein = 40 Unzen = 1 kg (1 Unze = 25 g)");
         umr.setForeground(Theme.muted());
         final JPanel kopf = new JPanel(new GridLayout(0, 1, 0, 2));
         kopf.setOpaque(false);
@@ -484,11 +491,12 @@ public final class HeroPanel extends JPanel {
         final JTable table = new JTable(model) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
             @Override public String getToolTipText(MouseEvent e) {
+                if (!tooltipsAn.getAsBoolean()) return null;
                 int r = rowAtPoint(e.getPoint());
                 if (r < 0) return null;
                 InvZeile z = zeilen.get(convertRowIndexToModel(r));
-                TooltipDB.Match m = db.find(z.g.name);
-                return db.html(m != null ? m : new TooltipDB.Match(z.g.name, null, z.g.name), z.tip);
+                // Gegenstände nicht mit gleichnamigen Talenten/SF verknüpfen (z. B. Parierwaffe „Linkhand“)
+                return db.html(new TooltipDB.Match(z.g.name, null, z.g.name), z.tip);
             }
         };
         styleTable(table);
@@ -569,6 +577,7 @@ public final class HeroPanel extends JPanel {
         final JList<HeroData.Item> list = new JList<HeroData.Item>(items.toArray(new HeroData.Item[0])) {
             @Override public boolean getScrollableTracksViewportWidth() { return true; }
             @Override public String getToolTipText(MouseEvent e) {
+                if (!tooltipsAn.getAsBoolean()) return null;
                 int i = locationToIndex(e.getPoint());
                 if (i < 0 || !getCellBounds(i, i).contains(e.getPoint())) return null;
                 HeroData.Item it = getModel().getElementAt(i);
@@ -666,6 +675,7 @@ public final class HeroPanel extends JPanel {
         final JTable table = new JTable(data.toArray(new Object[0][]), cols) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
             @Override public String getToolTipText(MouseEvent e) {
+                if (!tooltipsAn.getAsBoolean()) return null;
                 int r = rowAtPoint(e.getPoint());
                 if (r < 0) return null;
                 String n = String.valueOf(getValueAt(r, 0));

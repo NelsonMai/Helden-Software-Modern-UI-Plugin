@@ -91,7 +91,9 @@ mit Anzahl, Gewicht in Stein, Wert (D/S/H/K) und angelegten Gegenständen. Die S
 aus dem aktiven Kampfset: TP, TP/KK, AT/PA, INI, WM, BF und DK bei Nahkampfwaffen, TP, FK und Reichweite bei
 Fernkampfwaffen, PA und WM bei Schilden sowie RS, BE und den Schutz je Trefferzone bei Rüstungen. Darüber stehen
 Gesamtgewicht und Gesamtwert. Dieselben Angaben erscheinen als Tooltip – hier und im Reiter *Inventar / Tiere*
-der Helden-Software – zusammen mit Einzelgewicht, Einzelpreis und Quelle.
+der Helden-Software – zusammen mit Einzelgewicht, Einzelpreis und Quelle. Auch beim *Hinzufügen* zeigt die
+Liste „Gegenstände“ zu jeder Vorlage Art, Gewicht, Wert, Quelle und die Waffen-, Schild- bzw. Rüstungswerte.
+Umrechnungen: 1 Dukat = 10 Silbertaler = 100 Heller = 1000 Kreuzer, 1 Stein = 40 Unzen = 1 kg.
 
 ![Reiter „Plugin: Modern-UI“ im dunklen Design](docs/bilder/plugin-reiter-dunkel.png)
 
@@ -177,7 +179,7 @@ Die automatische Aktualisierung funktioniert ab Version 1.16.0 – ältere Versi
 | Was | Wie |
 |---|---|
 | Design wechseln | *Erweiterungen → Modern-UI → Design: Modern hell / Modern dunkel / Original* |
-| Tooltips an/aus | *Erweiterungen → Modern-UI → Tooltips für Talente & Sonderfertigkeiten* |
+| Tooltips an/aus | *Erweiterungen → Modern-UI → Erweiterte Tooltips anzeigen* (gilt überall, auch im Reiter „Plugin: Modern-UI“) |
 | Eigene Notiz anlegen | Doppelklick auf einen Eintrag, oder Maus darüber und `Strg+Umschalt+T`, oder im Plugin-Reiter per Rechtsklick |
 | Ordner mit den Notizen öffnen | *Erweiterungen → Modern-UI → Ordner mit eigenen Tooltip-Texten öffnen* |
 | Heldenbogen drucken / als PDF | Reiter *Druckvorschau* → *Drucken …* bzw. *PDF …* |
@@ -219,6 +221,7 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `ModernIcons.java`, `IconSwap.java` | Eigene Vektor-Symbole und deren Austausch bzw. Wiederherstellung |
 | `TabellenStil.java` | Zebra-Streifen und Gitterlinien für die Tabellen der Helden-Software |
 | `TooltipHook.java`, `TooltipDB.java` | Globale Tooltips, Doppelklick-Notizen, Kurzbeschreibungen und eigene Notizen |
+| `VorlagenInfo.java` | Werte der Gegenstandsvorlagen (Hinzufügen-Dialog) über die Plugin-Schnittstellen der Helden-Software |
 | `InventarInfo.java` | Angaben zu Gegenständen (Gewicht, Wert, Kampf- und Rüstungswerte) für Inventar und Tooltips |
 | `Herkunft.java` | Auswertung des Ereignisprotokolls (Herkunft von Werten und Abenteuerpunkten) |
 | `Rueckgaengig.java` | Steigerungen/SF über die Undo-Logik der Helden-Software zurücknehmen |

@@ -130,6 +130,9 @@ final class InventarInfo {
         try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 0; }
     }
 
+    /** Nicht-leere Teile mit Trenner verbinden. */
+    static String verbinde(String sep, String... parts) { return join(sep, parts); }
+
     private static String join(String sep, String... parts) {
         StringBuilder sb = new StringBuilder();
         for (String p : parts) {
