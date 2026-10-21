@@ -42,7 +42,61 @@ public final class TooltipHook implements AWTEventListener {
         showTimer.setRepeats(false);
     }
 
-    public void setHero(HeroData h) { this.hero = h; }
+    public void setHero(HeroData h) { this.hero = h; inventar = null; }
+
+    /** Ausführliche Heldendaten für die Inventar-Tooltips; werden erst beim ersten Bedarf geholt. */
+    private java.util.function.Supplier<de.modernhelden.print.SheetData> druckDaten;
+    private volatile de.modernhelden.print.SheetData inventar;
+
+    public void setDruckDaten(java.util.function.Supplier<de.modernhelden.print.SheetData> s) { this.druckDaten = s; }
+
+    private de.modernhelden.print.SheetData inventarDaten() {
+        if (inventar == null && druckDaten != null && hero != null) {
+            try { inventar = druckDaten.get(); } catch (RuntimeException ignore) { }
+        }
+        return inventar;
+    }
+
+    /** Inventartabelle der Helden-Software (Reiter „Inventar / Tiere“): Spalten Anzahl, Name, Art, Gewicht. */
+    private static boolean istInventarTabelle(JTable t) {
+        TableModel m = t.getModel();
+        java.util.Set<String> namen = new java.util.HashSet<>();
+        for (int i = 0; i < m.getColumnCount(); i++) namen.add(String.valueOf(m.getColumnName(i)).trim());
+        return namen.contains("Anzahl") && namen.contains("Name") && namen.contains("Art") && namen.contains("Gewicht");
+    }
+
+    private static String spalte(JTable t, int viewRow, String name) {
+        TableModel m = t.getModel();
+        int mr = t.convertRowIndexToModel(viewRow);
+        for (int i = 0; i < m.getColumnCount(); i++)
+            if (name.equals(String.valueOf(m.getColumnName(i)).trim())) return str(m.getValueAt(mr, i));
+        return null;
+    }
+
+    /** Tooltip für eine Zeile der Inventartabelle; true, wenn einer angezeigt wird. */
+    private boolean inventarTooltip(JTable t, MouseEvent e) {
+        int row = t.rowAtPoint(e.getPoint());
+        if (row < 0) return false;
+        String name = spalte(t, row, "Name");
+        if (name == null) return false;
+        de.modernhelden.print.SheetData sd = inventarDaten();
+        de.modernhelden.print.SheetData.Gegenstand g = InventarInfo.finde(sd, name);
+        if (g == null) return false;
+        String key = System.identityHashCode(t) + "|inv|" + row + "|" + name;
+        if (key.equals(shownKey)) return true;
+        if (popup != null) hidePopupOnly();
+        Map<String, String> x = new LinkedHashMap<>();
+        InventarInfo.werte(sd, g, x);
+        TooltipDB.Match m = db.find(g.name);
+        if (m == null) m = new TooltipDB.Match(g.name, null, g.name);
+        lastMatch = m;
+        pendingKey = key;
+        pendingComp = t;
+        pendingHtml = db.html(m, x);
+        pendingScreen = e.getLocationOnScreen();
+        showTimer.restart();
+        return true;
+    }
     public void setEnabled(boolean b) { enabled = b; if (!b) hide(); }
     public boolean isEnabled() { return enabled; }
     public TooltipDB.Match getLastMatch() { return lastMatch; }
@@ -153,6 +207,9 @@ public final class TooltipHook implements AWTEventListener {
                 showTimer.restart();
                 return;
             }
+        }
+        if (c instanceof JTable && hero != null && istInventarTabelle((JTable) c)) {
+            if (inventarTooltip((JTable) c, e)) return;
         }
         String text = textAt(c, e.getPoint());
         TooltipDB.Match m = text == null ? null : db.find(text);

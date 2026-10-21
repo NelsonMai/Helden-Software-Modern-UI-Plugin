@@ -68,6 +68,10 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         db.setUserFile(new File(baseDir, "eigene-tooltips.tsv"));
         hook.setEnabled(!"false".equals(props.get("tooltips")));
         hook.install(this::editLastHovered);
+        hook.setDruckDaten(() -> {
+            Document doc = heldDaten();
+            return doc == null ? null : de.modernhelden.print.SheetData.parse(doc);
+        });
         if (new File(baseDir, "debug").isDirectory()) hook.debugLog = new File(new File(baseDir, "debug"), "hook.log");
         if (new File(baseDir, "debug").isDirectory()) IconSwap.debugLog = new File(new File(baseDir, "debug"), "icons.log");
         if (update == null) {
@@ -103,6 +107,10 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         if (panel == null) {
             panel = new HeroPanel(db, this::editTooltip);
             panel.setAbhaengige((sf, spaeter) -> Rueckgaengig.abhaengige(frame, sf, spaeter));
+            panel.setDruckDaten(() -> {
+                Document d = heldDaten();
+                return d == null ? null : de.modernhelden.print.SheetData.parse(d);
+            });
             panel.setRueckgaengig(e -> {
                 String f = Rueckgaengig.ausfuehren(frame, e.time, e.text);
                 refresh();

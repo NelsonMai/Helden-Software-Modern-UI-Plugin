@@ -86,6 +86,13 @@ Eine kompakte Heldenübersicht: Eigenschaften und Basiswerte als Kacheln, filter
 Fortschrittsbalken, Sonderfertigkeiten und Vor-/Nachteile mit Kurzbeschreibung, Kampfwerte, Zauber und
 Inventar mit Geldbörse. Die Übersicht aktualisiert sich automatisch.
 
+Das **Inventar** ist eine sortier- und filterbare Tabelle (Alle, Angelegt, Waffen, Rüstung, Schilde, Sonstiges)
+mit Anzahl, Gewicht in Stein, Wert (D/S/H/K) und angelegten Gegenständen. Die Spalte *Werte* zeigt die Angaben
+aus dem aktiven Kampfset: TP, TP/KK, AT/PA, INI, WM, BF und DK bei Nahkampfwaffen, TP, FK und Reichweite bei
+Fernkampfwaffen, PA und WM bei Schilden sowie RS, BE und den Schutz je Trefferzone bei Rüstungen. Darüber stehen
+Gesamtgewicht und Gesamtwert. Dieselben Angaben erscheinen als Tooltip – hier und im Reiter *Inventar / Tiere*
+der Helden-Software – zusammen mit Einzelgewicht, Einzelpreis und Quelle.
+
 ![Reiter „Plugin: Modern-UI“ im dunklen Design](docs/bilder/plugin-reiter-dunkel.png)
 
 ### Moderner Heldenbogen
@@ -212,6 +219,7 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `ModernIcons.java`, `IconSwap.java` | Eigene Vektor-Symbole und deren Austausch bzw. Wiederherstellung |
 | `TabellenStil.java` | Zebra-Streifen und Gitterlinien für die Tabellen der Helden-Software |
 | `TooltipHook.java`, `TooltipDB.java` | Globale Tooltips, Doppelklick-Notizen, Kurzbeschreibungen und eigene Notizen |
+| `InventarInfo.java` | Angaben zu Gegenständen (Gewicht, Wert, Kampf- und Rüstungswerte) für Inventar und Tooltips |
 | `Herkunft.java` | Auswertung des Ereignisprotokolls (Herkunft von Werten und Abenteuerpunkten) |
 | `Rueckgaengig.java` | Steigerungen/SF über die Undo-Logik der Helden-Software zurücknehmen |
 | `HeroPanel.java`, `HeroData.java` | Reiter „Plugin: Modern-UI“ |

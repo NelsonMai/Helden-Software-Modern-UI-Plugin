@@ -118,8 +118,21 @@ public final class IconSwap {
      * (z. B. zwischengespeicherte Löschknöpfe im Inventar) und Bäume als Renderer (Gruppenvergleich).
      */
     private static void zellenSymbole(JTable t) {
-        // nur neu prüfen, wenn sich Design, Zeilen oder Spalten geändert haben
-        String stand = modern + ":" + t.getRowCount() + ":" + t.getColumnCount();
+        // nur neu prüfen, wenn sich Design oder Inhalt geändert haben. Die Helden-Software legt Zellen-Knöpfe je
+        // Eintrag an – nach einem Heldenwechsel mit gleich vielen Zeilen sind es also andere Knöpfe.
+        long inhalt = 0;
+        int zn = Math.min(t.getRowCount(), 300);
+        for (int row = 0; row < zn; row++) {
+            for (int ci = 0; ci < t.getColumnCount(); ci++) {
+                Object v;
+                try { v = t.getValueAt(row, ci); } catch (RuntimeException ex) { continue; }
+                // Texte/Zahlen nach Inhalt, Objekte (Gegenstände usw.) nach Identität
+                int h = v == null ? 0 : v instanceof CharSequence || v instanceof Number || v instanceof Boolean
+                        ? v.hashCode() : System.identityHashCode(v);
+                inhalt = inhalt * 31 + h;
+            }
+        }
+        String stand = modern + ":" + t.getRowCount() + ":" + t.getColumnCount() + ":" + inhalt;
         if (stand.equals(t.getClientProperty("modernhelden.zellen"))) return;
         t.putClientProperty("modernhelden.zellen", stand);
         geaendert = false;

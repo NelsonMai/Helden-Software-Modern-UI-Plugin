@@ -50,12 +50,21 @@ public final class SheetData {
 
     public static final class Ruestung {
         public String name = "", rs = "", be = "";
+        /** Schutz je Zone (Kopf, Brust, …) in der Reihenfolge von {@link #ZONEN}; leer, wenn nicht angegeben. */
+        public final String[] zonen = new String[ZONEN.length];
     }
+
+    public static final String[][] ZONEN = {{"kopf", "Kopf"}, {"brust", "Brust"}, {"ruecken", "Rücken"}, {"bauch", "Bauch"},
+            {"linkerarm", "L. Arm"}, {"rechterarm", "R. Arm"}, {"linkesbein", "L. Bein"}, {"rechtesbein", "R. Bein"}};
 
     public static final class Gegenstand {
         public String name = "", anzahl = "", gewichtStein = "", art = "";
         public double unzen;
         public boolean angelegt;
+        /** Einzelgewicht in Unzen, Preise in Kreuzer (wie in der Helden-Software). */
+        public double einzelUnzen;
+        public long einzelpreis, gesamtpreis;
+        public String quelle = "", details = "";
     }
 
     public static final class Muenze {
@@ -207,6 +216,11 @@ public final class SheetData {
             x.gewichtStein = unzen > 0 ? fmt(unzen / 40.0) : "";
             x.angelegt = "true".equals(text(e, "angelegt"));
             x.art = text(e, "arten");
+            x.einzelUnzen = dbl(text(e, "gewicht"));
+            x.einzelpreis = Math.round(dbl(text(e, "einzelpreis")));
+            x.gesamtpreis = Math.round(dbl(text(e, "gesamtpreis")));
+            x.quelle = text(e, "quelle");
+            x.details = text(e, "details");
             d.inventar.add(x);
         }
         Element m = child(root, "münzen");
@@ -288,6 +302,7 @@ public final class SheetData {
                 r2.name = text(w, "name");
                 r2.rs = first(w, "gesamtzonenschutz", "rs");
                 r2.be = first(w, "behinderung", "be");
+                for (int zi = 0; zi < ZONEN.length; zi++) r2.zonen[zi] = text(w, ZONEN[zi][0]);
                 if (!r2.name.isEmpty()) d.ruestungen.add(r2);
             }
         }

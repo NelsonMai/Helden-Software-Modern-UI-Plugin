@@ -378,22 +378,192 @@ public final class HeroPanel extends JPanel {
         return p;
     }
 
-    private JComponent inventarTab(HeroData h) {
-        JPanel p = new JPanel(new BorderLayout(0, 8));
+    /** Liefert die ausführlichen Heldendaten (wie für den Heldenbogen) – nur bei Bedarf abgerufen. */
+    private java.util.function.Supplier<de.modernhelden.print.SheetData> druckDaten;
+
+    public void setDruckDaten(java.util.function.Supplier<de.modernhelden.print.SheetData> s) { this.druckDaten = s; }
+
+    private JComponent inventarTab(final HeroData h) {
+        final JPanel p = new JPanel(new BorderLayout(0, 8));
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
         String summe = h.geldSilber > 0 ? "  (= " + Geld.silber(h.geldSilber) + " Silbertaler)" : "";
         JLabel geld = new JLabel("Geldbörse: " + (h.geld.isEmpty() ? "leer" : h.geld) + summe);
         geld.setFont(geld.getFont().deriveFont(Font.BOLD));
         JLabel umr = new JLabel(Geld.UMRECHNUNG);
         umr.setForeground(Theme.muted());
-        JPanel kopf = new JPanel(new GridLayout(2, 1, 0, 2));
+        final JPanel kopf = new JPanel(new GridLayout(0, 1, 0, 2));
         kopf.setOpaque(false);
         kopf.add(geld);
         kopf.add(umr);
         p.add(kopf, BorderLayout.NORTH);
-        p.add(scroll(itemList(h.inventar, false)));
+        if (druckDaten == null) {
+            p.add(scroll(itemList(h.inventar, false)));
+            return p;
+        }
+        // ausführliche Daten erst laden, wenn der Reiter sichtbar wird
+        final JLabel laden = new JLabel("Inventar wird geladen …", SwingConstants.CENTER);
+        laden.setForeground(Theme.muted());
+        p.add(laden, BorderLayout.CENTER);
+        p.addHierarchyListener(new java.awt.event.HierarchyListener() {
+            boolean fertig;
+            @Override public void hierarchyChanged(java.awt.event.HierarchyEvent e) {
+                if (fertig || (e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) == 0 || !p.isShowing()) return;
+                fertig = true;
+                SwingUtilities.invokeLater(() -> {
+                    de.modernhelden.print.SheetData sd = null;
+                    try { sd = druckDaten.get(); } catch (RuntimeException ignore) { }
+                    p.remove(laden);
+                    if (sd == null || sd.inventar.isEmpty() && !h.inventar.isEmpty()) {
+                        p.add(scroll(itemList(h.inventar, false)), BorderLayout.CENTER);
+                    } else {
+                        p.add(inventarTabelle(sd, kopf), BorderLayout.CENTER);
+                    }
+                    p.revalidate();
+                    p.repaint();
+                });
+            }
+        });
         return p;
     }
+
+    /** Zeile der Inventartabelle mit allen Angaben zu einem Gegenstand. */
+    private static final class InvZeile {
+        de.modernhelden.print.SheetData.Gegenstand g;
+        int anzahl;
+        String werte = "";
+        final Map<String, String> tip = new LinkedHashMap<>();
+        String filterArt = "Sonstiges";
+    }
+
+    private static final String[] INV_FILTER = {"Alle", "Angelegt", "Waffen", "Rüstung", "Schilde", "Sonstiges"};
+
+    private JComponent inventarTabelle(de.modernhelden.print.SheetData sd, JPanel kopf) {
+        final List<InvZeile> zeilen = new ArrayList<>();
+        double unzen = 0, unzenAngelegt = 0;
+        long preis = 0;
+        for (de.modernhelden.print.SheetData.Gegenstand g : sd.inventar) {
+            InvZeile z = new InvZeile();
+            z.g = g;
+            z.anzahl = Math.max(1, num(g.anzahl));
+            z.werte = InventarInfo.werte(sd, g, z.tip);
+            String a = g.art.toLowerCase(Locale.GERMAN);
+            z.filterArt = a.contains("waffe") ? "Waffen" : a.contains("rüstung") ? "Rüstung" : a.contains("schild") ? "Schilde" : "Sonstiges";
+            zeilen.add(z);
+            unzen += g.unzen;
+            if (g.angelegt) unzenAngelegt += g.unzen;
+            preis += g.gesamtpreis;
+        }
+        // Zusammenfassung über der Tabelle
+        JLabel summe = new JLabel(zeilen.size() + (zeilen.size() == 1 ? " Gegenstand" : " Gegenstände")
+                + "  ·  Gesamtgewicht " + InventarInfo.stein(unzen) + " Stein"
+                + (unzenAngelegt > 0 ? " (davon angelegt " + InventarInfo.stein(unzenAngelegt) + ")" : "")
+                + (preis > 0 ? "  ·  Gesamtwert " + InventarInfo.preisText(preis) : ""));
+        kopf.add(summe);
+
+        final String[] cols = {"Anz.", "Gegenstand", "Art", "Gewicht (Stein)", "Wert", "Angelegt", "Werte"};
+        final javax.swing.table.AbstractTableModel model = new javax.swing.table.AbstractTableModel() {
+            @Override public int getRowCount() { return zeilen.size(); }
+            @Override public int getColumnCount() { return cols.length; }
+            @Override public String getColumnName(int c) { return cols[c]; }
+            @Override public Class<?> getColumnClass(int c) {
+                return c == 0 ? Integer.class : c == 3 ? Double.class : c == 4 ? Long.class : c == 5 ? Boolean.class : String.class;
+            }
+            @Override public Object getValueAt(int r, int c) {
+                InvZeile z = zeilen.get(r);
+                switch (c) {
+                    case 0: return z.anzahl;
+                    case 1: return z.g.name;
+                    case 2: return z.g.art.equalsIgnoreCase("sonst") ? "Sonstiges" : z.g.art;
+                    case 3: return z.g.unzen / 40.0;
+                    case 4: return z.g.gesamtpreis;
+                    case 5: return z.g.angelegt;
+                    default: return z.werte;
+                }
+            }
+        };
+        final JTable table = new JTable(model) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+            @Override public String getToolTipText(MouseEvent e) {
+                int r = rowAtPoint(e.getPoint());
+                if (r < 0) return null;
+                InvZeile z = zeilen.get(convertRowIndexToModel(r));
+                TooltipDB.Match m = db.find(z.g.name);
+                return db.html(m != null ? m : new TooltipDB.Match(z.g.name, null, z.g.name), z.tip);
+            }
+        };
+        styleTable(table);
+        final javax.swing.table.TableRowSorter<javax.swing.table.TableModel> sorter = new javax.swing.table.TableRowSorter<>(model);
+        table.setRowSorter(sorter);
+        int[] breiten = {45, 220, 140, 95, 85, 70, 420};
+        for (int i = 0; i < cols.length; i++) table.getColumnModel().getColumn(i).setPreferredWidth(breiten[i]);
+        DefaultTableCellRenderer zentriert = new DefaultTableCellRenderer();
+        zentriert.setHorizontalAlignment(SwingConstants.CENTER);
+        DefaultTableCellRenderer gewicht = new DefaultTableCellRenderer() {
+            @Override protected void setValue(Object v) { setText(v instanceof Double && (Double) v > 0 ? InventarInfo.zahl((Double) v) : ""); }
+        };
+        gewicht.setHorizontalAlignment(SwingConstants.RIGHT);
+        DefaultTableCellRenderer wert = new DefaultTableCellRenderer() {
+            @Override protected void setValue(Object v) { setText(v instanceof Long && (Long) v > 0 ? InventarInfo.preisText((Long) v) : ""); }
+        };
+        wert.setHorizontalAlignment(SwingConstants.RIGHT);
+        DefaultTableCellRenderer haken = new DefaultTableCellRenderer() {
+            @Override protected void setValue(Object v) { setText(Boolean.TRUE.equals(v) ? "\u2713" : ""); }
+        };
+        haken.setHorizontalAlignment(SwingConstants.CENTER);
+        javax.swing.table.TableCellRenderer[] r = {zentriert, null, null, gewicht, wert, haken, null};
+        for (int i = 0; i < cols.length; i++) {
+            javax.swing.table.TableColumn col = table.getColumnModel().getColumn(i);
+            if (r[i] != null) col.setCellRenderer(r[i]);
+            col.setCellRenderer(new TabellenStil.Zebra(col.getCellRenderer()));
+        }
+        attachPopup(table, e -> {
+            int row = table.rowAtPoint(e.getPoint());
+            return row < 0 ? null : zeilen.get(table.convertRowIndexToModel(row)).g.name;
+        });
+
+        // Suche und Filter nach Art
+        final JTextField suche = new JTextField();
+        suche.putClientProperty("JTextField.placeholderText", "Gegenstände filtern …");
+        suche.putClientProperty("JTextField.leadingIcon", new com.formdev.flatlaf.icons.FlatSearchIcon());
+        final JComboBox<String> art = new JComboBox<>(INV_FILTER);
+        Runnable filtern = () -> {
+            final String q = suche.getText().trim().toLowerCase(Locale.GERMAN);
+            final String a = (String) art.getSelectedItem();
+            sorter.setRowFilter(new RowFilter<javax.swing.table.TableModel, Integer>() {
+                @Override public boolean include(Entry<? extends javax.swing.table.TableModel, ? extends Integer> e) {
+                    InvZeile z = zeilen.get(e.getIdentifier());
+                    if ("Angelegt".equals(a) && !z.g.angelegt) return false;
+                    // Gegenstände mit mehreren Arten (z. B. „Nahkampfwaffe, Schild“) passen zu jedem ihrer Filter
+                    String art = z.g.art.toLowerCase(Locale.GERMAN);
+                    if ("Waffen".equals(a) && !art.contains("waffe")) return false;
+                    if ("Rüstung".equals(a) && !art.contains("rüstung")) return false;
+                    if ("Schilde".equals(a) && !art.contains("schild")) return false;
+                    if ("Sonstiges".equals(a) && !"Sonstiges".equals(z.filterArt)) return false;
+                    return q.isEmpty() || (z.g.name + " " + z.g.art + " " + z.werte).toLowerCase(Locale.GERMAN).contains(q);
+                }
+            });
+        };
+        suche.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filtern.run(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filtern.run(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filtern.run(); }
+        });
+        art.addActionListener(e -> filtern.run());
+        JPanel leiste = new JPanel(new BorderLayout(8, 0));
+        leiste.setOpaque(false);
+        leiste.add(suche, BorderLayout.CENTER);
+        leiste.add(art, BorderLayout.EAST);
+
+        JLabel hinweis = new JLabel("Werte aus dem aktiven Kampfset (inkl. Behinderung). Mauszeiger über einer Zeile zeigt alle Angaben, Doppelklick legt eine Notiz an.");
+        hinweis.setForeground(Theme.muted());
+        JPanel box = new JPanel(new BorderLayout(0, 6));
+        box.setOpaque(false);
+        box.add(leiste, BorderLayout.NORTH);
+        box.add(scroll(table), BorderLayout.CENTER);
+        box.add(hinweis, BorderLayout.SOUTH);
+        return box;
+    }
+
 
     private JList<HeroData.Item> itemList(List<HeroData.Item> items, boolean withDescription) {
         final JList<HeroData.Item> list = new JList<HeroData.Item>(items.toArray(new HeroData.Item[0])) {
