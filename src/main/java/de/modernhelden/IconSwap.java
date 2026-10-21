@@ -75,6 +75,7 @@ public final class IconSwap {
     private static void komponente(JComponent c) {
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) return;
         if (c instanceof JTable) TabellenStil.anwenden((JTable) c, modern);
+        if (ErschaffungsLayout.KLASSE.equals(c.getClass().getName())) ErschaffungsLayout.anwenden(c, modern);
         if (c instanceof AbstractButton) {
             AbstractButton b = (AbstractButton) c;
             slot(b, "icon", b.getIcon(), b::setIcon);
