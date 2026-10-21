@@ -220,9 +220,18 @@ public final class ModernSheet implements Pageable, Printable {
         energieRow(rows, "Ausdauer", "ausdauer");
         // Astral- und Karmaenergie stehen auf der eigenen Magie-Seite
         heading("Zustand", 40);
-        table(new String[]{"", "Max", "½", "⅓", "¼", "Aktuell", "Notizen"},
-                new float[]{1.5f, .6f, .5f, .5f, .5f, 1.4f, 3.2f},
-                new int[]{0, 1, 1, 1, 1, 1, 0}, rows, true);
+        if (opt.notizseite) {
+            table(new String[]{"", "Max", "½", "⅓", "¼", "Aktuell", "Notizen"},
+                    new float[]{1.5f, .6f, .5f, .5f, .5f, 1.4f, 3.2f},
+                    new int[]{0, 1, 1, 1, 1, 1, 0}, rows, true);
+        } else {
+            // ohne Notizfelder: die Spalte „Aktuell“ nimmt den Platz der Notizen ein
+            List<String[]> ohne = new ArrayList<>();
+            for (String[] r : rows) ohne.add(Arrays.copyOf(r, 6));
+            table(new String[]{"", "Max", "½", "⅓", "¼", "Aktuell"},
+                    new float[]{1.5f, .6f, .5f, .5f, .5f, 4.6f},
+                    new int[]{0, 1, 1, 1, 1, 1}, ohne, true);
+        }
         final String reg = join("   ·   ",
                 d.wundschwelle.isEmpty() ? "" : "Wundschwelle " + d.wundschwelle,
                 d.leReg.isEmpty() ? "" : "LE-Regeneration " + d.leReg,

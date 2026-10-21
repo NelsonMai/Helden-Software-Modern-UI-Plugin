@@ -169,7 +169,8 @@ public final class SheetData {
         Element tl = child(root, "talentliste");
         if (tl != null) for (Element e : children(tl)) {
             Talent t = new Talent();
-            t.name = text(e, "name");
+            // „Ansitzjagd incl Waffe“ der Helden-Software in üblicher Schreibweise: „Ansitzjagd inkl. Waffe“
+            t.name = text(e, "name").replaceAll("\\bincl\\.?(?=\\s)", "inkl.");
             t.probe = text(e, "probe");
             t.probenwerte = text(e, "probenwerte");
             // Ritualkenntnis u. ä. haben keine Eigenschaftsprobe („--/--/--“ mit Platzhalterwerten)
