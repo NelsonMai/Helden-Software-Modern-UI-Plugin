@@ -62,7 +62,7 @@ Im Reiter „Plugin: Modern-UI“ → *Verlauf* stehen alle Steigerungen und erw
 dem Ereignisprotokoll (neueste zuerst). Ein Eintrag lässt sich mit *Rückgängig machen …* zurücknehmen;
 die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
 
-- Möglich für: Talent, Zauber, Nahkampftalent (inkl. AT/PA-Verteilung) und Eigenschaft steigern,
+- Möglich für: Talent, Zauber, Nahkampftalent (inkl. AT/PA-Verteilung) und Eigenschaft (auch LE/AU/AE) steigern,
   Talent aktivieren, Sonderfertigkeit hinzugefügt. Erschaffung und AP-Vergaben bleiben unangetastet.
 - Es muss die jeweils letzte Änderung an diesem Talent/dieser SF sein (z. B. erst „Rechnen 3 → 4“,
   dann „Rechnen 2 → 3“). Andere Talente dürfen danach gesteigert worden sein.

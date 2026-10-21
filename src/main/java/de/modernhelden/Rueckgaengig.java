@@ -214,6 +214,23 @@ public final class Rueckgaengig {
                 // ältere/neuere Version: unten in den Listen des Helden weitersuchen
             }
         }
+        if (zauber) {
+            // Zauber des Helden: „Zauberfertigkeiten“ (iterierbar über KonkreterZauber)
+            for (Method m : alleMethoden(held.getClass())) {
+                if (m.getParameterCount() != 0 || !Iterable.class.isAssignableFrom(m.getReturnType())) continue;
+                if (!m.getReturnType().getName().startsWith("helden.")) continue;
+                Object fert;
+                try {
+                    m.setAccessible(true);
+                    fert = m.invoke(held);
+                } catch (Exception ex) { continue; }
+                if (!(fert instanceof Iterable)) continue;
+                for (Object z : (Iterable<?>) fert) {
+                    if (z != null && z.getClass().getName().equals("helden.framework.zauber.KonkreterZauber") && passtZauber(z, name))
+                        return z;
+                }
+            }
+        }
         String typ = zauber ? "helden.framework.zauber.KonkreterZauber" : "helden.framework.B.public";
         Class<?> basis = Class.forName(typ, false, held.getClass().getClassLoader());
         for (Method m : alleMethoden(held.getClass())) {
@@ -230,6 +247,30 @@ public final class Rueckgaengig {
             }
         }
         return null;
+    }
+
+    /** Zauber im Log: „Odem Arcanum [Magiedilletant]“ – Name und Repräsentation vergleichen. */
+    private static boolean passtZauber(Object z, String obj) {
+        String basis = obj, rep = "";
+        int k = obj.indexOf(" [");
+        if (k > 0 && obj.endsWith("]")) { basis = obj.substring(0, k); rep = obj.substring(k + 2, obj.length() - 1); }
+        List<String> texte = new ArrayList<>();
+        texte.add(String.valueOf(z));
+        for (String g : new String[]{"toStringKomplett", "getZaubername"}) {
+            try {
+                Method m = z.getClass().getMethod(g);
+                Object v = m.invoke(z);
+                if (v != null) texte.add(v.toString());
+            } catch (Exception ignore) { }
+        }
+        for (String t : texte) if (t.trim().equals(obj)) return true;
+        boolean nameOk = false, repOk = rep.isEmpty();
+        for (String t : texte) {
+            String tt = t.trim();
+            if (tt.equals(basis) || tt.startsWith(basis + " [") || tt.startsWith(basis + " (")) nameOk = true;
+            if (!rep.isEmpty() && tt.contains(rep)) repOk = true;
+        }
+        return nameOk && repOk;
     }
 
     private static boolean passt(Object o, String name) {
