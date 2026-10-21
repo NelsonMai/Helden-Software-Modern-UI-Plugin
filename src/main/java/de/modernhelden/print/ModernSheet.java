@@ -503,6 +503,10 @@ public final class ModernSheet implements Pageable, Printable {
             rows.add(new String[]{n.name, basis + " − " + (hatBe ? be : "BE") + " " + vz(mod),
                     hatBe ? (basis - be + mod) + " + 1W6" : "____ + 1W6"});
         }
+        // Fernkampfwaffen haben in der Helden-Software keinen INI-Modifikator – eine gemeinsame Zeile genügt
+        if (!d.fernkampf.isEmpty())
+            rows.add(new String[]{"Fernkampfwaffen", basis + " − " + (hatBe ? be : "BE") + " + 0",
+                    hatBe ? (basis - be) + " + 1W6" : "____ + 1W6"});
         rows.add(new String[]{"Waffenlos", basis + " − " + (hatBe ? be : "BE") + " + 0",
                 hatBe ? (basis - be) + " + 1W6" : "____ + 1W6"});
         final List<String> schild = new ArrayList<>();
@@ -521,52 +525,80 @@ public final class ModernSheet implements Pageable, Printable {
         }
         final List<String> schildZeilen = new ArrayList<>();
         for (String sz : schild) schildZeilen.addAll(wrap(sz, F.reg(7), W - 2 * M - 20));
-        float h = 22 + rowsH + 11 * schildZeilen.size() + 2;
         space(4);
-        atomic(h, (g, x, yy, w, hh) -> {
-            g.setColor(FILL);
-            g.fill(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
-            g.setFont(F.bold(6.8f));
-            g.setColor(MUTED);
-            g.drawString("INITIATIVE IM KAMPF", x + 10, yy + 14);
-            g.setFont(F.reg(7.2f));
-            g.drawString("INI-Basis − BE + Waffen-/Schild-Mod. + 1W6", x + 104, yy + 14);
-            // kompakte Plakette: Behinderung der angelegten Rüstung
-            String label = "BE durch Rüstung", wert = hatBe ? String.valueOf(be) : "–";
-            g.setFont(F.bold(6.8f));
-            float lw = g.getFontMetrics().stringWidth(label);
-            g.setFont(F.bold(9));
-            float vw = g.getFontMetrics().stringWidth(wert);
-            float pw = lw + vw + 22, px = x + w - pw - 8, py = yy + 5;
-            g.setColor(ACCENT_SOFT);
-            g.fill(new RoundRectangle2D.Float(px, py, pw, 13, 13, 13));
-            g.setFont(F.bold(6.8f));
-            g.setColor(ACCENT.darker());
-            g.drawString(label, px + 8, py + 9.3f);
-            g.setFont(F.bold(9));
-            g.setColor(ACCENT);
-            g.drawString(wert, px + 8 + lw + 6, py + 9.8f);
-
-            float ly = yy + 30;
-            float c1 = x + 10, c2 = x + w * 0.42f, c3 = x + w - 10;
-            for (int ri = 0; ri < rows.size(); ri++) {
-                String[] r = rows.get(ri);
-                g.setFont(F.bold(8));
-                g.setColor(INK);
-                float nly = ly;
-                for (String l : nameLines.get(ri)) { g.drawString(l, c1, nly); nly += 9.5f; }
-                g.setFont(F.reg(7.6f));
-                g.setColor(MUTED);
-                g.drawString(r[1], c2, ly);
-                g.setFont(F.bold(8.5f));
-                g.setColor(INK);
-                right(g, "= " + r[2], c3, ly);
-                ly += 12.5f + (nameLines.get(ri).size() - 1) * 9.5f;
+        // Bei sehr vielen Waffen über mehrere Seiten verteilen: je Seite ein Kasten, ab dem zweiten mit „(Fortsetzung)“
+        final float kopfH = 22, fussH = 2;
+        int start = 0;
+        boolean erster = true;
+        while (start < rows.size()) {
+            float frei = BOTTOM - y;
+            float schildH = 11 * schildZeilen.size();
+            // passen hier nicht wenigstens Kopf und zwei Zeilen hin, auf der nächsten Seite beginnen
+            float min = kopfH + fussH + 12.5f * Math.min(2, rows.size() - start);
+            if (y > M + 1 && frei < min) { newPage(); frei = BOTTOM - y; }
+            int ende = start;
+            float zeilenH = 0;
+            while (ende < rows.size()) {
+                float rh = 12.5f + (nameLines.get(ende).size() - 1) * 9.5f;
+                boolean letzte = ende == rows.size() - 1;
+                if (kopfH + zeilenH + rh + (letzte ? schildH : 0) + fussH > frei && ende > start) break;
+                zeilenH += rh;
+                ende++;
             }
-            g.setFont(F.reg(7));
-            g.setColor(ACCENT);
-            for (String sline : schildZeilen) { g.drawString(sline, c1, ly); ly += 11; }
-        });
+            final int von = start, bis = ende;
+            final boolean fortsetzung = !erster, mitSchild = bis == rows.size();
+            float h = kopfH + zeilenH + (mitSchild ? schildH : 0) + fussH;
+            atomic(h, (g, x, yy, w, hh) -> {
+                g.setColor(FILL);
+                g.fill(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
+                g.setFont(F.bold(6.8f));
+                g.setColor(MUTED);
+                g.drawString(fortsetzung ? "INITIATIVE IM KAMPF (FORTSETZUNG)" : "INITIATIVE IM KAMPF", x + 10, yy + 14);
+                if (!fortsetzung) {
+                    g.setFont(F.reg(7.2f));
+                    g.drawString("INI-Basis − BE + Waffen-/Schild-Mod. + 1W6", x + 104, yy + 14);
+                }
+                // kompakte Plakette: Behinderung der angelegten Rüstung
+                String label = "BE durch Rüstung", wert = hatBe ? String.valueOf(be) : "–";
+                g.setFont(F.bold(6.8f));
+                float lw = g.getFontMetrics().stringWidth(label);
+                g.setFont(F.bold(9));
+                float vw = g.getFontMetrics().stringWidth(wert);
+                float pw = lw + vw + 22, px = x + w - pw - 8, py = yy + 5;
+                g.setColor(ACCENT_SOFT);
+                g.fill(new RoundRectangle2D.Float(px, py, pw, 13, 13, 13));
+                g.setFont(F.bold(6.8f));
+                g.setColor(ACCENT.darker());
+                g.drawString(label, px + 8, py + 9.3f);
+                g.setFont(F.bold(9));
+                g.setColor(ACCENT);
+                g.drawString(wert, px + 8 + lw + 6, py + 9.8f);
+
+                float ly = yy + 30;
+                float c1 = x + 10, c2 = x + w * 0.42f, c3 = x + w - 10;
+                for (int ri = von; ri < bis; ri++) {
+                    String[] r = rows.get(ri);
+                    g.setFont(F.bold(8));
+                    g.setColor(INK);
+                    float nly = ly;
+                    for (String l : nameLines.get(ri)) { g.drawString(l, c1, nly); nly += 9.5f; }
+                    g.setFont(F.reg(7.6f));
+                    g.setColor(MUTED);
+                    g.drawString(r[1], c2, ly);
+                    g.setFont(F.bold(8.5f));
+                    g.setColor(INK);
+                    right(g, "= " + r[2], c3, ly);
+                    ly += 12.5f + (nameLines.get(ri).size() - 1) * 9.5f;
+                }
+                if (mitSchild) {
+                    g.setFont(F.reg(7));
+                    g.setColor(ACCENT);
+                    for (String sline : schildZeilen) { g.drawString(sline, c1, ly); ly += 11; }
+                }
+            });
+            start = bis;
+            erster = false;
+        }
     }
 
     private static String vz(int v) { return v < 0 ? "− " + (-v) : "+ " + v; }
