@@ -55,7 +55,8 @@ public final class PrintPreviewPanel extends JPanel {
 
         desc.setSelected(!"false".equals(props.get("druck.beschreibungen")));
         notes.setSelected(!"false".equals(props.get("druck.notizen")));
-        meta.setSelected(!"false".equals(props.get("druck.meta")));
+        // Meta-Talente sind zunächst aus; einschalten nur, wenn sie für den Helden in der Helden-Software aktiv sind
+        meta.setSelected("true".equals(props.get("druck.meta")));
         portrait.setSelected(!"false".equals(props.get("druck.portrait")));
         String z = props.get("druck.zoom");
         zoom.setSelectedItem(z != null ? z : "Seitenbreite");
@@ -76,7 +77,17 @@ public final class PrintPreviewPanel extends JPanel {
         notes.addActionListener(e -> { save.accept("druck.notizen", String.valueOf(notes.isSelected())); rebuild(); });
         portrait.addActionListener(e -> { save.accept("druck.portrait", String.valueOf(portrait.isSelected())); rebuild(); });
         // Meta-Talente liefert die Helden-Software nur auf Anfrage – daher Daten neu holen
-        meta.addActionListener(e -> { save.accept("druck.meta", String.valueOf(meta.isSelected())); dirty = true; refresh(); });
+        meta.addActionListener(e -> {
+            if (meta.isSelected() && sheetData != null && !sheetData.metaAktiv) {
+                meta.setSelected(false);
+                metaMenue();
+                metaHinweis();
+                return;
+            }
+            save.accept("druck.meta", String.valueOf(meta.isSelected()));
+            dirty = true;
+            refresh();
+        });
         zoom.addActionListener(e -> { save.accept("druck.zoom", String.valueOf(zoom.getSelectedItem())); pages.revalidate(); pages.repaint(); });
         refreshBtn.addActionListener(e -> { dirty = true; refresh(); });
         pdf.addActionListener(e -> exportPdf());
@@ -103,7 +114,12 @@ public final class PrintPreviewPanel extends JPanel {
         for (JCheckBox cb : new JCheckBox[]{desc, meta, notes, portrait}) {
             final JCheckBox src = cb;
             final JCheckBoxMenuItem mi = new JCheckBoxMenuItem(cb.getText(), cb.isSelected());
-            mi.addActionListener(e -> { src.setSelected(mi.isSelected()); for (java.awt.event.ActionListener l : src.getActionListeners()) l.actionPerformed(e); });
+            mi.addActionListener(e -> {
+                src.setSelected(mi.isSelected());
+                for (java.awt.event.ActionListener l : src.getActionListeners()) l.actionPerformed(e);
+                mi.setSelected(src.isSelected());   // Option kann abgelehnt werden (Meta-Talente)
+            });
+            if (cb == meta) metaItem = mi;
             optMenu.add(mi);
         }
         optMenu.addSeparator();
@@ -191,6 +207,24 @@ public final class PrintPreviewPanel extends JPanel {
         repaint();
     }
 
+    private JCheckBoxMenuItem metaItem;
+
+    private void metaMenue() { if (metaItem != null) metaItem.setSelected(meta.isSelected()); }
+
+    /** Hinweis, wenn Meta-Talente eingeschaltet werden sollen, sie für den Helden aber nicht aktiviert sind. */
+    private void metaHinweis() {
+        String name = heroName == null || heroName.isEmpty() ? "diesen Charakter" : "„" + heroName + "“";
+        Object[] knoepfe = {"Druckeinstellungen öffnen", "Abbrechen"};
+        int w = JOptionPane.showOptionDialog(this,
+                "<html>Meta-Talente müssen für " + esc(name) + " in der Helden-Software aktiviert sein.<br><br>"
+                        + "Dazu in den Druckeinstellungen der Helden-Software „Metatalente“ einschalten.<br>"
+                        + "Danach lässt sich die Option hier einschalten.</html>",
+                "Meta-Talente", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, knoepfe, knoepfe[1]);
+        if (w == 0) oeffneDruckeinstellungen();
+    }
+
+    private static String esc(String s) { return s.replace("&", "&amp;").replace("<", "&lt;"); }
+
     /**
      * Öffnet die Druckeinstellungen der Original-Druckvorschau (Zahnrad), in denen u. a.
      * „Metatalente“ eingeschaltet wird. Danach werden die Daten neu geladen.
@@ -273,6 +307,11 @@ public final class PrintPreviewPanel extends JPanel {
         ModernSheet.Options o = new ModernSheet.Options();
         o.beschreibungen = desc.isSelected();
         o.notizseite = notes.isSelected();
+        // ohne Aktivierung in der Helden-Software liefert sie keine Meta-Talente – Option dann wieder aus
+        if (meta.isSelected() && !sheetData.metaAktiv) {
+            meta.setSelected(false);
+            metaMenue();
+        }
         o.metatalente = meta.isSelected();
         o.portrait = portrait.isSelected();
         o.portraitBild = o.portrait ? portraitBild() : null;
@@ -281,7 +320,7 @@ public final class PrintPreviewPanel extends JPanel {
         boolean hatMeta = false;
         for (SheetData.Talent t : sheetData.talente) hatMeta |= t.meta;
         info.setToolTipText(meta.isSelected() && !hatMeta
-                ? "Keine Meta-Talente: in den Druckeinstellungen der Helden-Software „Metatalente“ aktivieren (Optionen ▾)" : null);
+                ? "Keine Meta-Talente: Der Held hat keine der dafür nötigen Talente aktiviert" : null);
         pdf.setEnabled(true);
         print.setEnabled(true);
         pages.revalidate();

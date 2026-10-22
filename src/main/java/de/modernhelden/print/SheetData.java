@@ -83,6 +83,8 @@ public final class SheetData {
     public boolean magisch, geweiht;
     public final Map<String, Wert> werte = new LinkedHashMap<>();
     public final List<Talent> talente = new ArrayList<>();
+    /** In den Druckeinstellungen der Helden-Software ist für diesen Helden „Metatalente“ eingeschaltet. */
+    public boolean metaAktiv;
     public final List<Zauber> zauber = new ArrayList<>();
     public final List<Eintrag> vorteile = new ArrayList<>();
     public final List<Eintrag> sf = new ArrayList<>();
@@ -100,6 +102,7 @@ public final class SheetData {
     public static SheetData parse(Document doc) {
         Element root = doc.getDocumentElement();
         SheetData d = new SheetData();
+        d.metaAktiv = "true".equalsIgnoreCase(text(child(root, "config"), "metatalente"));
         Element a = child(root, "angaben");
         d.name = text(a, "name");
         d.geschlecht = text(a, "geschlecht");
