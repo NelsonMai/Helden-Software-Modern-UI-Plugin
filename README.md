@@ -195,9 +195,13 @@ abgeschnitten.
 |---|---|
 | ![Heldenbogen, Seite 1](docs/bilder/bogen-seite1.png) | ![Heldenbogen mit Rüstung, Initiative und Trefferzonen](docs/bilder/bogen-kampf-initiative.png) |
 
-| Magie-Seite | Inventar, Geldbörse und Notizen |
+| Talente | Magie-Seite |
 |---|---|
-| ![Magie-Seite mit Astralenergie und Zauberübersicht](docs/bilder/bogen-magie.png) | ![Inventar, Geldbörse und Notizseite mit Portrait](docs/bilder/bogen-inventar-notizen.png) |
+| ![Heldenbogen mit Talenten nach Gruppen](docs/bilder/bogen-talente.png) | ![Magie-Seite mit Astralenergie und Zauberübersicht](docs/bilder/bogen-magie.png) |
+
+| Inventar, Geldbörse und Notizen | |
+|---|---|
+| ![Inventar, Geldbörse und Notizseite mit Portrait](docs/bilder/bogen-inventar-notizen.png) | |
 
 **Optionen** (Knopf *Optionen ▾* in der Druckvorschau)
 
