@@ -1,7 +1,7 @@
 # Modern-UI für die Helden-Software (DSA 4.1)
 
 Ein Plugin für die [Helden-Software](https://www.helden-software.de/), das ihr eine moderne Oberfläche,
-hilfreiche Tooltips und einen neu gestalteten Heldenbogen gibt. Alle Funktionen der Helden-Software bleiben
+übersichtlichere Reiter für Inventar und Ausrüstung, hilfreiche Tooltips und einen neu gestalteten Heldenbogen gibt. Alle Funktionen der Helden-Software bleiben
 erhalten. Das Plugin nutzt ausschließlich die offizielle Plugin-Schnittstelle und verändert keine Heldendateien.
 Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
 
@@ -16,6 +16,7 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
   - [Inventar, Hinzufügen und Geldbörse](#inventar-hinzufügen-und-geldbörse)
   - [Ausrüstung](#ausrüstung)
   - [Tooltips und eigene Notizen](#tooltips-und-eigene-notizen)
+  - [Steigerungen rückgängig machen](#steigerungen-rückgängig-machen)
   - [Reiter „Plugin: Modern-UI“](#reiter-plugin-modern-ui)
   - [Moderner Heldenbogen](#moderner-heldenbogen)
 - [Installation](#installation)
@@ -51,12 +52,14 @@ angeordnet. Es sind dieselben Bedienelemente der Helden-Software; alle Änderung
 
 - **Inventar:** Übersicht oben mit Anzahl der Einträge, Gesamtgewicht in Stein und Unzen und Inhalt der
   Geldbörse. Suchfeld, Filter nach Art und *Nach Art gruppieren* (Trennlinie und Art nur am Gruppenanfang).
-  Die Spalten +, − und ✕ sind schmal, Name und Art bekommen mehr Platz. Doppelklick auf eine Zeile öffnet
-  *Editieren* – auch bei sortierter oder gefilterter Ansicht für den richtigen Gegenstand.
+  Die Spalten +, − und ✕ sind schmal, Name und Art bekommen mehr Platz. Eine per Spaltenkopf gewählte
+  Sortierung bleibt erhalten. Doppelklick auf eine Zeile öffnet *Editieren* – auch bei sortierter oder
+  gefilterter Ansicht für den richtigen Gegenstand. Über einem ausgegrauten „−“ bzw. „✕“ erklärt ein Tooltip,
+  warum es gesperrt ist (ausgerüstet und erst abzulegen bzw. nur noch ein Stück).
 - **Gegenstand hinzufügen:** links Suche, Kategorie und Gegenstandsliste, rechts die Angaben zum markierten
   Gegenstand (Art, Gewicht, Wert, Kampf- bzw. Rüstungswerte, Quelle) mit *Anzahl* und *Hinzufügen*,
   darunter das Inventar. `↓` springt aus der Suche in die Liste. Ein Klick auf einen
-  Gegenstand im Inventar zeigt oben dessen Angaben.
+  Gegenstand im Inventar zeigt oben dessen Angaben; *Editieren* ist nur für Gegenstände im Inventar aktiv.
   *Kaufen (Preis)* fügt hinzu und bezahlt gleich aus der Geldbörse (Mittelreich, bei Bedarf mit Wechseln) –
   über den Geldbörsen-Dialog der Helden-Software, die Änderung steht also auch in ihrem Protokoll.
   Reicht das Geld nicht, wird nichts hinzugefügt.
@@ -65,6 +68,8 @@ angeordnet. Es sind dieselben Bedienelemente der Helden-Software; alle Änderung
 - **Geldbörse:** *Ein- und Ausgaben* – Betrag eingeben und *Einnehmen* oder *Ausgeben*. Beim Ausgeben
   wird bei Bedarf gewechselt (z. B. ein Silbertaler in Heller). Dazu der Gesamtwert in Silbertalern.
   Übernommen wird wie bisher erst mit *OK*, *Abbrechen* verwirft alles.
+
+Die Dialoge passen sich der Bildschirmgröße an, sodass *OK* und *Abbrechen* immer erreichbar bleiben.
 
 ![Inventar im modernen Design](docs/bilder/inventar.png)
 
@@ -76,11 +81,17 @@ angeordnet. Es sind dieselben Bedienelemente der Helden-Software; alle Änderung
 
 Auch der Reiter „Ausrüstung“ ist in den modernen Designs neu gestaltet; im Design *Original* bleibt er wie bisher.
 
-- **Übersicht:** Jedes der drei Ausrüstungssets als Karte (leere Sets mit „leer“ markiert). Oben eine Figur
-  mit dem Rüstungsschutz je Körperzone und die Summen (Rüstungsschutz, Behinderung, Gewicht, Initiative,
-  Ausweichen). Darunter nur die belegten Plätze mit ihren Werten (AT/PA/TP, FK, Schild-PA/WM, RS/BE und Zonen);
-  leere Bereiche zeigen „+ … anlegen“. Das „✕“ hinter einem Gegenstand legt ihn direkt ab (er bleibt im Inventar) –
-  über den Dialog der Helden-Software, der dafür kurz geöffnet und bestätigt wird.
+Die drei Ausrüstungssets sind alternative Ausrüstungen (z. B. Reise, Kampf, Stadt); die Helden-Software kennt
+kein „aktives“ Set, sondern berechnet die Werte für jedes Set einzeln.
+
+- **Übersicht:** Jedes Set als Karte (leere Sets mit „leer“ markiert). Oben eine Figur mit dem Rüstungsschutz
+  je Körperzone und die Summen (Rüstungsschutz, Behinderung, Gewicht, Initiative, Ausweichen). Darunter nur die
+  belegten Plätze mit ihren Werten (AT/PA/TP, FK, Schild-PA/WM, RS/BE und Zonen) – auch mehr als fünf
+  Rüstungsteile und umbenannte Gegenstände. Leere Bereiche zeigen „+ … anlegen“; fehlen passende Gegenstände
+  im Inventar, steht dort der Grund.
+- **Ablegen mit ✕:** Das rote „✕“ hinter einem Gegenstand legt ihn direkt ab, ohne *Bearbeiten* (er bleibt im
+  Inventar). Das erledigt im Hintergrund der Dialog der Helden-Software, die alle Werte selbst neu berechnet;
+  ein Fenster erscheint dabei nicht.
 - **Bearbeiten:** Die Dialoge der Helden-Software (Nahkampf, Fernkampf, Schilde/Parierwaffen, Rüstung) sind neu
   angeordnet: Plätze links als Zeilen, rechts die Gegenstände mit ihren Werten. Doppelklick legt einen Gegenstand
   auf den nächsten freien Platz, Ziehen auf einen bestimmten Platz; bei der Rüstung legt Doppelklick bzw. Ziehen an
@@ -237,6 +248,8 @@ Die automatische Aktualisierung funktioniert ab Version 1.16.0 – ältere Versi
 | Ordner mit den Notizen öffnen | *Erweiterungen → Modern-UI → Ordner mit eigenen Tooltip-Texten öffnen* |
 | Gegenstand hinzufügen | Reiter *Inventar / Tiere* → *Gegenstand hinzufügen …* → suchen, markieren, *Hinzufügen*, Doppelklick oder in das Inventar ziehen |
 | Gegenstand kaufen | Wie *Gegenstand hinzufügen*, dann *Kaufen (Preis)* statt *Hinzufügen* |
+| Ausrüstung anlegen | Reiter *Ausrüstung* → *Bearbeiten* beim Bereich → Gegenstand doppelklicken oder auf einen Platz ziehen → *OK* |
+| Ausrüstung ablegen | Reiter *Ausrüstung* → rotes „✕“ hinter dem Gegenstand |
 | Geld einnehmen / ausgeben | Reiter *Inventar / Tiere* → *Geldbörse* → Betrag eingeben → *Einnehmen* bzw. *Ausgeben* → *OK* |
 | Heldenbogen drucken / als PDF | Reiter *Druckvorschau* → *Drucken …* bzw. *PDF …* |
 | Steigerung / SF rückgängig machen | Reiter *Plugin: Modern-UI* → *Verlauf* → Eintrag wählen → *Rückgängig machen …* |
@@ -303,6 +316,10 @@ Der Heldenbogen wurde mit Testhelden geprüft – von „nichts“ bis „alles 
 - Minimalfälle: Held ohne Talente, Ausrüstung, Magie oder Namen; nur Nachteile; zauberkundig ohne Zauber;
   1 AsP bzw. 1 KaP; fehlende Bereiche in den Daten
 - Designwechsel hell → dunkel → Original → hell in Hauptfenster, Dialogen und Plugin-Reiter
+- Legenden der Kennzeichen in über 10 000 Varianten (Talente, Waffen, Zauber an jeder Seiten- und Spaltengrenze)
+- Inventar, Hinzufügen, Kaufen, Geldbörse und Ausrüstung in der Helden-Software mit Testhelden: Sortieren und
+  Filtern, Ziehen und Doppelklick, Wechseln beim Bezahlen, mehr als fünf Rüstungsteile, umbenannte Gegenstände,
+  kleiner Bildschirm (680 Pixel Höhe)
 
 ## Hinweise
 
