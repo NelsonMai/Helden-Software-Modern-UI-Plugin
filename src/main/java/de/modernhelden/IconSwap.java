@@ -46,11 +46,18 @@ public final class IconSwap {
         Toolkit.getDefaultToolkit().addAWTEventListener(ev -> {
             if (ev.getID() == WindowEvent.WINDOW_OPENED && modern) {
                 Window w = ((WindowEvent) ev).getWindow();
+                // Dialoge der Helden-Software, die in den modernen Designs neu angeordnet werden
+                if (w instanceof JDialog) {
+                    String t = ((JDialog) w).getTitle();
+                    if (HinzufuegenLayout.TITEL.equals(t)) HinzufuegenLayout.anwenden((JDialog) w);
+                    else if (GeldboerseLayout.TITEL.equals(t)) GeldboerseLayout.anwenden((JDialog) w);
+                }
                 SwingUtilities.invokeLater(() -> baum(w));
             }
         }, AWTEvent.WINDOW_EVENT_MASK);
         // Reiter und Listen der Helden-Software entstehen teils erst beim Anzeigen: regelmäßig nachziehen
-        timer = new javax.swing.Timer(1500, e -> alleFenster());
+        // während ein Gegenstand gezogen wird nichts anfassen – das Neuzeichnen ließ den Mauszeiger flackern
+        timer = new javax.swing.Timer(1500, e -> { if (!HinzufuegenLayout.ziehtGerade) alleFenster(); });
         timer.setRepeats(true);
     }
 
@@ -84,6 +91,7 @@ public final class IconSwap {
             if (geaendert) c.repaint();
         }
         if (ErschaffungsLayout.KLASSE.equals(c.getClass().getName())) ErschaffungsLayout.anwenden(c, modern);
+        if (c instanceof JPanel) InventarLayout.pruefen(c, modern);
         if (c instanceof AbstractButton) {
             AbstractButton b = (AbstractButton) c;
             slot(b, "icon", b.getIcon(), b::setIcon);

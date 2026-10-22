@@ -35,6 +35,13 @@ final class VorlagenInfo {
         return n == null ? String.valueOf(f) : n.toString();
     }
 
+    /** Preis der Vorlage in Kreuzer, 0 wenn unbekannt. */
+    static long preisKreuzer(Object f) {
+        Object g = neu(GEGENSTAND, f);
+        Object p = g == null ? null : rufe(g, "getPreis");
+        return p instanceof Number ? Math.max(0, ((Number) p).longValue()) : 0;
+    }
+
     /** Alle lesbaren Angaben für den Tooltip; null, wenn das Objekt keine Vorlage ist. */
     static Map<String, String> angaben(Object f) {
         Object g = neu(GEGENSTAND, f);

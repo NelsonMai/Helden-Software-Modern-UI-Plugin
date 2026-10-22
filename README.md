@@ -13,6 +13,7 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
 
 - [Funktionen](#funktionen)
   - [Moderne Oberfläche](#moderne-oberfläche)
+  - [Inventar, Hinzufügen und Geldbörse](#inventar-hinzufügen-und-geldbörse)
   - [Tooltips und eigene Notizen](#tooltips-und-eigene-notizen)
   - [Reiter „Plugin: Modern-UI“](#reiter-plugin-modern-ui)
   - [Moderner Heldenbogen](#moderner-heldenbogen)
@@ -40,6 +41,35 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
 | Modern dunkel | Neue Symbole (hell und dunkel) |
 |---|---|
 | ![Talentliste im dunklen Design](docs/bilder/modern-dunkel.png) | ![Übersicht der neuen Symbole](docs/bilder/symbole.png) |
+
+### Inventar, Hinzufügen und Geldbörse
+
+In den Designs *Modern hell* und *Modern dunkel* sind der Reiter „Inventar / Tiere“ und seine Dialoge neu
+angeordnet. Es sind dieselben Bedienelemente der Helden-Software; alle Änderungen am Helden laufen weiter
+über sie. Heldendateien und andere Plugins bleiben unberührt, im Design *Original* sieht alles aus wie bisher.
+
+- **Inventar:** Übersicht oben mit Anzahl der Einträge, Gesamtgewicht in Stein und Unzen und Inhalt der
+  Geldbörse. Suchfeld, Filter nach Art und *Nach Art gruppieren* (Trennlinie und Art nur am Gruppenanfang).
+  Die Spalten +, − und ✕ sind schmal, Name und Art bekommen mehr Platz. Doppelklick auf eine Zeile öffnet
+  *Editieren* – auch bei sortierter oder gefilterter Ansicht für den richtigen Gegenstand.
+- **Gegenstand hinzufügen:** links Suche, Kategorie und Gegenstandsliste, rechts die Angaben zum markierten
+  Gegenstand (Art, Gewicht, Wert, Kampf- bzw. Rüstungswerte, Quelle) mit *Anzahl* und *Hinzufügen*,
+  darunter das Inventar. `↓` springt aus der Suche in die Liste. Ein Klick auf einen
+  Gegenstand im Inventar zeigt oben dessen Angaben.
+  *Kaufen (Preis)* fügt hinzu und bezahlt gleich aus der Geldbörse (Mittelreich, bei Bedarf mit Wechseln) –
+  über den Geldbörsen-Dialog der Helden-Software, die Änderung steht also auch in ihrem Protokoll.
+  Reicht das Geld nicht, wird nichts hinzugefügt.
+  Gegenstände lassen sich auch per Doppelklick oder durch Ziehen ins Inventar übernehmen; dann fragt das Plugin nach der Anzahl
+  und ob der Gegenstand gekauft (bezahlt) oder ohne Bezahlen gegeben werden soll.
+- **Geldbörse:** *Ein- und Ausgaben* – Betrag eingeben und *Einnehmen* oder *Ausgeben*. Beim Ausgeben
+  wird bei Bedarf gewechselt (z. B. ein Silbertaler in Heller). Dazu der Gesamtwert in Silbertalern.
+  Übernommen wird wie bisher erst mit *OK*, *Abbrechen* verwirft alles.
+
+![Inventar im modernen Design](docs/bilder/inventar.png)
+
+| Gegenstand hinzufügen | Geldbörse |
+|---|---|
+| ![Dialog „Gegenstände zum Inventar hinzufügen“](docs/bilder/inventar-hinzufuegen.png) | ![Geldbörse mit Ein- und Ausgaben](docs/bilder/geldboerse.png) |
 
 ### Tooltips und eigene Notizen
 
@@ -185,6 +215,9 @@ Die automatische Aktualisierung funktioniert ab Version 1.16.0 – ältere Versi
 | Tooltips an/aus | *Erweiterungen → Modern-UI → Erweiterte Tooltips anzeigen* (gilt überall, auch im Reiter „Plugin: Modern-UI“) |
 | Eigene Notiz anlegen | Doppelklick auf einen Eintrag, oder Maus darüber und `Strg+Umschalt+T`, oder im Plugin-Reiter per Rechtsklick |
 | Ordner mit den Notizen öffnen | *Erweiterungen → Modern-UI → Ordner mit eigenen Tooltip-Texten öffnen* |
+| Gegenstand hinzufügen | Reiter *Inventar / Tiere* → *Gegenstand hinzufügen …* → suchen, markieren, *Hinzufügen*, Doppelklick oder in das Inventar ziehen |
+| Gegenstand kaufen | Wie *Gegenstand hinzufügen*, dann *Kaufen (Preis)* statt *Hinzufügen* |
+| Geld einnehmen / ausgeben | Reiter *Inventar / Tiere* → *Geldbörse* → Betrag eingeben → *Einnehmen* bzw. *Ausgeben* → *OK* |
 | Heldenbogen drucken / als PDF | Reiter *Druckvorschau* → *Drucken …* bzw. *PDF …* |
 | Steigerung / SF rückgängig machen | Reiter *Plugin: Modern-UI* → *Verlauf* → Eintrag wählen → *Rückgängig machen …* |
 | Nach Updates suchen | *Erweiterungen → Modern-UI → Nach Updates suchen …* (automatisch: siehe [Automatische Aktualisierung](#automatische-aktualisierung)) |
@@ -231,6 +264,8 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `HeroPanel.java`, `HeroData.java` | Reiter „Plugin: Modern-UI“ |
 | `Geld.java` | Münzen, Reihenfolge und Umrechnung |
 | `update/` | Automatische Aktualisierung über GitHub-Releases (`PluginUpdate`) und Installationshelfer (`UpdateInstaller`) |
+| `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java` | Reiter „Inventar / Tiere“, Hinzufügen-Dialog und Geldbörse in den modernen Designs |
+| `DebugBaum.java` | Nur im Debug-Modus: Komponentenbaum offener Fenster für die Analyse ausgeben |
 | `ErschaffungsLayout.java` | Platzierung des GP/AP-Felds im Erschaffungsdialog (moderne Designs) |
 | `print/` | Druckvorschau, Heldenbogen-Layout (`ModernSheet`), Datenaufbereitung, PDF-Export |
 | `src/main/resources/.../tooltips.tsv` | Kurzbeschreibungen (eigene Formulierungen) |

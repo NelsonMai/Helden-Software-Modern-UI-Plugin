@@ -63,9 +63,14 @@ final class TabellenStil {
         public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean focus, int row, int col) {
             TableCellRenderer r = original != null ? original : t.getDefaultRenderer(t.getColumnClass(col));
             Component c = r.getTableCellRendererComponent(t, v, sel, focus, row, col);
+            gruppe(t, c, row, col);
             if (c == null || sel) return c;
             // Knöpfe in Zellen (z. B. „+1“, „i“) nicht umfärben
-            if (c instanceof AbstractButton && !(c instanceof JCheckBox)) return c;
+            if (c instanceof AbstractButton && !(c instanceof JCheckBox)) {
+                // ausgegrautes „−“/„✕“ im Inventar: erklären, warum
+                if (InventarLayout.istInventarTabelle(t)) ((AbstractButton) c).setToolTipText(InventarLayout.sperrHinweis(t, row, col));
+                return c;
+            }
             Color alt = UIManager.getColor("Table.alternateRowColor");
             Color basis = t.getBackground();
             if (alt == null || basis == null) return c;
@@ -78,6 +83,29 @@ final class TabellenStil {
             c.setBackground(neu instanceof javax.swing.plaf.UIResource ? neu : new javax.swing.plaf.ColorUIResource(neu));
             if (c instanceof JComponent) ((JComponent) c).setOpaque(true);
             return c;
+        }
+
+        /**
+         * Gruppierte Tabelle (Client-Property {@link InventarLayout#GRUPPE} = Spalte): Beginnt eine neue Gruppe,
+         * bekommt die Zeile oben eine Trennlinie; in der Gruppenspalte steht der Wert nur in der ersten Zeile.
+         */
+        private static void gruppe(JTable t, Component c, int row, int col) {
+            Object g = t.getClientProperty(InventarLayout.GRUPPE);
+            if (!(g instanceof Integer) || !(c instanceof JLabel)) return;
+            int gs = t.convertColumnIndexToView((Integer) g);
+            if (gs < 0 || row >= t.getRowCount()) return;
+            Object hier = t.getValueAt(row, gs);
+            boolean neu = row == 0 || !java.util.Objects.equals(hier, t.getValueAt(row - 1, gs));
+            JLabel l = (JLabel) c;
+            if (col == gs) {
+                if (!neu) l.setText("");
+                else l.setFont(l.getFont().deriveFont(Font.BOLD));
+            }
+            if (neu && row > 0) {
+                Color linie = UIManager.getColor("Component.accentColor");
+                l.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(1, 0, 0, 0, linie != null ? linie : Color.GRAY), l.getBorder()));
+            }
         }
     }
 }

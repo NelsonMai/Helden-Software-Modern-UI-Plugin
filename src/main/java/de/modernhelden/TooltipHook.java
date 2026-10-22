@@ -99,6 +99,11 @@ public final class TooltipHook implements AWTEventListener {
     private boolean inventarTooltip(JTable t, MouseEvent e) {
         int row = t.rowAtPoint(e.getPoint());
         if (row < 0) return false;
+        // über einem ausgegrauten „−“/„✕“ zeigt die Tabelle ihren eigenen Hinweis (siehe InventarLayout.sperrHinweis)
+        if (Theme.isModern() && InventarLayout.sperrHinweis(t, row, t.columnAtPoint(e.getPoint())) != null) {
+            hide();
+            return true;
+        }
         String name = spalte(t, row, "Name");
         if (name == null) return false;
         de.modernhelden.print.SheetData sd = inventarDaten();
@@ -159,6 +164,8 @@ public final class TooltipHook implements AWTEventListener {
                 }
                 return;
             }
+            // beim Ziehen eines Gegenstands keine Tooltips – sie lägen unter dem Mauszeiger und störten das Ablegen
+            if (HinzufuegenLayout.ziehtGerade) { hide(); return; }
             if (!enabled || id != MouseEvent.MOUSE_MOVED) return;
             MouseEvent e = (MouseEvent) ev;
             Component c = e.getComponent();

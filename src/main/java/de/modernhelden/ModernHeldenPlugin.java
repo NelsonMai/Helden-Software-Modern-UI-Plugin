@@ -75,6 +75,10 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         if (new File(baseDir, "debug").isDirectory()) hook.debugLog = new File(new File(baseDir, "debug"), "hook.log");
         if (new File(baseDir, "debug").isDirectory()) IconSwap.debugLog = new File(new File(baseDir, "debug"), "icons.log");
         if (new File(baseDir, "debug").isDirectory()) VorlagenInfo.debugLog = new File(new File(baseDir, "debug"), "vorlagen.log");
+        if (new File(baseDir, "debug").isDirectory()) {
+            DebugBaum.ordner = new File(baseDir, "debug");
+            new javax.swing.Timer(1000, e -> { if (!HinzufuegenLayout.ziehtGerade) DebugBaum.pruefen(); }).start();
+        }
         if (update == null) {
             update = new de.modernhelden.update.PluginUpdate(baseDir, ModernHeldenPlugin.class, VERSION, frame);
             update.beimStart();
@@ -231,6 +235,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
             // kein Held ausgewählt
         }
         hook.setHero(h);
+        InventarLayout.setHero(h);
         if (panel != null) panel.showHero(h);
         installDruckvorschau();
         if (printPanel != null) printPanel.markDirty();
