@@ -203,6 +203,9 @@ public final class IconSwap {
     private static void factory(boolean m) {
         try {
             Class<?> f = Class.forName("helden.gui.icons.IconFactory", true, Thread.currentThread().getContextClassLoader());
+            // Die Helden-Software lädt ihre Markierungssymbole erst beim ersten Abruf (z. B. beim Öffnen der
+            // Heldenerschaffung). Vorher sind die Felder leer und würden nicht getauscht – also das Laden jetzt anstoßen.
+            try { f.getMethod("getConfig").invoke(null); } catch (Throwable ignore) { }
             for (Field fd : f.getDeclaredFields()) {
                 if (!Modifier.isStatic(fd.getModifiers()) || !ImageIcon.class.isAssignableFrom(fd.getType())) continue;
                 if (Modifier.isFinal(fd.getModifiers())) continue;
