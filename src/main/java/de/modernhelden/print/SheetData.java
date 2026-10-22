@@ -24,6 +24,8 @@ public final class SheetData {
         public boolean meta;
         /** Vorteil „Meisterhandwerk“ für dieses Talent (laut Helden-Software). */
         public boolean meister;
+        /** Leittalent sowie Erleichterung/Erschwernis durch Mirakel (laut Helden-Software). */
+        public boolean leit, mirakelPlus, mirakelMinus;
         public int wert;
     }
 
@@ -31,6 +33,7 @@ public final class SheetData {
         public String name = "", probe = "", probenwerte = "", spalte = "", merkmale = "", rep = "", anmerkung = "",
                 kosten = "", zauberdauer = "", reichweite = "", wirkungsdauer = "", mr = "";
         public int wert;
+        public boolean hauszauber, leit;
     }
 
     public static final class Eintrag {
@@ -40,10 +43,16 @@ public final class SheetData {
 
     public static final class Nahkampfwaffe {
         public String name = "", talent = "", dk = "", tp = "", tpkk = "", ini = "", wm = "", at = "", pa = "", bf = "", be = "";
+        /** Richtet Ausdauerschaden an (Helden-Software: „(A)“ im Namen). */
+        public boolean ausdauer;
+        /** Kombiniert mit Schild/Parierwaffe Nr. … (Helden-Software: „(S1)“ im Namen), sonst leer. */
+        public String schild = "";
     }
 
     public static final class Fernkampfwaffe {
         public String name = "", talent = "", tp = "", reichweite = "", tpmod = "", fk = "", laden = "";
+        /** Als Jagdwaffe eingestellt (vom Plugin aus den Heldendaten ergänzt). */
+        public boolean jagd;
     }
 
     public static final class Schild {
@@ -187,6 +196,9 @@ public final class SheetData {
             t.k = text(e, "sprachkomplexität");
             t.meta = "true".equals(text(e, "metatalent"));
             t.meister = "true".equals(text(e, "meisterhandwerk"));
+            t.leit = "true".equals(text(e, "leittalent"));
+            t.mirakelPlus = "true".equals(text(e, "mirakelplus"));
+            t.mirakelMinus = "true".equals(text(e, "mirakelminus"));
             t.at = text(e, "at");
             t.pa = text(e, "pa");
             t.wert = num(text(e, "wert"));
@@ -208,6 +220,8 @@ public final class SheetData {
             z.zauberdauer = text(e, "zauberdauer");
             z.reichweite = text(e, "reichweite");
             z.wirkungsdauer = text(e, "wirkungsdauer");
+            z.hauszauber = "true".equals(text(e, "hauszauber"));
+            z.leit = "true".equals(text(e, "leittalent"));
             z.mr = text(e, "mr");
             if (!z.name.isEmpty()) d.zauber.add(z);
         }
@@ -281,6 +295,12 @@ public final class SheetData {
                 n.pa = text(w, "pa");
                 n.bf = text(w, "bfakt");
                 n.be = text(w, "be");
+                // Kennzeichnungen, die die Helden-Software an den Namen hängt: „(A)“ Ausdauerschaden, „(S1)“ mit Schild Nr. 1
+                java.util.regex.Matcher km;
+                while ((km = java.util.regex.Pattern.compile("^(.*\\S)\\s+\\((A|S(\\d+))\\)$").matcher(n.name)).matches()) {
+                    if ("A".equals(km.group(2))) n.ausdauer = true; else n.schild = km.group(3);
+                    n.name = km.group(1);
+                }
                 if (!n.name.isEmpty()) d.nahkampf.add(n);
             }
             for (Element w : children(child(ks, "fernkampfwaffen"))) {
@@ -292,6 +312,7 @@ public final class SheetData {
                 f.tpmod = text(w, "tpmod").replace(" ", "");
                 f.fk = text(w, "at");
                 f.laden = text(w, "ladezeit");
+                f.jagd = "true".equals(text(w, "jagdwaffe"));
                 if (!f.name.isEmpty()) d.fernkampf.add(f);
             }
             for (Element w : children(child(ks, "schilder"))) {

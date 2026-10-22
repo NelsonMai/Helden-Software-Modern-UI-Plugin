@@ -116,9 +116,12 @@ weiterhin erreichbar.
 - **Sonderfertigkeiten, Vor- und Nachteile** mit Kurzbeschreibung bzw. eigener Notiz.
 - **Talente** nach Gruppen mit Probe, aktuellen Eigenschaftswerten, BE, Steigerungsspalte und TaW;
   auf Wunsch mit Meta-Talenten.
-- **Magie-Seite** (nur für Zauberkundige bzw. Geweihte): Astral- bzw. Karmaenergie als Zahlenleiste für
+- **Magie-Seite** am Ende des Bogens (nur für Zauberkundige bzw. Geweihte): Astral- bzw. Karmaenergie als Zahlenleiste für
   einen Marker und Verlaufsprotokoll – so muss nichts radiert werden. Dazu eine Zauberübersicht mit Probe,
   ZfW, AsP-Kosten, Eckdaten, Anmerkung aus der Helden-Software und eigener Notiz.
+- **Kennzeichen** wie im Original-Bogen als kleine farbige Plaketten mit Legende: **MH** Meisterhandwerk,
+  **L** Leittalent bzw. Leitzauber, **M+**/**M−** Mirakel, **HZ** Hauszauber, **A** Ausdauerschaden,
+  **S1**, **S2** … Kombination mit Schild/Parierwaffe, **J** Jagdwaffe.
 - **Inventar** mit Gewichten, Gesamtgewicht und leeren Zeilen zum Eintragen.
 - **Geldbörse** mit Dukaten, Silbertalern, Hellern und Kreuzern, Gesamtwert und Umrechnung
   (1 D = 10 S = 100 H = 1000 K); fremde Währungen werden gesondert aufgeführt.

@@ -40,6 +40,13 @@ public final class ModernSheet implements Pageable, Printable {
 
     private interface Painter { void paint(Graphics2D g, float x, float y, float w, float h); }
 
+    /** Zeile einer Kennzeichen-Legende (eigene Klasse, damit sie beim Umbruch erkennbar bleibt). */
+    private static final class LegendenZeile implements Painter {
+        final Painter p; final String art;
+        LegendenZeile(String art, Painter p) { this.art = art; this.p = p; }
+        public void paint(Graphics2D g, float x, float y, float w, float h) { p.paint(g, x, y, w, h); }
+    }
+
     private static final class Placed {
         final Painter p; final float x, y, w, h;
         Placed(Painter p, float x, float y, float w, float h) { this.p = p; this.x = x; this.y = y; this.w = w; this.h = h; }
@@ -83,9 +90,12 @@ public final class ModernSheet implements Pageable, Printable {
         vorteile();
         space(8);
         talente();
-        magieSeite();
         inventar();
         if (opt.notizseite) notizen();
+        // Magie zuletzt: sie beginnt auf eigener Seite – vorher würde sie hinter den Talenten Platz verschenken
+        magieSeite();
+        // keine leere Seite am Ende
+        if (pages.size() > 1 && pages.get(pages.size() - 1).isEmpty()) pages.remove(pages.size() - 1);
     }
 
     private void header() {
@@ -348,21 +358,38 @@ public final class ModernSheet implements Pageable, Printable {
         heading("Kampf", 60);
         if (!d.nahkampf.isEmpty()) {
             List<String[]> r = new ArrayList<>();
-            for (SheetData.Nahkampfwaffe n : d.nahkampf)
+            List<List<Kennung>> kz = new ArrayList<>();
+            Set<Plakette> benutzt = EnumSet.noneOf(Plakette.class);
+            for (SheetData.Nahkampfwaffe n : d.nahkampf) {
                 r.add(new String[]{n.name, n.talent, n.dk, n.tp, n.tpkk, n.ini, n.wm, n.at, n.pa, n.bf});
+                List<Kennung> k = new ArrayList<>();
+                if (n.ausdauer) { k.add(new Kennung(Plakette.AUSDAUER, "A")); benutzt.add(Plakette.AUSDAUER); }
+                if (!n.schild.isEmpty()) { k.add(new Kennung(Plakette.SCHILD, "S" + n.schild)); benutzt.add(Plakette.SCHILD); }
+                kz.add(k);
+            }
             subheading("Nahkampfwaffen");
             table(new String[]{"Waffe", "Talent", "DK", "TP", "TP/KK", "INI", "WM", "AT", "PA", "BF"},
                     new float[]{2.4f, 2f, .6f, .9f, .8f, .5f, .8f, .6f, .6f, .5f},
-                    new int[]{0, 0, 1, 1, 1, 1, 1, 2, 2, 1}, r, false);
+                    new int[]{0, 0, 1, 1, 1, 1, 1, 2, 2, 1}, r, false, null, kz, legendeHoehe(benutzt));
+            legende("Nahkampf", benutzt);
+            if (!benutzt.isEmpty()) space(3);
         }
         if (!d.fernkampf.isEmpty()) {
             List<String[]> r = new ArrayList<>();
-            for (SheetData.Fernkampfwaffe f : d.fernkampf)
+            List<List<Kennung>> kz = new ArrayList<>();
+            Set<Plakette> benutzt = EnumSet.noneOf(Plakette.class);
+            for (SheetData.Fernkampfwaffe f : d.fernkampf) {
                 r.add(new String[]{f.name, f.talent, f.tp, f.reichweite, f.tpmod, f.laden, f.fk});
+                List<Kennung> k = new ArrayList<>();
+                if (f.jagd) { k.add(new Kennung(Plakette.JAGD, "J")); benutzt.add(Plakette.JAGD); }
+                kz.add(k);
+            }
             subheading("Fernkampfwaffen");
             table(new String[]{"Waffe", "Talent", "TP", "Reichweite", "TP-Mod.", "Laden", "FK"},
                     new float[]{2.2f, 1.8f, .9f, 1.8f, 1.5f, .6f, .6f},
-                    new int[]{0, 0, 1, 1, 1, 1, 2}, r, false);
+                    new int[]{0, 0, 1, 1, 1, 1, 2}, r, false, null, kz, legendeHoehe(benutzt));
+            legende("Fernkampf", benutzt);
+            if (!benutzt.isEmpty()) space(3);
         }
         if (!d.schilde.isEmpty()) {
             List<String[]> r = new ArrayList<>();
@@ -737,7 +764,7 @@ public final class ModernSheet implements Pageable, Printable {
         for (SheetData.Talent t : d.talente) if (!t.meta || opt.metatalente) { irgendein = true; break; }
         if (!irgendein) return;
         heading("Talente", 40);
-        final boolean[] mitMeister = {false};
+        final Set<Plakette> benutzt = EnumSet.noneOf(Plakette.class);
         Map<String, List<SheetData.Talent>> groups = new LinkedHashMap<>();
         for (SheetData.Talent t : d.talente) {
             if (t.meta && !opt.metatalente) continue;
@@ -775,14 +802,19 @@ public final class ModernSheet implements Pageable, Printable {
                 final boolean zebra = (i++ % 2) == 1;
                 // lange Talentnamen umbrechen statt abschneiden
                 final float nameBreite = talentCols(colWidth())[1];
-                if (t.meister) mitMeister[0] = true;
-                // Meisterhandwerk: Kürzel „MH“ hinter dem Namen – passt es nicht, eine eigene Zeile darunter
-                final float tag = t.meister ? mhBreite() + 4 : 0;
+                // Kennzeichen (Meisterhandwerk, Leittalent, Mirakel) hinter dem Namen – passen sie nicht, eine eigene Zeile darunter
+                final List<Plakette> pl = new ArrayList<>();
+                if (t.meister) pl.add(Plakette.MH);
+                if (t.leit) pl.add(Plakette.LEIT);
+                if (t.mirakelPlus) pl.add(Plakette.MIRAKEL_PLUS);
+                if (t.mirakelMinus) pl.add(Plakette.MIRAKEL_MINUS);
+                benutzt.addAll(pl);
+                final float tag = pl.isEmpty() ? 0 : plBreite(pl) + 4;
                 final Font nf = F.reg(8);
                 final List<String> nl = wrap(t.name, nf, nameBreite - 4);
                 if (nl.isEmpty()) nl.add(t.name);
                 float letzte = mg.getFontMetrics(nf).stringWidth(nl.get(nl.size() - 1));
-                final boolean mhUnten = t.meister && letzte + 4 + tag > nameBreite - 4;
+                final boolean mhUnten = !pl.isEmpty() && letzte + 4 + tag > nameBreite - 4;
                 // Spezialisierung: hinter Name bzw. Kürzel, wenn sie dort vollständig passt – sonst eigene Zeile(n) darunter
                 final List<String> sl = new ArrayList<>();
                 if (!t.spez.isEmpty()) {
@@ -791,17 +823,20 @@ public final class ModernSheet implements Pageable, Printable {
                         sl.addAll(wrap(t.spez, F.reg(6.5f), nameBreite - 10));
                 }
                 items.add(new ColItem(12.5f + (nl.size() - 1) * 9.5f + (mhUnten ? 9 : 0) + sl.size() * 7.5f, false,
-                        (g, x, yy, w, h) -> talentRow(g, t, nl, sl, mhUnten, kampf, sprache, zebra, x, yy, w, h)));
+                        (g, x, yy, w, h) -> talentRow(g, t, pl, nl, sl, mhUnten, kampf, sprache, zebra, x, yy, w, h)));
             }
             items.add(new ColItem(6, false, (g, x, yy, w, h) -> { }));
         }
-        if (mitMeister[0]) {
-            items.add(new ColItem(14, false, (g, x, yy, w, h) -> {
-                float tx = mhZeichnen(g, x + 3, yy + 9);
-                g.setFont(F.reg(7));
-                g.setColor(MUTED);
-                g.drawString("= Meisterhandwerk", tx + 4, yy + 9);
-            }));
+        final List<List<Plakette>> leg = legendeZeilen(benutzt, colWidth());
+        if (!leg.isEmpty()) {
+            // Abstand nach der letzten Gruppe entfällt; die Legende bleibt an der letzten Talentzeile hängen,
+            // damit sie nie allein oben in einer Spalte oder auf einer neuen Seite steht
+            items.remove(items.size() - 1);
+            ColItem letzte = items.remove(items.size() - 1);
+            items.add(new ColItem(letzte.h, true, letzte.p));
+            items.add(new ColItem(4 + leg.size() * 12, false, new LegendenZeile("Talente", (g, x, yy, w, h) -> {
+                for (int k = 0; k < leg.size(); k++) legendeZeichnen(g, leg.get(k), x, yy + 13 + k * 12);
+            })));
         }
         columns(items, "Talente");
     }
@@ -830,24 +865,114 @@ public final class ModernSheet implements Pageable, Printable {
                 x0 + name + werte, be, x0 + name + werte + be, sp, x0 + name + werte + be + sp, taw};
     }
 
-    /** Schrift des Kürzels „MH“ – eine Stufe kleiner als die Spezialisierung. */
+    // ------------------------------------------------------------------ Kennzeichen (Plaketten)
+
+    /** Kleine farbige Kürzel, wie sie der Heldenbogen der Helden-Software als „(L)“, „(M+)“, „(A)“ usw. zeigt. */
+    enum Plakette {
+        MH("MH", ACCENT, "Meisterhandwerk"),
+        LEIT("L", new Color(0x4a6587), "Leittalent"),
+        MIRAKEL_PLUS("M+", new Color(0x3d8a50), "Mirakel (erleichtert)"),
+        MIRAKEL_MINUS("M\u2212", new Color(0xb3403a), "Mirakel (erschwert)"),
+        HAUSZAUBER("HZ", new Color(0x7a4f9a), "Hauszauber"),
+        LEITZAUBER("L", new Color(0x4a6587), "Leitzauber"),
+        JAGD("J", new Color(0x2d7a7e), "Jagdwaffe"),
+        AUSDAUER("A", new Color(0x7b7b7b), "Ausdauerschaden"),
+        SCHILD("S", new Color(0x7b7b7b), "kombiniert mit Schild/Parierwaffe Nr. 1");
+
+        final String text; final Color farbe; final String bedeutung;
+        Plakette(String text, Color farbe, String bedeutung) { this.text = text; this.farbe = farbe; this.bedeutung = bedeutung; }
+    }
+
+    /** Eine Plakette mit eigenem Text (z. B. „S2“), sonst wie die Vorlage. */
+    private static final class Kennung {
+        final Plakette art; final String text;
+        Kennung(Plakette art, String text) { this.art = art; this.text = text; }
+    }
+
+    /** Schrift der Kürzel – eine Stufe kleiner als die Spezialisierung. */
     private static Font mhSchrift() { return F.reg(5.5f); }
 
-    /** Breite des Kürzels „MH“ (Meisterhandwerk). */
-    private float mhBreite() { return mg.getFontMetrics(mhSchrift()).stringWidth("MH") + 5; }
+    private float plBreite(String text) { return mg.getFontMetrics(mhSchrift()).stringWidth(text) + 5; }
 
-    /** Zeichnet das Kürzel „MH“ als kleine Plakette auf der Zeile der Spezialisierung; liefert das rechte Ende. */
-    private float mhZeichnen(Graphics2D g, float x, float base) {
-        float w = mhBreite();
-        g.setColor(ACCENT);
+    private float plBreite(List<Plakette> l) { return kBreite(kennungen(l)); }
+
+    private float kBreite(List<Kennung> l) {
+        float w = 0;
+        for (Kennung k : l) w += plBreite(k.text);
+        return w + Math.max(0, l.size() - 1) * 2;
+    }
+
+    private static List<Kennung> kennungen(List<Plakette> l) {
+        List<Kennung> k = new ArrayList<>();
+        for (Plakette p : l) k.add(new Kennung(p, p.text));
+        return k;
+    }
+
+    /** Zeichnet ein Kürzel als kleine Plakette auf der Grundlinie; liefert das rechte Ende. */
+    private float plZeichnen(Graphics2D g, float x, float base, String text, Color farbe) {
+        float w = plBreite(text);
+        g.setColor(farbe);
         g.fill(new RoundRectangle2D.Float(x, base - 6.1f, w, 7.6f, 3.5f, 3.5f));
         g.setFont(mhSchrift());
         g.setColor(WHITE);
-        g.drawString("MH", x + 2.5f, base - 0.5f);
+        g.drawString(text, x + 2.5f, base - 0.5f);
         return x + w;
     }
 
-    private void talentRow(Graphics2D g, SheetData.Talent t, List<String> nameLines, List<String> spezLines, boolean mhUnten, boolean kampf,
+    private float kZeichnen(Graphics2D g, float x, float base, List<Kennung> l) {
+        for (int i = 0; i < l.size(); i++) {
+            if (i > 0) x += 2;
+            x = plZeichnen(g, x, base, l.get(i).text, l.get(i).art.farbe);
+        }
+        return x;
+    }
+
+    private float plZeichnen(Graphics2D g, float x, float base, List<Plakette> l) { return kZeichnen(g, x, base, kennungen(l)); }
+
+    private float legendeEintrag(Plakette p) {
+        return plBreite(p == Plakette.SCHILD ? "S1" : p.text) + 3 + mg.getFontMetrics(F.reg(7)).stringWidth("= " + p.bedeutung) + 12;
+    }
+
+    /** Verteilt die benutzten Kennzeichen auf Legendenzeilen der Breite w. */
+    private List<List<Plakette>> legendeZeilen(Collection<Plakette> benutzt, float w) {
+        List<List<Plakette>> z = new ArrayList<>();
+        List<Plakette> cur = new ArrayList<>();
+        float x = 3;
+        for (Plakette p : benutzt) {
+            float b = legendeEintrag(p);
+            if (!cur.isEmpty() && x + b > w) { z.add(cur); cur = new ArrayList<>(); x = 3; }
+            cur.add(p);
+            x += b;
+        }
+        if (!cur.isEmpty()) z.add(cur);
+        return z;
+    }
+
+    private void legendeZeichnen(Graphics2D g, List<Plakette> zeile, float x, float base) {
+        float tx = x + 3;
+        for (Plakette p : zeile) {
+            tx = plZeichnen(g, tx, base, p == Plakette.SCHILD ? "S1" : p.text, p.farbe);
+            g.setFont(F.reg(7));
+            g.setColor(MUTED);
+            String t = "= " + p.bedeutung;
+            g.drawString(t, tx + 3, base);
+            tx += 3 + g.getFontMetrics().stringWidth(t) + 12;
+        }
+    }
+
+    /** Höhe der Legende über die volle Breite (0, wenn nichts zu erklären ist). */
+    private float legendeHoehe(Collection<Plakette> benutzt) { return legendeZeilen(benutzt, W - 2 * M).size() * 12; }
+
+    /** Legende über die volle Breite (unter Tabellen) – als ein Block, der nicht zerteilt wird. */
+    private void legende(String art, Collection<Plakette> benutzt) {
+        final List<List<Plakette>> leg = legendeZeilen(benutzt, W - 2 * M);
+        if (leg.isEmpty()) return;
+        atomic(leg.size() * 12, new LegendenZeile(art, (g, x, yy, w, h) -> {
+            for (int k = 0; k < leg.size(); k++) legendeZeichnen(g, leg.get(k), x, yy + 9 + k * 12);
+        }));
+    }
+
+    private void talentRow(Graphics2D g, SheetData.Talent t, List<Plakette> pl, List<String> nameLines, List<String> spezLines, boolean mhUnten, boolean kampf,
                            boolean sprache, boolean zebra, float x, float yy, float w, float h) {
         if (zebra) {
             g.setColor(FILL);
@@ -864,9 +989,9 @@ public final class ModernSheet implements Pageable, Printable {
         float nameW = g.getFontMetrics().stringWidth(last);
         float zeile = nb - 9.5f;                       // Grundlinie der letzten Namenszeile
         float hinten = c[0] + 3 + nameW + 4;           // dort geht es hinter dem Namen weiter
-        if (t.meister) {
-            if (mhUnten) { zeile += 9; hinten = mhZeichnen(g, c[0] + 9, zeile) + 4; }
-            else hinten = mhZeichnen(g, hinten, zeile) + 4;
+        if (!pl.isEmpty()) {
+            if (mhUnten) { zeile += 9; hinten = plZeichnen(g, c[0] + 9, zeile, pl) + 4; }
+            else hinten = plZeichnen(g, hinten, zeile, pl) + 4;
         }
         if (!t.spez.isEmpty()) {
             g.setFont(F.reg(6.5f));
@@ -920,7 +1045,6 @@ public final class ModernSheet implements Pageable, Printable {
             energiePool("Karmaenergie", "KaP", d.akt("karmaenergie"), "", "Liturgie / Anlass");
         }
         if (asp) zauberUebersicht();
-        newPage();   // folgende Abschnitte wieder auf eigener Seite
     }
 
     /** Zauberübersicht: Probe, ZfW, AsP-Kosten (Feld zum Eintragen, falls leer), Eckdaten und Notizen. */
@@ -955,11 +1079,26 @@ public final class ModernSheet implements Pageable, Printable {
         };
         place(13, kopf);
         final float kostW = fullW * cKost - 10;
+        final Set<Plakette> benutzt = EnumSet.noneOf(Plakette.class);
+        Set<Plakette> alle = EnumSet.noneOf(Plakette.class);
+        for (SheetData.Zauber z : d.zauber) {
+            if (z.hauszauber) alle.add(Plakette.HAUSZAUBER);
+            if (z.leit) alle.add(Plakette.LEITZAUBER);
+        }
+        // die Legende bleibt mit dem letzten Zauber auf einer Seite
+        final float legH = alle.isEmpty() ? 0 : 3 + legendeHoehe(alle);
         int idx = 0;
         for (final SheetData.Zauber z : d.zauber) {
             final boolean zebra = (idx++ % 2) == 1;
             final List<String> nameLines = wrap(z.name, F.bold(9), fullW * cName - 10);
             if (nameLines.isEmpty()) nameLines.add(z.name);
+            // Hauszauber / Leitzauber als Plakette hinter dem Namen, sonst in eigener Zeile darunter
+            final List<Plakette> pl = new ArrayList<>();
+            if (z.hauszauber) pl.add(Plakette.HAUSZAUBER);
+            if (z.leit) pl.add(Plakette.LEITZAUBER);
+            benutzt.addAll(pl);
+            final boolean plUnten = !pl.isEmpty() && mg.getFontMetrics(F.bold(9)).stringWidth(nameLines.get(nameLines.size() - 1))
+                    + 5 + plBreite(pl) > fullW * cName - 10;
             // Eckdaten in einer Zeile
             List<String> eck = new ArrayList<>();
             if (!z.merkmale.isEmpty()) eck.add("Merkmale " + z.merkmale);
@@ -983,10 +1122,11 @@ public final class ModernSheet implements Pageable, Printable {
             // lange Kostenangaben umbrechen; das Feld wächst mit
             final List<String> kostLines = z.kosten.isEmpty() ? new ArrayList<String>() : wrap(z.kosten, F.reg(7.6f), kostW - 10);
             final float kostH = 14 + Math.max(0, kostLines.size() - 1) * 9;
-            final float topH = Math.max(Math.max(20, 6 + nameLines.size() * 11 + 2), 4 + kostH + 4);
+            final float topH = Math.max(Math.max(20, 6 + (nameLines.size() + (plUnten ? 1 : 0)) * 11 + 2), 4 + kostH + 4);
             final float h = topH + eckLines.size() * 9
                     + (leerNotiz ? (schreiblinie ? 15 : 2) : noteLines.size() * 9.5f + 4) + 4;
-            if (y + h > BOTTOM) {
+            float anhang = idx == d.zauber.size() && alleNotiz.size() <= 20 ? legH : 0;
+            if (y + h + anhang > BOTTOM) {
                 newPage();
                 place(18, fortsetzung("Zauber").p);
                 place(13, kopf);
@@ -998,6 +1138,11 @@ public final class ModernSheet implements Pageable, Printable {
                 g.setColor(INK);
                 float ny = base;
                 for (String l : nameLines) { g.drawString(l, x + 6, ny); ny += 11; }
+                if (!pl.isEmpty()) {
+                    if (plUnten) plZeichnen(g, x + 12, ny - 2, pl);
+                    else plZeichnen(g, x + 6 + g.getFontMetrics().stringWidth(nameLines.get(nameLines.size() - 1)) + 5, ny - 11 - 0.5f, pl);
+                }
+                g.setColor(INK);
                 float px = x + w * cName + 4;
                 g.setFont(F.bold(8));
                 g.drawString(z.probe, px, base);
@@ -1045,6 +1190,9 @@ public final class ModernSheet implements Pageable, Printable {
             // sehr lange Notizen: Rest in Folgeblöcken, die über Seiten weiterlaufen
             for (int k = 20; k < alleNotiz.size(); ) {
                 int passt = (int) Math.floor((BOTTOM - y - 6) / 9.5f);
+                // letzter Teil des letzten Zaubers: Platz für die Legende lassen
+                if (idx == d.zauber.size() && k + passt >= alleNotiz.size() && legH > 0)
+                    passt = Math.min(passt, (int) Math.floor((BOTTOM - y - 6 - legH) / 9.5f));
                 if (passt < 3) {
                     newPage();
                     place(18, fortsetzung("Zauber").p);
@@ -1064,6 +1212,7 @@ public final class ModernSheet implements Pageable, Printable {
                 });
             }
         }
+        if (!benutzt.isEmpty()) { space(3); legende("Zauber", benutzt); }
         // Platz für weitere Zauber – nur den Rest der Seite nutzen, keine neue Seite dafür anfangen
         space(6);
         if (!opt.notizseite || y + 14 + 3 * 17 > BOTTOM) return;
@@ -1199,7 +1348,9 @@ public final class ModernSheet implements Pageable, Printable {
 
     private void notizen() {
         space(8);
-        heading("Notizen", 80);
+        // folgt direkt das Feld für die Charakterbeschreibung, muss es mit der Überschrift auf die Seite passen
+        boolean text = !d.aussehen.isEmpty() || !d.familie.isEmpty();
+        heading("Notizen", text ? 80 : 26 + 8 * 17 + 6);
         if (!d.aussehen.isEmpty()) paragraph("Aussehen", d.aussehen);
         if (!d.familie.isEmpty()) paragraph("Familie & Herkunft", d.familie);
         charakterbeschreibung();
@@ -1371,9 +1522,23 @@ public final class ModernSheet implements Pageable, Printable {
         table(head, rel, align, rows, writeLines, null);
     }
 
-    /** @param notes optional je Zeile ein Notiztext, der unter der Zeile über die volle Breite steht */
     private void table(final String[] head, final float[] rel, final int[] align, List<String[]> rows, final boolean writeLines,
                        final List<String> notes) {
+        table(head, rel, align, rows, writeLines, notes, null);
+    }
+
+    /**
+     * @param notes optional je Zeile ein Notiztext, der unter der Zeile über die volle Breite steht
+     * @param kennz optional je Zeile Kennzeichen (Plaketten) hinter dem Namen in der ersten Spalte
+     */
+    private void table(final String[] head, final float[] rel, final int[] align, List<String[]> rows, final boolean writeLines,
+                       final List<String> notes, final List<List<Kennung>> kennz) {
+        table(head, rel, align, rows, writeLines, notes, kennz, 0);
+    }
+
+    /** @param anhang Höhe eines Blocks direkt nach der Tabelle (z. B. Legende), der mit der letzten Zeile zusammenbleibt */
+    private void table(final String[] head, final float[] rel, final int[] align, List<String[]> rows, final boolean writeLines,
+                       final List<String> notes, final List<List<Kennung>> kennz, float anhang) {
         final float rowH = writeLines ? 17 : 13.5f, headH = 14;
         float sum = 0;
         for (float r : rel) sum += r;
@@ -1400,13 +1565,22 @@ public final class ModernSheet implements Pageable, Printable {
         for (final String[] r : rows) {
             // Erste Spalte (Name) bei Bedarf umbrechen statt abschneiden
             final List<String> nameLines = align[0] == 0 ? wrap(r[0], F.bold(8), cw[0] * (W - 2 * M) - 8) : new ArrayList<String>();
-            final int n = Math.max(1, nameLines.size());
+            final List<Kennung> kz = kennz != null && ri < kennz.size() && kennz.get(ri) != null
+                    ? kennz.get(ri) : Collections.<Kennung>emptyList();
+            if (!kz.isEmpty() && nameLines.isEmpty()) nameLines.add(r[0]);
+            // Kennzeichen hinter dem Namen; passen sie nicht mehr, in eine eigene Zeile darunter
+            final boolean kzUnten = !kz.isEmpty() && mg.getFontMetrics(F.bold(8)).stringWidth(nameLines.get(nameLines.size() - 1))
+                    + 4 + kBreite(kz) > cw[0] * (W - 2 * M) - 8;
+            final int n = Math.max(1, nameLines.size()) + (kzUnten ? 1 : 0);
+            final boolean selbst = n > 1 || !kz.isEmpty();
             String note = notes != null && ri < notes.size() ? notes.get(ri) : null;
             ri++;
             final List<String> noteLines = note == null || note.isEmpty()
                     ? Collections.<String>emptyList() : wrap(note, F.reg(7), W - 2 * M - 20);
             final float rh = rowH + (n - 1) * lineH + (noteLines.isEmpty() ? 0 : noteLines.size() * noteH + 2);
-            if (y + rh > BOTTOM) { newPage(); place(headH, header); }
+            // letzte Zeile: nachfolgende Legende samt Abstand nach der Tabelle mitnehmen
+            float bleibt = ri == rows.size() && anhang > 0 ? anhang + 4 : 0;
+            if (y + rh + bleibt > BOTTOM) { newPage(); place(headH, header); }
             final boolean zebra = (i++ % 2) == 1;
             place(rh, (g, x, yy, w, h) -> {
                 if (zebra && !writeLines) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, h)); }
@@ -1416,9 +1590,14 @@ public final class ModernSheet implements Pageable, Printable {
                     float cwid = cw[c] * w;
                     g.setFont(c == 0 ? F.bold(8) : F.reg(8));
                     g.setColor(c == 0 || align[c] == 2 ? INK : new Color(0x444444));
-                    if (c == 0 && n > 1) {
+                    if (c == 0 && selbst) {
                         float ly = base;
                         for (String l : nameLines) { g.drawString(l, cx + 4, ly); ly += lineH; }
+                        if (!kz.isEmpty()) {
+                            float lw = g.getFontMetrics().stringWidth(nameLines.get(nameLines.size() - 1));
+                            if (kzUnten) kZeichnen(g, cx + 10, ly - 1, kz);
+                            else kZeichnen(g, cx + 4 + lw + 4, ly - lineH, kz);
+                        }
                     } else {
                         cell(g, r[c], cx, cwid, base, align[c]);
                     }
@@ -1490,7 +1669,9 @@ public final class ModernSheet implements Pageable, Printable {
             }
             float need = it.h;
             if (it.keepNext && i + 1 < items.size() && items.get(i + 1) != ColItem.BREAK) need += items.get(i + 1).h;
-            if (col == 0 && target != Float.MAX_VALUE && y - top + need / 2 > target && y > top) {
+            // an den Vorgänger gebunden (z. B. Legende an die letzte Zeile): beim Ausgleichen nicht davon trennen
+            boolean gebunden = i > 0 && items.get(i - 1).keepNext && items.get(i - 1) != ColItem.BREAK;
+            if (col == 0 && !gebunden && target != Float.MAX_VALUE && y - top + need / 2 > target && y > top) {
                 maxY = Math.max(maxY, y);
                 col = 1;
                 y = top;

@@ -281,10 +281,49 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
             Object sel = exec("selectedHeld");
             if (!(sel instanceof Document)) return null;   // kein Held ausgewählt
             Object o = exec("held", "id", "selected", "format", "xml", "version", "3");
-            return o instanceof Document ? (Document) o : null;
+            if (!(o instanceof Document)) return null;
+            jagdwaffeErgaenzen((Document) o);
+            return (Document) o;
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Die Druckdaten kennen die Jagdwaffe nicht; die Helden-Software speichert sie nur im Heldenformat
+     * ({@code <heldenausruestung name="jagtwaffe" nummer="Fernkampfwaffe 1…" set="Kampfset ab 0"/>}).
+     * Sie wird hier als {@code <jagdwaffe>true</jagdwaffe>} an die passende Fernkampfwaffe gehängt.
+     */
+    private void jagdwaffeErgaenzen(Document v3) {
+        try {
+            Object e = exec("exportHeld", "id", "selected");
+            if (!(e instanceof Document)) return;
+            org.w3c.dom.NodeList l = ((Document) e).getElementsByTagName("heldenausruestung");
+            String nummer = null, set = null;
+            for (int i = 0; i < l.getLength(); i++) {
+                org.w3c.dom.Element a = (org.w3c.dom.Element) l.item(i);
+                if ("jagtwaffe".equals(a.getAttribute("name")) || "jagdwaffe".equals(a.getAttribute("name"))) {
+                    nummer = a.getAttribute("nummer"); set = a.getAttribute("set");
+                }
+            }
+            if (nummer == null || nummer.isEmpty() || "0".equals(nummer)) return;
+            String nr = String.valueOf(Integer.parseInt(set.isEmpty() ? "0" : set) + 1);
+            org.w3c.dom.NodeList sets = v3.getElementsByTagName("kampfset");
+            for (int i = 0; i < sets.getLength(); i++) {
+                org.w3c.dom.Element ks = (org.w3c.dom.Element) sets.item(i);
+                if (!nr.equals(ks.getAttribute("nr"))) continue;
+                org.w3c.dom.NodeList fk = ks.getElementsByTagName("fernkampfwaffe");
+                for (int j = 0; j < fk.getLength(); j++) {
+                    org.w3c.dom.Element w = (org.w3c.dom.Element) fk.item(j);
+                    org.w3c.dom.NodeList n = w.getElementsByTagName("nummer");
+                    if (n.getLength() > 0 && nummer.equals(n.item(0).getTextContent().trim())) {
+                        org.w3c.dom.Element j2 = v3.createElement("jagdwaffe");
+                        j2.setTextContent("true");
+                        w.appendChild(j2);
+                    }
+                }
+            }
+        } catch (Exception ignore) { }
     }
 
     private void editLastHovered() {
