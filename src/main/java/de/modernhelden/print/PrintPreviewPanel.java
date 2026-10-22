@@ -84,7 +84,10 @@ public final class PrintPreviewPanel extends JPanel {
                 metaHinweis();
                 return;
             }
-            save.accept("druck.meta", String.valueOf(meta.isSelected()));
+            // je Held merken (bleibt beim Heldenwechsel und nach einem Neustart erhalten)
+            String v = String.valueOf(meta.isSelected());
+            save.accept(metaKey(), v);
+            props.put(metaKey(), v);
             dirty = true;
             refresh();
         });
@@ -288,6 +291,10 @@ public final class PrintPreviewPanel extends JPanel {
                 SheetData d = SheetData.parse(doc);
                 heroName = d.name.isEmpty() ? "Held" : d.name;
                 sheetData = d;
+                // gespeicherte Wahl dieses Helden übernehmen (ohne eigene Wahl: bisherige allgemeine Einstellung)
+                String m = props.get(metaKey());
+                meta.setSelected("true".equals(m != null ? m : props.get("druck.meta")));
+                metaMenue();
                 rebuild();
                 return;
             } catch (Exception ex) {
@@ -307,7 +314,8 @@ public final class PrintPreviewPanel extends JPanel {
         ModernSheet.Options o = new ModernSheet.Options();
         o.beschreibungen = desc.isSelected();
         o.notizseite = notes.isSelected();
-        // ohne Aktivierung in der Helden-Software liefert sie keine Meta-Talente – Option dann wieder aus
+        // ohne Aktivierung in der Helden-Software liefert sie keine Meta-Talente – Option dann aus
+        // (nur angezeigt; die gespeicherte Wahl des Helden bleibt, bis man sie selbst ändert)
         if (meta.isSelected() && !sheetData.metaAktiv) {
             meta.setSelected(false);
             metaMenue();
@@ -333,6 +341,12 @@ public final class PrintPreviewPanel extends JPanel {
     private java.awt.image.BufferedImage portraitCache;
 
     /** Pro Held gespeichert (in den Plugin-Einstellungen), Schlüssel aus dem Heldennamen. */
+    /** Wahl „Meta-Talente zeigen“ je Held, Schlüssel aus dem Heldennamen (wie beim Portrait). */
+    private String metaKey() {
+        String n = sheetData == null || sheetData.name.isEmpty() ? "held" : sheetData.name;
+        return "druck.meta." + n.replaceAll("[^A-Za-z0-9ÄÖÜäöüß]+", "_");
+    }
+
     private String portraitKey() {
         String n = sheetData == null || sheetData.name.isEmpty() ? "held" : sheetData.name;
         return "druck.portrait.bild." + n.replaceAll("[^A-Za-z0-9ÄÖÜäöüß]+", "_");

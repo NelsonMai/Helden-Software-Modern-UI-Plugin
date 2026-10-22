@@ -388,13 +388,40 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
             if (!(o instanceof Document)) return;
             for (Node n = ((Document) o).getDocumentElement().getFirstChild(); n != null; n = n.getNextSibling()) {
                 if (!(n instanceof Element)) continue;
+                // Die Helden-Software liefert die Schlüssel mit Vorsilbe „plugin.modernui.“ – nur diese abtrennen,
+                // Punkte im eigentlichen Schlüssel (z. B. „druck.zoom“) gehören dazu
                 String k = ((Element) n).getAttribute("key");
-                int dot = k.lastIndexOf('.');
-                props.put(dot >= 0 ? k.substring(dot + 1) : k, ((Element) n).getAttribute("value"));
+                String vorsilbe = "plugin." + PLUGIN_NAME + ".";
+                if (k.startsWith(vorsilbe)) k = k.substring(vorsilbe.length());
+                props.put(k, ((Element) n).getAttribute("value"));
             }
+            altlastenUebernehmen();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Bis 1.16.9 wurde beim Laden alles bis zum letzten Punkt abgeschnitten („druck.zoom“ → „zoom“,
+     * „druck.portrait.bild.Merlin“ → „Merlin“) und so beim nächsten Speichern abgelegt. Solche Einträge
+     * werden einmalig unter ihrem richtigen Namen übernommen, sofern es den richtigen noch nicht gibt.
+     */
+    private void altlastenUebernehmen() {
+        boolean geaendert = false;
+        for (String k : new String[]{"beschreibungen", "ersetzen", "meta", "modus", "notizen", "pdfordner", "portrait", "zoom"}) {
+            String v = props.get(k);
+            if (v != null && !props.containsKey("druck." + k)) { props.put("druck." + k, v); geaendert = true; }
+        }
+        for (Map.Entry<String, String> e : new ArrayList<>(props.entrySet())) {
+            String k = e.getKey(), v = e.getValue();
+            // eigenes Portrait je Held: Schlüssel ohne Punkt, Wert ein Bildpfad
+            if (k.indexOf('.') < 0 && v != null && v.matches("(?i).+\\.(png|jpe?g|gif|bmp)")
+                    && !props.containsKey("druck.portrait.bild." + k)) {
+                props.put("druck.portrait.bild." + k, v);
+                geaendert = true;
+            }
+        }
+        if (geaendert) saveProp("druck.migriert", "1");
     }
 
     private void saveProp(String key, String value) {

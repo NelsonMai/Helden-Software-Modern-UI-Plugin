@@ -143,7 +143,7 @@ abgeschnitten.
 | Option | Wirkung |
 |---|---|
 | Beschreibungen & eigene Notizen | Kurzbeschreibungen und eigene Notizen zu SF, Vor-/Nachteilen und Zaubern |
-| Meta-Talente zeigen | Meta-Talente wie *Wache halten* (die Helden-Software liefert sie nur, wenn in ihren Druckeinstellungen „Metatalente“ aktiv ist – der Eintrag *Meta-Talente in der Helden-Software einschalten …* öffnet diese Einstellungen) |
+| Meta-Talente zeigen | Meta-Talente wie *Wache halten* (die Helden-Software liefert sie nur, wenn in ihren Druckeinstellungen „Metatalente“ aktiv ist – der Eintrag *Meta-Talente in der Helden-Software einschalten …* öffnet diese Einstellungen). Die Wahl wird je Held gespeichert und bleibt beim Heldenwechsel und nach einem Neustart erhalten |
 | Notizfelder und Linienseite | Notizseite, Schreiblinien bei Zaubern und leere Inventarzeilen |
 | Portrait neben der Charakterbeschreibung | Rahmen für ein Portrait; *Portrait wählen …* hinterlegt ein Bild je Held, sonst wird das Portrait aus der Helden-Software genutzt oder ein leeres Feld zum Zeichnen gedruckt |
 
