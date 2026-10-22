@@ -38,6 +38,11 @@ final class DebugBaum {
         if (sup != null && !sup.getName().startsWith("java")) sb.append(" <").append(sup.getName()).append('>');
         Rectangle b = c.getBounds();
         sb.append(" b=").append(b.x).append(',').append(b.y).append(' ').append(b.width).append('x').append(b.height);
+        if (c.getName() != null) sb.append(" name=").append(c.getName());
+        if (c.getParent() != null && c.getParent().getLayout() instanceof GridBagLayout) {
+            GridBagConstraints g = ((GridBagLayout) c.getParent().getLayout()).getConstraints(c);
+            sb.append(" gb=").append(g.gridx).append(',').append(g.gridy).append('/').append(g.gridwidth).append('x').append(g.gridheight);
+        }
         if (!c.isVisible()) sb.append(" INVISIBLE");
         if (c instanceof Container && ((Container) c).getLayout() != null)
             sb.append(" L=").append(((Container) c).getLayout().getClass().getSimpleName());

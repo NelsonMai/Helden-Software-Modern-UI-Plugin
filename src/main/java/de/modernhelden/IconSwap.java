@@ -51,6 +51,7 @@ public final class IconSwap {
                     String t = ((JDialog) w).getTitle();
                     if (HinzufuegenLayout.TITEL.equals(t)) HinzufuegenLayout.anwenden((JDialog) w);
                     else if (GeldboerseLayout.TITEL.equals(t)) GeldboerseLayout.anwenden((JDialog) w);
+                    else AusruestungDialoge.anwenden((JDialog) w);   // erkennt die Ausrüstungs-Dialoge am Aufbau
                 }
                 SwingUtilities.invokeLater(() -> baum(w));
             }
@@ -92,6 +93,7 @@ public final class IconSwap {
         }
         if (ErschaffungsLayout.KLASSE.equals(c.getClass().getName())) ErschaffungsLayout.anwenden(c, modern);
         if (c instanceof JPanel) InventarLayout.pruefen(c, modern);
+        if (c instanceof JPanel) AusruestungLayout.pruefen(c, modern);
         if (c instanceof AbstractButton) {
             AbstractButton b = (AbstractButton) c;
             slot(b, "icon", b.getIcon(), b::setIcon);

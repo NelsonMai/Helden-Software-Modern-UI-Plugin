@@ -236,6 +236,16 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         }
         hook.setHero(h);
         InventarLayout.setHero(h);
+        AusruestungLayout.daten = this::heldDaten;
+        AusruestungLayout.export = () -> {
+            try {
+                Object o = exec("exportHeld", "id", "selected");
+                return o instanceof Document ? (Document) o : null;
+            } catch (Exception e) {
+                return null;
+            }
+        };
+        AusruestungLayout.aktualisieren();
         if (panel != null) panel.showHero(h);
         installDruckvorschau();
         if (printPanel != null) printPanel.markDirty();

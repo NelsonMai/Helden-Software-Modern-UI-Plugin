@@ -14,6 +14,7 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
 - [Funktionen](#funktionen)
   - [Moderne Oberfläche](#moderne-oberfläche)
   - [Inventar, Hinzufügen und Geldbörse](#inventar-hinzufügen-und-geldbörse)
+  - [Ausrüstung](#ausrüstung)
   - [Tooltips und eigene Notizen](#tooltips-und-eigene-notizen)
   - [Reiter „Plugin: Modern-UI“](#reiter-plugin-modern-ui)
   - [Moderner Heldenbogen](#moderner-heldenbogen)
@@ -71,6 +72,25 @@ angeordnet. Es sind dieselben Bedienelemente der Helden-Software; alle Änderung
 |---|---|
 | ![Dialog „Gegenstände zum Inventar hinzufügen“](docs/bilder/inventar-hinzufuegen.png) | ![Geldbörse mit Ein- und Ausgaben](docs/bilder/geldboerse.png) |
 
+### Ausrüstung
+
+Auch der Reiter „Ausrüstung“ ist in den modernen Designs neu gestaltet; im Design *Original* bleibt er wie bisher.
+
+- **Übersicht:** Jedes der drei Ausrüstungssets als Karte (leere Sets mit „leer“ markiert). Oben eine Figur
+  mit dem Rüstungsschutz je Körperzone und die Summen (Rüstungsschutz, Behinderung, Gewicht, Initiative,
+  Ausweichen). Darunter nur die belegten Plätze mit ihren Werten (AT/PA/TP, FK, Schild-PA/WM, RS/BE und Zonen);
+  leere Bereiche zeigen „+ … anlegen“. Das „✕“ hinter einem Gegenstand legt ihn direkt ab (er bleibt im Inventar) –
+  über den Dialog der Helden-Software, der dafür kurz geöffnet und bestätigt wird.
+- **Bearbeiten:** Die Dialoge der Helden-Software (Nahkampf, Fernkampf, Schilde/Parierwaffen, Rüstung) sind neu
+  angeordnet: Plätze links als Zeilen, rechts die Gegenstände mit ihren Werten. Doppelklick legt einen Gegenstand
+  auf den nächsten freien Platz, Ziehen auf einen bestimmten Platz; bei der Rüstung legt Doppelklick bzw. Ziehen an
+  oder ab. Beschriftungen und Tooltips erklären „Werte …“ (Bruchfaktor, Talent), die Schild-Zuordnung, Hand und
+  Beidhändigen Kampf. Übernommen wird wie bisher mit *OK*.
+
+| Ausrüstung | Nahkampfwaffen bearbeiten |
+|---|---|
+| ![Reiter Ausrüstung im modernen Design](docs/bilder/ausruestung.png) | ![Dialog Nahkampfwaffen](docs/bilder/ausruestung-nahkampf.png) |
+
 ### Tooltips und eigene Notizen
 
 - **Tooltips** zu Talenten, Sonderfertigkeiten, Vor- und Nachteilen und Zaubern – überall in der Software,
@@ -118,7 +138,7 @@ Inventar mit Geldbörse. Die Übersicht aktualisiert sich automatisch.
 
 Das **Inventar** ist eine sortier- und filterbare Tabelle (Alle, Angelegt, Waffen, Rüstung, Schilde, Sonstiges)
 mit Anzahl, Gewicht in Stein, Wert (D/S/H/K) und angelegten Gegenständen. Die Spalte *Werte* zeigt die Angaben
-aus dem aktiven Kampfset: TP, TP/KK, AT/PA, INI, WM, BF und DK bei Nahkampfwaffen, TP, FK und Reichweite bei
+aus dem ersten belegten Ausrüstungsset: TP, TP/KK, AT/PA, INI, WM, BF und DK bei Nahkampfwaffen, TP, FK und Reichweite bei
 Fernkampfwaffen, PA und WM bei Schilden sowie RS, BE und den Schutz je Trefferzone bei Rüstungen. Darüber stehen
 Gesamtgewicht und Gesamtwert. Dieselben Angaben erscheinen als Tooltip – hier und im Reiter *Inventar / Tiere*
 der Helden-Software – zusammen mit Einzelgewicht, Einzelpreis und Quelle. Auch beim *Hinzufügen* zeigt die
@@ -265,6 +285,7 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `Geld.java` | Münzen, Reihenfolge und Umrechnung |
 | `update/` | Automatische Aktualisierung über GitHub-Releases (`PluginUpdate`) und Installationshelfer (`UpdateInstaller`) |
 | `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java` | Reiter „Inventar / Tiere“, Hinzufügen-Dialog und Geldbörse in den modernen Designs |
+| `AusruestungLayout.java`, `AusruestungDialoge.java` | Reiter „Ausrüstung“ und seine Bearbeiten-Dialoge in den modernen Designs |
 | `DebugBaum.java` | Nur im Debug-Modus: Komponentenbaum offener Fenster für die Analyse ausgeben |
 | `ErschaffungsLayout.java` | Platzierung des GP/AP-Felds im Erschaffungsdialog (moderne Designs) |
 | `print/` | Druckvorschau, Heldenbogen-Layout (`ModernSheet`), Datenaufbereitung, PDF-Export |

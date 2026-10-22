@@ -54,6 +54,17 @@ final class InventarLayout {
 
     static HeroData held() { return held; }
 
+    /** Gegenstand der Helden-Software (aus der Inventartabelle) mit diesem Namen, sonst null. */
+    static Object gegenstand(String name) {
+        for (Zustand z : alle.values()) {
+            javax.swing.table.TableModel m = z.tabelle.getModel();
+            if (m.getColumnCount() < 5) continue;
+            for (int r = 0; r < m.getRowCount(); r++)
+                if (name.equals(String.valueOf(m.getValueAt(r, 1)).trim())) return m.getValueAt(r, 4);
+        }
+        return null;
+    }
+
     /** Knopf „Geldbörse“ des Reiters „Inventar / Tiere“ (in den modernen Designs), sonst null. */
     static AbstractButton geldKnopf() {
         for (Zustand z : alle.values()) if (z.aktiv && z.geld.isShowing()) return z.geld;
