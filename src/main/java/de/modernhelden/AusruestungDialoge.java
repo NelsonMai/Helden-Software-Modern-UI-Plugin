@@ -96,6 +96,7 @@ final class AusruestungDialoge {
                 ruestung(d, innen, tabellen, add, rem);
             } else if (tabellen.size() == 1 && plaetze) {
                 d.getRootPane().putClientProperty("modernhelden.ausr", Boolean.TRUE);
+                ohneDoppelte(tabellen.get(0));
                 plaetze(d, innen, tabellen.get(0));
             }
         } catch (RuntimeException ignore) {
@@ -188,6 +189,66 @@ final class AusruestungDialoge {
         if (!(v instanceof JTable)) return null;
         TableModel m = ((JTable) v).getModel();
         return m.getColumnCount() >= 3 && "Name".equals(m.getColumnName(1)) ? (JTable) v : null;
+    }
+
+    // ------------------------------------------------------------------ doppelte Gegenstände in der Liste
+
+    /**
+     * Die Helden-Software stellt die Liste „Im Inventar“ aus zwei Gegenstandsarten zusammen (z. B. Nahkampfwaffen
+     * und Parierwaffen). Ein Gegenstand, der zu beiden gehört (etwa der Langdolch), steht dadurch zweimal darin.
+     * Die Tabelle zeigt ihn nur einmal: Ein vorgeschaltetes Modell blendet das zweite Vorkommen desselben
+     * Gegenstands aus. Die Helden-Software liest den gewählten Gegenstand über getModel() der Tabelle und
+     * bekommt so weiterhin genau den markierten.
+     */
+    private static void ohneDoppelte(JTable t) {
+        if (t.getModel() instanceof OhneDoppelte || t.getModel().getColumnCount() < 3) return;
+        // Spalten (Breiten, Renderer, Info-Knopf) der Helden-Software behalten
+        t.setAutoCreateColumnsFromModel(false);
+        t.setModel(new OhneDoppelte(t.getModel()));
+    }
+
+    private static final class OhneDoppelte extends javax.swing.table.AbstractTableModel {
+        final TableModel m;
+        int[] zeilen = new int[0];
+        int anzahl = -1;
+
+        OhneDoppelte(TableModel m) {
+            this.m = m;
+            neu();
+            m.addTableModelListener(e -> {
+                int vorher = zeilen.length;
+                neu();
+                if (e.getType() == javax.swing.event.TableModelEvent.UPDATE && vorher == zeilen.length && zeilen.length > 0
+                        && e.getFirstRow() != javax.swing.event.TableModelEvent.HEADER_ROW)
+                    fireTableRowsUpdated(0, zeilen.length - 1);
+                else fireTableDataChanged();
+            });
+        }
+
+        void neu() {
+            anzahl = m.getRowCount();
+            Set<Object> gesehen = Collections.newSetFromMap(new IdentityHashMap<>());
+            List<Integer> l = new ArrayList<>();
+            for (int i = 0; i < anzahl; i++) {
+                Object g = m.getValueAt(i, 2);
+                if (g == null || gesehen.add(g)) l.add(i);
+            }
+            zeilen = new int[l.size()];
+            for (int i = 0; i < zeilen.length; i++) zeilen[i] = l.get(i);
+        }
+
+        private int z(int r) {
+            if (m.getRowCount() != anzahl) neu();
+            return r >= 0 && r < zeilen.length ? zeilen[r] : r;
+        }
+
+        @Override public int getRowCount() { if (m.getRowCount() != anzahl) neu(); return zeilen.length; }
+        @Override public int getColumnCount() { return m.getColumnCount(); }
+        @Override public String getColumnName(int c) { return m.getColumnName(c); }
+        @Override public Class<?> getColumnClass(int c) { return m.getColumnClass(c); }
+        @Override public Object getValueAt(int r, int c) { return m.getValueAt(z(r), c); }
+        @Override public boolean isCellEditable(int r, int c) { return m.isCellEditable(z(r), c); }
+        @Override public void setValueAt(Object v, int r, int c) { m.setValueAt(v, z(r), c); }
     }
 
     // ------------------------------------------------------------------ Dialoge mit Plätzen (Nah-, Fernkampf, Schilde)

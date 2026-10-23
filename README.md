@@ -17,7 +17,7 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
   - [Ausrüstung](#ausrüstung)
   - [Tooltips und eigene Notizen](#tooltips-und-eigene-notizen)
   - [Steigerungen rückgängig machen](#steigerungen-rückgängig-machen)
-  - [Reiter „Plugin: Modern-UI“](#reiter-plugin-modern-ui)
+  - [Reiter „Kompaktansicht“ (Plugin: Modern-UI)](#reiter-kompaktansicht-plugin-modern-ui)
   - [Moderner Heldenbogen](#moderner-heldenbogen)
 - [Installation](#installation)
   - [Automatische Aktualisierung](#automatische-aktualisierung)
@@ -99,7 +99,8 @@ kein „aktives“ Set, sondern berechnet die Werte für jedes Set einzeln.
   angeordnet: Plätze links als Zeilen, rechts die Gegenstände mit ihren Werten. Doppelklick legt einen Gegenstand
   auf den nächsten freien Platz, Ziehen auf einen bestimmten Platz; bei der Rüstung legt Doppelklick bzw. Ziehen an
   oder ab. Beschriftungen und Tooltips erklären „Werte …“ (Bruchfaktor, Talent), die Schild-Zuordnung, Hand und
-  Beidhändigen Kampf. Übernommen wird wie bisher mit *OK*.
+  Beidhändigen Kampf. Übernommen wird wie bisher mit *OK*. Gegenstände, die zu zwei Arten gehören (z. B. der
+  Langdolch als Nahkampf- und Parierwaffe), stehen in der Liste nur einmal.
 
 | Ausrüstung | Nahkampfwaffen bearbeiten |
 |---|---|
@@ -126,7 +127,8 @@ kein „aktives“ Set, sondern berechnet die Werte für jedes Set einzeln.
 
 ### Steigerungen rückgängig machen
 
-Im Reiter „Plugin: Modern-UI“ → *Verlauf* stehen alle Steigerungen und erworbenen Sonderfertigkeiten aus
+Im Reiter „Verlauf“ (moderne Designs: eigener Hauptreiter; Design „Original“: Reiter „Plugin: Modern-UI“ →
+*Verlauf*) stehen alle Steigerungen und erworbenen Sonderfertigkeiten aus
 dem Ereignisprotokoll (neueste zuerst) mit Datum, Änderung, Lernmethode und AP. Wurde dabei eine
 **Spezielle Erfahrung (SE)** genutzt, steht das in der Spalte *Lernmethode*. Ein Eintrag lässt sich mit *Rückgängig machen …* zurücknehmen;
 die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
@@ -138,6 +140,9 @@ die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
 - Das Zurückrechnen übernimmt die Helden-Software selbst (ihre eigene Undo-Logik). Sie prüft vorher, ob der
   aktuelle Wert noch zum Ereignis passt; sonst wird nichts verändert.
 - Eine dabei genutzte Spezielle Erfahrung wird nicht automatisch zurückgegeben.
+- Nur Steigerungen um genau einen Punkt lassen sich zurücknehmen. Mit *Datei → Einen Helden editieren …* gesenkte
+  oder um mehrere Punkte geänderte Werte (Lernmethode „Editor“) zeigt der Verlauf an, der Knopf bleibt dann aus;
+  ein Hinweis nennt den alten Wert, auf den man von Hand zurücksetzen kann.
 - **Sonderfertigkeiten mit Voraussetzung:** Setzen andere SF des Helden die gewählte voraus (auch über mehrere
   Stufen, z. B. Parierwaffen I → Binden → Entwaffnen), zeigt der Dialog einen Warnhinweis mit allen betroffenen
   SF und der Gesamterstattung. Nach Bestätigung werden sie mit zurückgesetzt (neueste zuerst). Grundlage sind die
@@ -147,7 +152,12 @@ die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
 - Dauerhaft wird die Änderung erst beim Speichern des Helden. Vorher eine Sicherung des Helden anzulegen,
   ist trotzdem empfehlenswert.
 
-### Reiter „Plugin: Modern-UI“
+### Reiter „Kompaktansicht“ (Plugin: Modern-UI)
+
+In den modernen Designs heißt der Plugin-Reiter „Kompaktansicht“, und der *Verlauf* hat daneben einen eigenen
+Reiter. Er wird hinter den übrigen Reitern angehängt, damit sich die Positionen der Reiter der Helden-Software und
+anderer Plugins nicht verschieben. Im Design „Original“ bleibt es bei „Plugin: Modern-UI“ mit dem Verlauf als
+Unterreiter.
 
 Eine kompakte Heldenübersicht: Eigenschaften und Basiswerte als Kacheln, filterbare Talentliste mit
 Fortschrittsbalken (Meta-Talente in einer eigenen Gruppe, sofern sie für den Helden eingeschaltet sind), Sonderfertigkeiten und Vor-/Nachteile mit Kurzbeschreibung, Kampfwerte, Zauber und
@@ -257,7 +267,7 @@ Die automatische Aktualisierung funktioniert ab Version 1.16.0 – ältere Versi
 | Was | Wie |
 |---|---|
 | Design wechseln | *Erweiterungen → Modern-UI → Design: Modern hell / Modern dunkel / Original* |
-| Tooltips an/aus | *Erweiterungen → Modern-UI → Erweiterte Tooltips anzeigen* (gilt überall, auch im Reiter „Plugin: Modern-UI“) |
+| Tooltips an/aus | *Erweiterungen → Modern-UI → Erweiterte Tooltips anzeigen* (gilt überall, auch in der Kompaktansicht) |
 | Eigene Notiz anlegen | Doppelklick auf einen Eintrag, oder Maus darüber und `Strg+Umschalt+T`, oder im Plugin-Reiter per Rechtsklick |
 | Ordner mit den Notizen öffnen | *Erweiterungen → Modern-UI → Ordner mit eigenen Tooltip-Texten öffnen* |
 | Gegenstand hinzufügen | Reiter *Inventar / Tiere* → *Gegenstand hinzufügen …* → suchen, markieren, *Hinzufügen*, Doppelklick oder in das Inventar ziehen |
@@ -266,7 +276,7 @@ Die automatische Aktualisierung funktioniert ab Version 1.16.0 – ältere Versi
 | Ausrüstung ablegen | Reiter *Ausrüstung* → rotes „✕“ hinter dem Gegenstand |
 | Geld einnehmen / ausgeben | Reiter *Inventar / Tiere* → *Geldbörse* → Betrag eingeben → *Einnehmen* bzw. *Ausgeben* → *OK* |
 | Heldenbogen drucken / als PDF | Reiter *Druckvorschau* → *Drucken …* bzw. *PDF …* |
-| Steigerung / SF rückgängig machen | Reiter *Plugin: Modern-UI* → *Verlauf* → Eintrag wählen → *Rückgängig machen …* |
+| Steigerung / SF rückgängig machen | Reiter *Verlauf* (Design „Original“: *Plugin: Modern-UI* → *Verlauf*) → Eintrag wählen → *Rückgängig machen …* |
 | Nach Updates suchen | *Erweiterungen → Modern-UI → Nach Updates suchen …* (automatisch: siehe [Automatische Aktualisierung](#automatische-aktualisierung)) |
 
 Doppelklick öffnet die Notiz nur dort, wo die Helden-Software selbst nichts mit einem Doppelklick macht
@@ -308,12 +318,13 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `InventarInfo.java` | Angaben zu Gegenständen (Gewicht, Wert, Kampf- und Rüstungswerte) für Inventar und Tooltips |
 | `Herkunft.java` | Auswertung des Ereignisprotokolls (Herkunft von Werten und Abenteuerpunkten) |
 | `Rueckgaengig.java` | Steigerungen/SF über die Undo-Logik der Helden-Software zurücknehmen |
-| `HeroPanel.java`, `HeroData.java` | Reiter „Plugin: Modern-UI“ |
+| `HeroPanel.java`, `HeroData.java` | Reiter „Kompaktansicht“ / „Plugin: Modern-UI“ und Verlauf |
+| `HauptReiter.java` | Reiter „Kompaktansicht“ und eigener Reiter „Verlauf“ (moderne Designs) |
 | `Geld.java` | Münzen, Reihenfolge und Umrechnung |
 | `update/` | Automatische Aktualisierung über GitHub-Releases (`PluginUpdate`) und Installationshelfer (`UpdateInstaller`) |
 | `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java` | Reiter „Inventar / Tiere“, Hinzufügen-Dialog und Geldbörse in den modernen Designs |
 | `AusruestungLayout.java`, `AusruestungDialoge.java` | Reiter „Ausrüstung“ und seine Bearbeiten-Dialoge in den modernen Designs |
-| `TalenteSortierung.java` | Sortierbare Tabellen in den Reitern „Talente“ und „Zauber“ (moderne Designs) und im Reiter „Plugin: Modern-UI“ |
+| `TalenteSortierung.java` | Sortierbare Tabellen in den Reitern „Talente“ und „Zauber“ (moderne Designs) und in der Kompaktansicht |
 | `DebugBaum.java` | Nur im Debug-Modus: Komponentenbaum offener Fenster für die Analyse ausgeben |
 | `ErschaffungsLayout.java` | Platzierung des GP/AP-Felds im Erschaffungsdialog (moderne Designs) |
 | `print/` | Druckvorschau, Heldenbogen-Layout (`ModernSheet`), Datenaufbereitung, PDF-Export |

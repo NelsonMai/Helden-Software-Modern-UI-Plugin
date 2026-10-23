@@ -251,6 +251,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         };
         AusruestungLayout.aktualisieren();
         if (panel != null) panel.showHero(h);
+        HauptReiter.pruefen(panel, "Plugin: " + getMenuName());
         installDruckvorschau();
         if (printPanel != null) printPanel.markDirty();
     }

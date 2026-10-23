@@ -52,6 +52,18 @@ public final class HeroPanel extends JPanel {
 
     public void setTooltipsAn(java.util.function.BooleanSupplier b) { this.tooltipsAn = b; }
     private final JPanel content = new JPanel(new BorderLayout());
+    /** Inhalt des eigenen Hauptreiters „Verlauf“ (moderne Designs, siehe {@link HauptReiter}). */
+    private final JPanel verlaufHost = new JPanel(new BorderLayout());
+    private boolean verlaufExtern;
+
+    public JComponent verlaufReiter() { return verlaufHost; }
+
+    /** true: Verlauf als eigener Hauptreiter statt als Unterreiter dieser Übersicht. */
+    public void setVerlaufExtern(boolean b) {
+        if (verlaufExtern == b) return;
+        verlaufExtern = b;
+        showHero(hero);
+    }
     private JTabbedPane tabs;
     private int lastTab;
     private final JTextField filter = new JTextField();
@@ -108,7 +120,7 @@ public final class HeroPanel extends JPanel {
             tabs.addTab("Kampf", ModernIcons.nurModern("kampf", 16), kampfTab(h));
             if (!h.zauber.isEmpty()) tabs.addTab("Zauber (" + h.zauber.size() + ")", ModernIcons.nurModern("zauber", 16), zauberTab(h));
             tabs.addTab("Inventar", ModernIcons.nurModern("inventar", 16), inventarTab(h));
-            if (h.herkunft != null) tabs.addTab("Verlauf", ModernIcons.nurModern("verlauf", 16), verlaufTab(h));
+            if (h.herkunft != null && !verlaufExtern) tabs.addTab("Verlauf", ModernIcons.nurModern("verlauf", 16), verlaufTab(h));
             if (lastTab >= 0 && lastTab < tabs.getTabCount()) tabs.setSelectedIndex(lastTab);
             JPanel wrap = new JPanel(new BorderLayout());
             wrap.setBorder(new EmptyBorder(0, 12, 12, 12));
@@ -118,6 +130,20 @@ public final class HeroPanel extends JPanel {
         }
         content.revalidate();
         content.repaint();
+        verlaufHost.removeAll();
+        verlaufHost.setBackground(UIManager.getColor("Panel.background"));
+        if (verlaufExtern) {
+            if (h == null || h.herkunft == null) {
+                JLabel l = new JLabel("<html><div style='text-align:center'><b style='font-size:130%'>Kein Held ausgewählt</b><br><br>"
+                        + "Wähle links einen Helden aus, um seinen Verlauf zu sehen.</div></html>", SwingConstants.CENTER);
+                l.setForeground(Theme.muted());
+                verlaufHost.add(l, BorderLayout.CENTER);
+            } else {
+                verlaufHost.add(verlaufTab(h), BorderLayout.CENTER);
+            }
+        }
+        verlaufHost.revalidate();
+        verlaufHost.repaint();
     }
 
     // ---------------------------------------------------------------- Kopf
@@ -295,6 +321,8 @@ public final class HeroPanel extends JPanel {
                     setForeground(Theme.accent());
                     setBackground(Theme.kopfzeile());
                     setBorder(new EmptyBorder(0, 8, 0, 4));
+                    // der Renderer wird für alle Spalten geteilt – „BE“ zentriert, die Kopfzeile immer links
+                    setHorizontalAlignment(LEFT);
                     return this;
                 }
                 super.getTableCellRendererComponent(t, v, sel, false, r, c);
@@ -735,7 +763,9 @@ public final class HeroPanel extends JPanel {
             String aend = e.alt.isEmpty() && e.neu.isEmpty() ? "" : erster(e.alt) + " → " + erster(e.neu);
             int ap = -num(e.ap);
             // Lernmethode inkl. Spezieller Erfahrung (SE), wie von der Helden-Software vermerkt
-            data.add(new Object[]{h.herkunft.datum(e), e.text, e.obj, aend, Herkunft.lernText(e.info), ap == 0 ? "" : String.valueOf(ap)});
+            String lern = Herkunft.lernText(e.info);
+            if (lern.isEmpty() && "Editor".equals(e.kommentar)) lern = "Editor (von Hand geändert)";
+            data.add(new Object[]{h.herkunft.datum(e), e.text, e.obj, aend, lern, ap == 0 ? "" : String.valueOf(ap)});
         }
         final JTable table = new JTable(data.toArray(new Object[0][]), cols) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -760,7 +790,11 @@ public final class HeroPanel extends JPanel {
             if (r < 0) { undo.setEnabled(false); return; }
             Herkunft.Ereignis x = ev.get(table.convertRowIndexToModel(r));
             Herkunft.Ereignis spaeter = h.herkunft.spaeteresZuSelbem(x);
-            if (spaeter != null) {
+            String nicht = nichtUmkehrbar(x);
+            if (nicht != null) {
+                undo.setEnabled(false);
+                hinweis.setText(nicht);
+            } else if (spaeter != null) {
                 undo.setEnabled(false);
                 hinweis.setText("Erst die spätere Änderung an „" + x.obj + "“ vom " + h.herkunft.datum(spaeter) + " rückgängig machen.");
             } else {
@@ -841,6 +875,28 @@ public final class HeroPanel extends JPanel {
         p.add(scroll(table), BorderLayout.CENTER);
         p.add(unten, BorderLayout.SOUTH);
         return p;
+    }
+
+    /**
+     * Die Helden-Software macht Steigerungen nur rückgängig, wenn der Wert um genau einen Punkt gestiegen ist
+     * (sie setzt ihn um eins zurück und prüft vorher Alt + 1 = Neu). Mit dem Editor gesenkte oder um mehrere
+     * Punkte geänderte Werte lassen sich so nicht zurücknehmen – dafür ein Hinweis statt einer Fehlermeldung.
+     */
+    static String nichtUmkehrbar(Herkunft.Ereignis x) {
+        if (!x.text.endsWith("steigern")) return null;
+        int alt, neu;
+        try {
+            alt = Integer.parseInt(erster(x.alt).trim());
+            neu = Integer.parseInt(erster(x.neu).trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+        if (neu == alt + 1) return null;
+        String wie = "Editor".equals(x.kommentar) ? " mit dem Editor" : "";
+        String was = neu < alt ? "gesenkt" : "um " + (neu - alt) + " Punkte geändert";
+        return "<html>„" + esc(x.obj) + "“ wurde hier" + wie + " " + was + " (" + alt + " → " + neu + "). "
+                + "Die Helden-Software macht nur Steigerungen um einen Punkt rückgängig – "
+                + "den Wert bei Bedarf wieder von Hand auf " + alt + " setzen.</html>";
     }
 
     private static String erster(String s) {
