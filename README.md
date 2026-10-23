@@ -115,7 +115,7 @@ kein „aktives“ Set, sondern berechnet die Werte für jedes Set einzeln.
 - **Herkunft eines Werts:** Startwert aus Rasse, Kultur und Profession, Professions-Auswahl, Steigerungen bei
   der Erschaffung und jede spätere Steigerung mit Datum, Lernmethode (Lehrmeister, Selbststudium …),
   Spezieller Erfahrung und AP-Kosten. Grundlage ist das Ereignisprotokoll der Helden-Software.
-- **Herkunft der Abenteuerpunkte** (Reiter „Allgemein“ und Plugin-Reiter): AP aus der Erschaffung, jede
+- **Herkunft der Abenteuerpunkte** (Reiter „Allgemein“ und Kompaktansicht): AP aus der Erschaffung, jede
   AP-Vergabe mit Datum und Anlass, Ausgaben nach Bereich und freie AP.
 - **Eigene Notizen:** Doppelklick auf einen Eintrag oder Maus darüber und `Strg+Umschalt+T`.
   Notizen erscheinen im Tooltip und auf dem Heldenbogen. Lange Notizen werden im Tooltip gekürzt und auf
@@ -151,6 +151,8 @@ die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
 - Dauerhaft wird die Änderung erst beim Speichern des Helden. Vorher eine Sicherung des Helden anzulegen,
   ist trotzdem empfehlenswert.
 
+![Reiter „Verlauf“ mit Lernmethode und Spezieller Erfahrung](docs/bilder/verlauf.png)
+
 ### Reiter „Kompaktansicht“ (Plugin: Modern-UI)
 
 Der Plugin-Reiter heißt „Kompaktansicht“, und der *Verlauf* hat daneben einen eigenen Reiter (in allen Designs).
@@ -175,7 +177,7 @@ der Helden-Software – zusammen mit Einzelgewicht, Einzelpreis und Quelle. Auch
 Liste „Gegenstände“ zu jeder Vorlage Art, Gewicht, Wert, Quelle und die Waffen-, Schild- bzw. Rüstungswerte.
 Umrechnungen: 1 Dukat = 10 Silbertaler = 100 Heller = 1000 Kreuzer, 1 Stein = 40 Unzen = 1 kg.
 
-![Reiter „Plugin: Modern-UI“ im dunklen Design](docs/bilder/plugin-reiter-dunkel.png)
+![Reiter „Kompaktansicht“ im dunklen Design](docs/bilder/kompaktansicht-dunkel.png)
 
 ### Moderner Heldenbogen
 
@@ -267,7 +269,7 @@ Die automatische Aktualisierung funktioniert ab Version 1.16.0 – ältere Versi
 |---|---|
 | Design wechseln | *Erweiterungen → Modern-UI → Design: Modern hell / Modern dunkel / Original* |
 | Tooltips an/aus | *Erweiterungen → Modern-UI → Erweiterte Tooltips anzeigen* (gilt überall, auch in der Kompaktansicht) |
-| Eigene Notiz anlegen | Doppelklick auf einen Eintrag, oder Maus darüber und `Strg+Umschalt+T`, oder im Plugin-Reiter per Rechtsklick |
+| Eigene Notiz anlegen | Doppelklick auf einen Eintrag, oder Maus darüber und `Strg+Umschalt+T`, oder in der Kompaktansicht per Rechtsklick |
 | Ordner mit den Notizen öffnen | *Erweiterungen → Modern-UI → Ordner mit eigenen Tooltip-Texten öffnen* |
 | Gegenstand hinzufügen | Reiter *Inventar / Tiere* → *Gegenstand hinzufügen …* → suchen, markieren, *Hinzufügen*, Doppelklick oder in das Inventar ziehen |
 | Gegenstand kaufen | Wie *Gegenstand hinzufügen*, dann *Kaufen (Preis)* statt *Hinzufügen* |
@@ -317,7 +319,7 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `InventarInfo.java` | Angaben zu Gegenständen (Gewicht, Wert, Kampf- und Rüstungswerte) für Inventar und Tooltips |
 | `Herkunft.java` | Auswertung des Ereignisprotokolls (Herkunft von Werten und Abenteuerpunkten) |
 | `Rueckgaengig.java` | Steigerungen/SF über die Undo-Logik der Helden-Software zurücknehmen |
-| `HeroPanel.java`, `HeroData.java` | Reiter „Kompaktansicht“ / „Plugin: Modern-UI“ und Verlauf |
+| `HeroPanel.java`, `HeroData.java` | Reiter „Kompaktansicht“ und Verlauf |
 | `HauptReiter.java` | Reiter „Kompaktansicht“ und eigener Reiter „Verlauf“ |
 | `Geld.java` | Münzen, Reihenfolge und Umrechnung |
 | `update/` | Automatische Aktualisierung über GitHub-Releases (`PluginUpdate`) und Installationshelfer (`UpdateInstaller`) |
@@ -340,7 +342,7 @@ Der Heldenbogen wurde mit Testhelden geprüft – von „nichts“ bis „alles 
 - lange Namen und Notizen (bis 9 000 Zeichen, mit Absätzen und überlangen Wörtern)
 - Minimalfälle: Held ohne Talente, Ausrüstung, Magie oder Namen; nur Nachteile; zauberkundig ohne Zauber;
   1 AsP bzw. 1 KaP; fehlende Bereiche in den Daten
-- Designwechsel hell → dunkel → Original → hell in Hauptfenster, Dialogen und Plugin-Reiter
+- Designwechsel hell → dunkel → Original → hell in Hauptfenster, Dialogen, Kompaktansicht und Verlauf
 - Legenden der Kennzeichen in über 10 000 Varianten (Talente, Waffen, Zauber an jeder Seiten- und Spaltengrenze)
 - Inventar, Hinzufügen, Kaufen, Geldbörse und Ausrüstung in der Helden-Software mit Testhelden: Sortieren und
   Filtern, Ziehen und Doppelklick, Wechseln beim Bezahlen, mehr als fünf Rüstungsteile, umbenannte Gegenstände,
