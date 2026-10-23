@@ -223,7 +223,11 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
                 h = HeroData.parse((Document) res, db);
                 try {
                     Document v3 = heldDaten();
-                    if (v3 != null) h.metaTalente(de.modernhelden.print.SheetData.parse(v3));
+                    if (v3 != null) {
+                        de.modernhelden.print.SheetData sd = de.modernhelden.print.SheetData.parse(v3);
+                        h.metaTalente(sd);
+                        h.vorNachteile(sd);
+                    }
                 } catch (RuntimeException ignore) { }
                 debugDump("exportHeld", (Document) res);
                 if (baseDir != null && new File(baseDir, "debug").isDirectory()) {

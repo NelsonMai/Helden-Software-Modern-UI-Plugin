@@ -213,6 +213,32 @@ public final class HeroData {
      * nur für den Druck – und nur, wenn sie in ihren Druckeinstellungen eingeschaltet sind. Sie werden hier aus den
      * Druckdaten ergänzt (Name in beiden Schreibweisen auffindbar: „incl“ wie im Reiter „Talente“, „inkl.“).
      */
+    /**
+     * Vor- und Nachteile so einordnen, wie die Helden-Software sie führt („istnachteil“ in ihren Druckdaten).
+     * Ohne diese Angabe bleibt die Einordnung über die Tooltip-Liste (unbekannte Einträge gelten als Vorteil).
+     */
+    public void vorNachteile(de.modernhelden.print.SheetData sd) {
+        if (sd == null || sd.vorteile.isEmpty()) return;
+        Map<String, Boolean> istNachteil = new HashMap<>();
+        for (de.modernhelden.print.SheetData.Eintrag e : sd.vorteile) {
+            if (!e.nachteil && !e.vorteil) continue;
+            if (!e.bezeichner.isEmpty()) istNachteil.put(e.bezeichner, e.nachteil);
+        }
+        if (istNachteil.isEmpty()) return;
+        List<Item> alle = new ArrayList<>(vorteile);
+        alle.addAll(nachteile);
+        List<Item> v = new ArrayList<>(), n = new ArrayList<>();
+        for (Item it : alle) {
+            Boolean nt = istNachteil.get(it.name);
+            boolean warNachteil = nachteile.contains(it);
+            if (nt == null ? warNachteil : nt) n.add(it); else v.add(it);
+        }
+        vorteile.clear();
+        vorteile.addAll(v);
+        nachteile.clear();
+        nachteile.addAll(n);
+    }
+
     public void metaTalente(de.modernhelden.print.SheetData sd) {
         if (sd == null || !sd.metaAktiv) return;
         for (de.modernhelden.print.SheetData.Talent st : sd.talente) {

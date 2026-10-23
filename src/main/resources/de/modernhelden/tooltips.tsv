@@ -424,3 +424,203 @@ T	Wachehalten	Meta		Aufmerksam bleiben, während die anderen schlafen. Berechnet
 T	Tierfallen aufstellen	Meta		Fallen für Wild auslegen und kontrollieren. Berechnet aus zweimal Fallen stellen, Tierkunde, Fährtensuchen und Wildnisleben (Durchschnitt; höchstens das Doppelte des schwächsten Talents). Der Wert wird von der Helden-Software berechnet und nicht gesteigert.
 T	Speerfischen	Meta		Fische mit dem Speer im flachen Wasser erbeuten. Berechnet aus dem besseren von Speere bzw. Wurfspeere, Tierkunde, Selbstbeherrschung und Wildnisleben (Durchschnitt; höchstens das Doppelte des schwächsten Talents). Der Wert wird von der Helden-Software berechnet und nicht gesteigert.
 T	Wache halten	Meta		Aufmerksam bleiben, während die anderen schlafen. Berechnet aus Selbstbeherrschung und zweimal Sinnenschärfe (Durchschnitt; höchstens das Doppelte des schwächsten Talents). Der Wert wird von der Helden-Software berechnet und nicht gesteigert.
+# --- Ergänzungen: Vorteile
+V	Affinität zu*	Vorteil		Besondere Nähe zu einer Art von Wesen (z. B. Elementaren, Geistern, Dämonen); Zauber auf diese Wesen und der Umgang mit ihnen fallen leichter.
+V	Ausdauernder Zauberer	Vorteil		Zaubern erschöpft den Helden weniger als andere Zauberkundige.
+V	Ausrüstungsvorteil	Vorteil		Beginnt das Spiel mit zusätzlicher oder besonders guter Ausrüstung.
+V	Beseelte Knochenkeule	Vorteil		Besitzt eine beseelte Knochenkeule – den Ritualgegenstand orkischer bzw. Schamanen-Traditionen – mit bereits geweckter Kraft.
+V	Ererbte Knochenkeule	Vorteil		Hat eine Knochenkeule von einem Vorgänger übernommen, in der schon Keulenrituale wirken.
+V	Breitgefächerte Bildung	Vorteil		Erlaubt eine zweite Profession bei der Erschaffung und damit Talente und Fertigkeiten aus beiden Ausbildungen.
+V	Eigeboren	Vorteil		Hexen-Vorteil: Tochter einer Hexe, von Geburt an mit der Hexenkraft vertraut.
+V	Eisenaffine Aura	Vorteil		Metall am Körper (Rüstung, Waffen) stört das Zaubern nicht oder kaum.
+V	Feenfreund	Vorteil		Feenwesen begegnen dem Helden wohlwollend; der Umgang mit ihnen fällt leichter.
+V	Koboldfreund	Vorteil		Kobolde sind dem Helden gewogen und spielen ihm eher harmlose Streiche.
+V	Feste Matrix	Vorteil		Stabile Zaubermatrix: Patzer beim Zaubern haben weniger schlimme Folgen.
+V	Früher Vertrauter	Vorteil		Hat schon in jungen Jahren ein Vertrautentier an sich gebunden.
+V	Machtvoller Vertrauter	Vorteil		Das Vertrautentier ist stärker und fähiger als üblich.
+V	Gebildet	Vorteil		Gute Allgemeinbildung: bessere Startmöglichkeiten bei Wissens- und Sprachtalenten.
+V	Geweiht*	Vorteil		Geweihter einer Gottheit bzw. Kirche: Zugang zu Liturgien und Karmaenergie, aber auch Pflichten gegenüber der Kirche.
+V	Göttergeschenk	Vorteil		Besondere Gabe einer Gottheit an ihren Geweihten; die Wirkung hängt vom jeweiligen Geschenk ab.
+V	Herausragende Balance	Vorteil		Noch sichereres Gleichgewicht als bei Balance: Balanceakte gelingen fast immer, Stürze sind selten.
+V	Herausragender Sechster Sinn	Vorteil		Stärkere Form des Sechsten Sinns: Gefahren und Fallen werden sehr zuverlässig vorausgeahnt.
+V	Kräfteschub	Vorteil		Viertelzauberer: kann Astralenergie einsetzen, um kurzzeitig körperliche Leistungen zu steigern.
+V	Magiedilletant	Vorteil		Geringe magische Begabung: einzelne Zauber als übernatürliche Begabungen, keine volle Zauberausbildung.
+V	Meisterhandwerk*	Vorteil		Viertelzauberer: kann in einem Talent Astralenergie einsetzen, um Proben darauf zu verbessern.
+V	Natürliche Waffen	Vorteil		Krallen, Zähne, Hörner o. ä. dienen im Kampf als Waffen.
+V	Schutzgeist	Vorteil		Ein Schutzgeist wacht über den Helden und kann ihn warnen oder in der Not eingreifen.
+V	Paktgeschenk	Vorteil		Gabe aus einem Pakt mit einer Erzdämonin bzw. einem Erzdämon – übernatürliche Fähigkeit, die ihren Preis hat.
+V	Unbeschwertes Zaubern	Vorteil		Zauber lassen sich auch unter ungünstigen Umständen leichter wirken.
+V	Verhüllte Aura	Vorteil		Die magische Aura ist schwer zu erkennen; Hellsichtzauber nehmen den Helden kaum als magisch wahr.
+V	Wesen der Nacht	Vorteil		Nachts besonders leistungsfähig; Dunkelheit behindert den Helden weniger.
+V	Wolfskind	Vorteil		Kann die Gestalt eines Wolfes annehmen und versteht sich besonders auf Wölfe.
+V	Zauberhaar	Vorteil		Viertelzauberer: Die magische Kraft äußert sich im Haar des Helden.
+V	Zusätzliche Gliedmaßen	Vorteil		Besitzt zusätzliche Arme, Beine oder einen Schwanz.
+V	Zweistimmiger Gesang	Vorteil		Kann zwei Töne zugleich singen – Voraussetzung für elfische Zauberlieder.
+V	Übernatürliche Begabung*	Vorteil		Kann einen bestimmten Zauber als angeborene Fähigkeit wirken, auch ohne Zauberausbildung.
+V	Lizensierter Zauberer	Vorteil		Besitzt eine offizielle Erlaubnis zum Zaubern; schützt vor Ärger mit der Obrigkeit.
+# --- Ergänzungen: Nachteile
+V	Agrimothwahn	Nachteil		Dämonisch geprägter Zwang (Agrimoth), Natur und Elemente zu verderben. Wert = Stärke.
+V	Albino	Nachteil		Sehr helle Haut, Haare und Augen: empfindlich gegen Sonnenlicht und auffällig.
+V	Animalische Magie	Nachteil		Die eigene Magie ist an tierhafte Instinkte gebunden und schwer zu lenken.
+V	Arkanophobie	Nachteil		Angst vor Magie, Zauberern und magischen Wesen. Wert = Stärke.
+V	Artefaktgebunden	Nachteil		Die Zauberkraft ist an einen Gegenstand gebunden; ohne ihn kann der Held kaum zaubern.
+V	Astraler Block	Nachteil		Die Astralenergie regeneriert schlechter.
+V	Blutdurst	Nachteil		Gerät im Kampf in einen Blutrausch und hört schwer wieder auf. Wert = Stärke.
+V	Brünstigkeit	Nachteil		Regelmäßige, kaum zu beherrschende Brunftphasen. Wert = Stärke.
+V	Charyptophilie	Nachteil		Dämonisch geprägte Sehnsucht nach dem Meer und seinen Tiefen (Charyptoroth). Wert = Stärke.
+V	Einarmig	Nachteil		Hat nur einen Arm; viele körperliche Tätigkeiten und Waffen sind eingeschränkt.
+V	Einbeinig	Nachteil		Hat nur ein Bein; Bewegung, Laufen und Körpertalente sind stark eingeschränkt.
+V	Einhändig	Nachteil		Hat nur eine benutzbare Hand; beidhändige Tätigkeiten und Waffen sind kaum möglich.
+V	Einbildungen	Nachteil		Sieht oder hört Dinge, die nicht da sind. Wert = Stärke.
+V	Eingeschränkte Elementarnähe	Nachteil		Zauber eines bestimmten Elements fallen schwer.
+V	Eingeschränkter Sinn	Nachteil		Ein Sinn ist geschwächt (z. B. schwerhörig oder kurzsichtig); passende Wahrnehmungsproben sind erschwert.
+V	Elfische Weltsicht	Nachteil		Denkt wie ein Elf: Begriffe wie Besitz oder Zeit bleiben fremd; manche menschliche Talente sind schwer zu lernen.
+V	Farbenblind	Nachteil		Kann Farben nicht oder kaum unterscheiden.
+V	Feste Gewohnheit	Nachteil		Hält an einer Gewohnheit fest und weicht nur ungern davon ab.
+V	Fluch der Finsternis	Nachteil		Von dunklen Mächten gezeichnet; Licht und Heiliges bereiten Unbehagen.
+V	Grausamkeit	Nachteil		Empfindet Freude daran, anderen Leid zuzufügen. Wert = Stärke.
+V	Herrschsucht	Nachteil		Will andere bestimmen und duldet keinen Widerspruch. Wert = Stärke.
+V	Jagdfieber	Nachteil		Verfällt bei der Jagd in Eifer und lässt nicht von der Beute ab. Wert = Stärke.
+V	Kein Vertrauter	Nachteil		Hexe ohne Vertrautentier.
+V	Konstruktionswahn	Nachteil		Dämonisch geprägter Zwang, ständig Neues zu bauen und zu erfinden. Wert = Stärke.
+V	Krankhafte Nekromantie	Nachteil		Krankhafte Faszination für Tod, Leichen und Untote. Wert = Stärke.
+V	Krankhafte Reinlichkeit	Nachteil		Übertriebener Ekel vor Schmutz; muss sich ständig reinigen. Wert = Stärke.
+V	Kristallgebunden	Nachteil		Die Zauberkraft ist an Kristalle gebunden.
+V	Kältestarre	Nachteil		Wechselwarm: wird bei Kälte träge und langsam.
+V	Körpergebundene Kraft	Nachteil		Die Magie wirkt vor allem auf den eigenen Körper; Zauber auf andere fallen schwer.
+V	Lichtscheu	Nachteil		Meidet helles Licht; bei grellem Licht Abzüge.
+V	Lästige Mindergeister	Nachteil		Kleine Geister folgen dem Helden und stiften Unruhe.
+V	Madas Fluch	Nachteil		Die Zauberkraft schwankt mit dem Mond: Astralenergie hängt von der Mondphase ab.
+V	Mondsüchtig	Nachteil		Wird bei Vollmond unruhig und wandelt im Schlaf.
+V	Morbidität	Nachteil		Hang zu Tod und Verfall; düsteres Gemüt. Wert = Stärke.
+V	Nagrachwahn	Nachteil		Dämonisch geprägter Drang zu Kälte und grausamer Jagd (Nagrach). Wert = Stärke.
+V	Nahrungsrestriktion	Nachteil		Kann sich nur von bestimmter Nahrung ernähren.
+V	Niedrige Astralkraft	Nachteil		Weniger Astralenergie als üblich.
+V	Paktierer	Nachteil		Hat einen Pakt mit einer dämonischen Macht geschlossen; der Pakt fordert seinen Preis.
+V	Raubtiergeruch	Nachteil		Riecht nach Raubtier; Tiere reagieren scheu oder aggressiv.
+V	Ruhelosigkeit	Nachteil		Kann kaum still sitzen und braucht ständig Bewegung. Wert = Stärke.
+V	Rückschlag	Nachteil		Misslungene Zauber können auf den Zaubernden zurückschlagen.
+V	Schlaflosigkeit	Nachteil		Findet kaum Schlaf; die Erholung leidet.
+V	Schlafstörungen	Nachteil		Schläft unruhig; nächtliche Regeneration fällt geringer aus.
+V	Schlechte Eigenschaft	Nachteil		Charakterschwäche mit einer Stärke; je höher der Wert, desto schwerer lässt sie sich unterdrücken.
+V	Schneller alternd	Nachteil		Altert schneller als andere seines Volkes.
+V	Schwache Ausstrahlung	Nachteil		Schwache magische Ausstrahlung; manche Zauber wirken weniger stark.
+V	Schwacher Astralkörper	Nachteil		Die Astralenergie regeneriert langsamer.
+V	Schöpferwahn	Nachteil		Dämonisch geprägter Zwang, Leben bzw. Wesen zu erschaffen. Wert = Stärke.
+V	Seffer Manich	Nachteil		Nachteil aus der Tradition der Zibilja (norbardische Zauberinnen).
+V	Sensibler Geruchssinn	Nachteil		Sehr feine Nase; starke Gerüche stören und lenken ab.
+V	Sippenlosigkeit	Nachteil		Ohne Sippe bzw. Familie; es fehlt der Rückhalt der Gemeinschaft.
+V	Sonnensucht	Nachteil		Braucht Sonnenlicht; Dunkelheit und lange Nächte setzen dem Helden zu.
+V	Speisegebote	Nachteil		Muss religiöse oder kulturelle Speisevorschriften einhalten.
+V	Spruchhemmung	Nachteil		Gerät beim Zaubern leicht ins Stocken; Zauber misslingen öfter.
+V	Stigma	Nachteil		Auffälliges Kennzeichen (Mal, Narbe, ungewöhnliche Farbe), das Misstrauen weckt.
+V	Stubenhocker	Nachteil		Ungern draußen; Wildnis und Reisen fallen schwer.
+V	Thesisgebunden	Nachteil		Kann Zauber nur so wirken, wie sie gelernt wurden; Abwandlungen fallen schwer.
+V	Treulosigkeit	Nachteil		Hält Versprechen ungern und wechselt leicht die Seiten. Wert = Stärke.
+V	Trägheit	Nachteil		Bequem und schwer zu motivieren. Wert = Stärke.
+V	Unangenehme Stimme	Nachteil		Die Stimme klingt unangenehm; gesellschaftliche Proben sind erschwert.
+V	Unbewusster Viertelzauberer	Nachteil		Magisch begabt, ohne es zu wissen; die Kräfte zeigen sich unkontrolliert.
+V	Unverträglichkeit mit verarbeitetem Metall	Nachteil		Verarbeitetes Metall am Körper schwächt den Helden.
+V	Wahnvorstellungen	Nachteil		Hält Eingebildetes für wahr. Wert = Stärke.
+V	Wahrer Name	Nachteil		Besitzt einen wahren Namen: Wer ihn kennt, hat Macht über den Helden.
+V	Zielschwierigkeiten	Nachteil		Zielen fällt schwer; Fernkampf und gezielte Zauber sind erschwert.
+V	Zögerlicher Zauberer	Nachteil		Zaubert nur zögernd; Zauber brauchen länger.
+V	Vergesslichkeit	Nachteil		Vergisst leicht Namen, Verabredungen oder Gelerntes; der Meister kann Proben zum Erinnern verlangen.
+# --- Ergänzungen: Sonderfertigkeiten (Gruppen)
+S	Ritual	Magie		Ritual einer magischen Tradition (z. B. Schamanen, Druiden, Geoden, Hexen); gewirkt über die Ritualkenntnis dieser Tradition.
+S	Zaubertanz	Magie		Zaubertanz der Zaubertänzer (z. B. Sharisad, Majuna): Die Wirkung entsteht durch den Tanz und wird über die Ritualkenntnis gewirkt.
+S	Zauberzeichen	Magie		Magisches Zeichen bzw. Bann- oder Schutzkreis, das gezeichnet wird und an seinem Ort wirkt.
+S	Zibilja-Ritual	Magie		Ritual der Zibilja (norbardische Zauberinnen), oft mit Bienen und Wachs verbunden.
+S	Trommelzauber	Magie		Zauber der novadischen Derwische, gewirkt durch rhythmisches Trommeln.
+S	Schuppenbeutel	Magie		Ritual mit dem Schuppenbeutel, dem Ritualgegenstand der Achaz-Schamanen.
+S	Waffenloser Kampfstil	Kampf		Erlernter waffenloser Kampfstil mit eigenen Manövern und Vergünstigungen.
+S	Spätweihe*	Karma		Weihe zum Geweihten einer Gottheit erst im Erwachsenenalter, nach der Erschaffung.
+S	Matrixregeneration*	Magie		Artefaktmagie: erschöpfte oder beschädigte Zaubermatrizen von Artefakten wieder aufladen bzw. herstellen.
+S	Regeneration*	Magie		Die Astralenergie regeneriert schneller (Stufe I bzw. II).
+S	Semipermanenz*	Magie		Artefaktmagie: Wirkungen über lange Zeit festigen (semipermanent).
+S	Meisterliche Zauberkontrolle*	Magie		Sehr gute Beherrschung der Zauber; Patzer und unerwünschte Nebenwirkungen werden abgemildert.
+# --- Ergänzungen: Sonderfertigkeiten (einzeln)
+S	Apport	Magie		Ein gebundener Gegenstand (z. B. der Zauberstab) lässt sich magisch zu sich rufen.
+S	Aura der Heiligkeit	Karma		Ausstrahlung göttlicher Nähe; Dämonen und Untote scheuen den Geweihten.
+S	Aurapanzer	Magie		Schützt die eigene Aura gegen fremde Beherrschungs- und Einflusszauber.
+S	Bannschwert	Magie		Eine Waffe als Bannschwert binden: damit Bannkreise ziehen und magische Wesen wirksamer treffen.
+S	Chimärenmeister	Magie		Fortgeschrittene Kunst, Chimären zu erschaffen.
+S	Die Gestalt aus Rauch	Magie		Magische Verwandlung in eine Gestalt aus Rauch.
+S	Doppelschlag	Kampf		Zwei Angriffe kurz hintereinander in einer Kampfrunde.
+S	Druidenrache	Magie		Druiden: Wer den Druiden verletzt, wird von dessen Magie getroffen.
+S	Elementarharmonisierte Aura	Magie		Die Aura steht im Einklang mit den Elementen; Elementarzauber fallen leichter.
+S	Form der Formlosigkeit	Magie		Hohe Verwandlungskunst: die eigene Gestalt frei verändern.
+S	Geber der Gestalt	Magie		Kann Geistern bzw. Wesen eine körperliche Gestalt geben.
+S	Gefäß der Sterne	Magie		Erhöht die Astralenergie dauerhaft.
+S	Golembauer	Magie		Kann Golems erschaffen und beleben.
+S	Hexenritual: Hexensalbe	Magie		Herstellung der Hexensalbe, u. a. Voraussetzung für das Fliegen auf dem Fluggerät der Hexe.
+S	Hypervehemenz	Magie		Zauber mit zusätzlicher Astralenergie in ihrer Wirkung über das übliche Maß hinaus verstärken.
+S	Höhere Dämonenbindung	Magie		Bessere Kontrolle über beschworene Dämonen; Voraussetzung für die Bindung mächtigerer Dämonen.
+S	Invocatio Integra	Magie		Beschwörung mächtiger Dämonen in ihrer vollständigen Form.
+S	Kontakt zum Großen Geist	Magie		Schamanen: Verbindung zum Großen Geist, Grundlage für höhere Rituale.
+S	Kristallkraft bündeln	Magie		Kristallomanten: die Kraft mehrerer Kristalle für einen stärkeren Zauber bündeln.
+S	Lockeres Zaubern	Magie		Zaubern mit weniger Konzentration; Zauber lassen sich leichter nebenher wirken.
+S	Matrixkontrolle	Magie		Bessere Kontrolle über die Zaubermatrix; Patzer lassen sich abfangen.
+S	Matrixverständnis	Magie		Versteht den Aufbau von Zaubermatrizen; erleichtert Analyse und Abwandlung von Zaubern.
+S	Meister der Improvisation	Kampf		Improvisierte Waffen (Stuhl, Flasche, Werkzeug …) ohne die üblichen Abzüge nutzen.
+S	Meisterliche Regeneration	Magie		Die Astralenergie regeneriert deutlich besser.
+S	Meisterliches Entwaffnen	Kampf		Verbessertes Entwaffnen: Gegner leichter und mit mehr Waffen entwaffnen.
+S	Nekromant	Magie		Kenntnis der Totenbeschwörung: Untote erheben und Geister von Toten rufen.
+S	Niederringen	Kampf		Waffenlos: den Gegner zu Boden ringen.
+S	Ottagaldr	Magie		Thorwalsche Magie: Galdr-Gesang, der auf die Mannschaft einer Otta wirkt.
+S	Salasandra	Magie		Elfisches Gemeinschaftsritual, in dem mehrere Elfen ihre Kräfte verbinden.
+S	Schmetterschlag	Kampf		Wuchtiger Hieb, der den Gegner zurückwirft oder umwirft.
+S	Schmutzige Tricks	Kampf		Kämpfen mit unfairen Mitteln (Sand in die Augen, Tritte) und so den Gegner überraschen.
+S	Schwanzfeger	Kampf		Für Wesen mit Schwanz (z. B. Achaz): den Gegner mit dem Schwanz von den Beinen fegen.
+S	Schwanzschlag	Kampf		Für Wesen mit Schwanz (z. B. Achaz): Angriff mit dem Schwanz.
+S	Schwinger	Kampf		Waffenlos: weit ausholender Faustschlag mit hohem Schaden.
+S	Schwitzkasten	Kampf		Waffenlos: den Gegner im Schwitzkasten festhalten.
+S	Signaturkenntnis	Magie		Magische Signaturen (die „Handschrift“ eines Zauberers) erkennen und setzen.
+S	Simultanzaubern	Magie		Zwei Zauber gleichzeitig wirken.
+S	Spießgespann	Kampf		Kampf mit Speer bzw. Spieß im Verbund mit einem Gefährten.
+S	Sprung	Kampf		Waffenlos: Angriff aus dem Sprung.
+S	Stapeleffekt	Magie		Artefaktmagie: mehrere gleichartige Wirkungen übereinander legen.
+S	Tanz der Mada	Magie		Zaubertänzer: ein der Mada geweihter Tanz mit magischer Wirkung.
+S	Tierischer Begleiter	Allgemein		Ein Tier begleitet den Helden treu (kein magischer Vertrauter).
+S	Trank des ungehinderten Weges	Magie		Alchimistisches Wissen um einen Trank, der Bewegungshindernisse überwinden hilft.
+S	Traumgänger	Magie		Kann in die Träume anderer eintreten und darin handeln.
+S	Tritt	Kampf		Waffenlos: kräftiger Fußtritt.
+S	Turnierreiterei	Kampf		Lanzenreiten und Tjosten nach Turnierregeln.
+S	Verbotene Pforten	Magie		Zaubern mit Lebensenergie statt Astralenergie – gefährlich und kräftezehrend.
+S	Versteckte Klinge	Kampf		Eine verborgene Waffe ziehen und überraschend angreifen.
+S	Vertrautenbindung	Magie		Bindung an ein Vertrautentier.
+S	Vielfache Ladungen	Magie		Artefaktmagie: Artefakte mit mehreren Ladungen herstellen.
+S	Wahrer Name: Dämon	Magie		Kennt wahre Namen von Dämonen; erleichtert deren Beschwörung und Beherrschung.
+S	Wahrer Name: Geist	Magie		Kennt wahre Namen von Geistern; erleichtert deren Beschwörung und Beherrschung.
+S	Wahrer Name: Untoter	Magie		Kennt wahre Namen von Untoten; erleichtert deren Erhebung und Beherrschung.
+S	Wahrer Name: Chimäre	Magie		Kennt wahre Namen von Chimären; erleichtert deren Erschaffung und Beherrschung.
+S	Wahrer Name: Golem	Magie		Kennt wahre Namen von Golems; erleichtert deren Erschaffung und Beherrschung.
+S	Wahrer Name: Elementargeist	Magie		Kennt wahre Namen von Elementargeistern; erleichtert deren Beschwörung und Beherrschung.
+S	Wahrer Name: Dschinn	Magie		Kennt wahre Namen von Dschinnen; erleichtert deren Beschwörung und Beherrschung.
+S	Wahrer Name: Elementarer Meister	Magie		Kennt wahre Namen elementarer Meister; erleichtert deren Beschwörung.
+S	Wurf	Kampf		Waffenlos: den Gegner werfen.
+S	Würgegriff	Kampf		Waffenlos: den Gegner würgen.
+S	Zauber bereithalten	Magie		Einen Zauber vorbereiten und erst später auslösen.
+S	Zauber unterbrechen	Magie		Einen begonnenen Zauber abbrechen, ohne die volle Astralenergie zu verlieren.
+S	Zauber vereinigen	Magie		Mehrere Zauberer bündeln ihre Kraft in einem gemeinsamen Zauber.
+S	Zauberkontrolle	Magie		Bessere Beherrschung der Zauber; Patzerfolgen fallen geringer aus.
+S	Zauberroutine	Magie		Oft gewirkte Zauber gelingen schneller bzw. mit weniger Aufwand.
+# --- Eigenschaften und Basiswerte
+E	Mut	Eigenschaft		Tapferkeit und Entschlossenheit. Fließt ein in: Ausdauer, Astralenergie, Magieresistenz, Initiative (doppelt) und Attacke-Basis; dazu Proben gegen Angst.
+E	Klugheit	Eigenschaft		Verstand und Gedächtnis. Fließt ein in: Magieresistenz; Grundlage vieler Wissens- und Handwerkstalente und Zauber.
+E	Intuition	Eigenschaft		Gespür und schnelle Auffassung. Fließt ein in: Astralenergie, Initiative, Parade- und Fernkampf-Basis; wichtig für Wahrnehmung und Menschenkenntnis.
+E	Charisma	Eigenschaft		Ausstrahlung und Überzeugungskraft. Fließt ein in: Astralenergie; Grundlage der Gesellschaftstalente und vieler Beherrschungszauber.
+E	Fingerfertigkeit	Eigenschaft		Geschick der Hände. Fließt ein in: Fernkampf-Basis; wichtig für Handwerk, Schlösser und Fernkampf.
+E	Gewandtheit	Eigenschaft		Beweglichkeit und Körpergefühl. Fließt ein in: Ausdauer, Initiative, Attacke- und Parade-Basis (damit auch Ausweichen).
+E	Konstitution	Eigenschaft		Zähigkeit und Gesundheit. Fließt ein in: Lebensenergie (doppelt), Ausdauer, Magieresistenz und Wundschwelle; hilft gegen Gift und Krankheit.
+E	Körperkraft	Eigenschaft		Muskelkraft. Fließt ein in: Lebensenergie, Attacke-, Parade- und Fernkampf-Basis; erhöht über TP/KK den Waffenschaden und bestimmt die Tragkraft.
+E	Sozialstatus	Eigenschaft		Gesellschaftliche Stellung durch Herkunft und Titel; bestimmt, wie man in höheren Kreisen behandelt wird.
+E	Lebensenergie	Basiswert		(KO + KO + KK) / 2 plus Modifikatoren aus Rasse und Vorteilen. Sinkt sie auf 0, droht der Tod.
+E	Ausdauer	Basiswert		(MU + KO + GE) / 2 plus Modifikatoren. Sinkt bei Anstrengung und Ausdauerschaden.
+E	Astralenergie	Basiswert		(MU + IN + CH) / 2 plus Modifikatoren (nur Zauberkundige). Wird für Zauber und Rituale verbraucht.
+E	Karmaenergie	Basiswert		Göttliche Kraft der Geweihten für Liturgien; ihre Höhe hängt von der Weihe ab.
+E	Magieresistenz	Basiswert		(MU + KL + KO) / 5 plus Modifikatoren. Erschwert gegnerische Zauber gegen den Helden.
+E	Initiative	Basiswert		(MU + MU + IN + GE) / 5: Grundwert für die Reihenfolge im Kampf; dazu kommen 1W6 sowie Waffen- und Rüstungsmodifikatoren.
+E	Attacke	Basiswert		(MU + GE + KK) / 5: Grundlage aller Attacke-Werte im Nahkampf.
+E	Parade	Basiswert		(IN + GE + KK) / 5: Grundlage aller Parade-Werte und des Ausweichens.
+E	Fernkampf-Basis	Basiswert		(IN + FF + KK) / 5: Grundlage der Fernkampfwerte.

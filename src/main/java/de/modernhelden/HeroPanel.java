@@ -196,7 +196,7 @@ public final class HeroPanel extends JPanel {
             Integer v = h.eig.get(n[0]);
             if (v == null) continue;
             int mod = h.eigMod.getOrDefault(n[0], 0);
-            p.add(tile(n[0], String.valueOf(v), n[1] + ": " + v + (mod != 0 ? " (Grundwert " + h.eigVal.get(n[0]) + ", Modifikator " + signed(mod) + ")" : ""), false));
+            p.add(tile(n[0], String.valueOf(v), mitBeschreibung(n[1] + ": " + v + (mod != 0 ? " (Grundwert " + h.eigVal.get(n[0]) + ", Modifikator " + signed(mod) + ")" : ""), n[1]), false));
         }
         Map<String, String> tips = new HashMap<>();
         tips.put("LE", "Lebensenergie");
@@ -209,10 +209,25 @@ public final class HeroPanel extends JPanel {
         tips.put("PA", "Parade-Basiswert");
         tips.put("FK", "Fernkampf-Basiswert");
         for (Map.Entry<String, Integer> e : h.abgeleitet.entrySet()) {
-            p.add(tile(e.getKey(), String.valueOf(e.getValue()), tips.get(e.getKey()) + ": " + e.getValue()
-                    + " (berechnet aus Eigenschaften und Modifikatoren – maßgeblich ist der Wert der Helden-Software)", true));
+            p.add(tile(e.getKey(), String.valueOf(e.getValue()), mitBeschreibung(tips.get(e.getKey()) + ": " + e.getValue()
+                    + " (berechnet aus Eigenschaften und Modifikatoren – maßgeblich ist der Wert der Helden-Software)",
+                    BASISWERT.get(e.getKey())), true));
         }
         return p;
+    }
+
+    private static final Map<String, String> BASISWERT = new HashMap<>();
+    static {
+        String[][] b = {{"LE", "Lebensenergie"}, {"AU", "Ausdauer"}, {"AE", "Astralenergie"}, {"KE", "Karmaenergie"},
+                {"MR", "Magieresistenz"}, {"INI", "Initiative"}, {"AT", "Attacke"}, {"PA", "Parade"}, {"FK", "Fernkampf-Basis"}};
+        for (String[] x : b) BASISWERT.put(x[0], x[1]);
+    }
+
+    /** Kachel-Tooltip mit Kurzbeschreibung der Eigenschaft bzw. des Basiswerts (was sie beeinflusst). */
+    private String mitBeschreibung(String tip, String name) {
+        TooltipDB.Entry e = name == null ? null : db.lookupEntry(name);
+        if (e == null || e.text.isEmpty()) return tip;
+        return "<html><div style='width:320px'><b>" + esc(tip) + "</b><br>" + esc(e.text) + "</div></html>";
     }
 
     private JComponent tile(String key, String value, String tip, boolean derived) {

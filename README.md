@@ -65,8 +65,10 @@ Alle Änderungen am Helden laufen weiter über die Bedienelemente der Helden-Sof
 
 ### Tooltips und eigene Notizen
 
-- **Tooltips** zu Talenten, Sonderfertigkeiten, Vor-/Nachteilen und Zaubern, überall in der Software – mit
+- **Tooltips** zu Talenten, allen Sonderfertigkeiten, Vor-/Nachteilen und Zaubern, überall in der Software – mit
   Probe, Werten und bei Meta-Talenten der Berechnungsgrundlage.
+- **Eigenschaften und Basiswerte:** Tooltips zu MU bis KK, LE, AU, AE, MR, INI, AT, PA und FK zeigen, worauf eine
+  Eigenschaft wirkt bzw. wie sich ein Basiswert berechnet.
 - **Herkunft eines Werts:** Startwert, Erschaffung und jede Steigerung mit Datum, Lernmethode, SE und AP.
 - **Herkunft der AP:** Erschaffung, Vergaben mit Anlass, Ausgaben nach Bereich, freie AP.
 - **Eigene Notizen:** Doppelklick oder `Strg+Umschalt+T`; erscheinen im Tooltip und auf dem Heldenbogen.

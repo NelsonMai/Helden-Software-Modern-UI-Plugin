@@ -24,6 +24,7 @@ public final class TooltipDB {
             if ("T".equals(typ)) return "Talent";
             if ("S".equals(typ)) return "Sonderfertigkeit";
             if ("V".equals(typ)) return "Nachteil".equals(gruppe) ? "Nachteil" : "Vorteil";
+            if ("E".equals(typ)) return gruppe.isEmpty() ? "Eigenschaft" : gruppe;
             return "";
         }
     }
@@ -136,6 +137,8 @@ public final class TooltipDB {
         String s = raw.replaceAll("<[^>]*>", " ").replace(' ', ' ').replaceAll("\\s+", " ").trim();
         if (s.isEmpty() || s.length() > 120) return c;
         c.add(s);
+        // Beschriftungen wie „Mut:“ oder „Lebensenergie:“
+        if (s.endsWith(":") && s.length() > 1) c.add(s.substring(0, s.length() - 1).trim());
         String noNum = s.replaceAll("[\\s:]*[-+]?\\d+\\s*$", "").trim();
         if (!noNum.equals(s)) c.add(noNum);
         int colon = s.indexOf(": ");

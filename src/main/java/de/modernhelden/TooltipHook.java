@@ -5,6 +5,7 @@ import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -241,6 +242,22 @@ public final class TooltipHook implements AWTEventListener {
         }
         if (c instanceof JList && vorlageTooltip((JList<?>) c, e)) return;
         String text = textAt(c, e.getPoint());
+        // Wertfelder neben „Mut:“, „Lebensenergie:“ … erklären die Eigenschaft bzw. den Basiswert
+        if (text == null && c instanceof javax.swing.text.JTextComponent) {
+            String lab = labelVor(c);
+            TooltipDB.Match em = lab == null ? null : db.find(lab);
+            if (em != null && em.entry != null && "E".equals(em.entry.typ)) text = lab;
+        }
+        // Beschriftungen ohne eigene Mauslogik bekommen keine Mausereignisse (die gehen an den Container) –
+        // für Eigenschaften und Basiswerte das Label unter dem Mauszeiger selbst suchen
+        if (text == null && !(c instanceof javax.swing.text.JTextComponent)) {
+            Component d = SwingUtilities.getDeepestComponentAt(c, e.getX(), e.getY());
+            if (d instanceof JLabel && d != c) {
+                String lt = ((JLabel) d).getText();
+                TooltipDB.Match em = lt == null ? null : db.find(lt);
+                if (em != null && em.entry != null && "E".equals(em.entry.typ)) { text = lt; c = (JComponent) d; }
+            }
+        }
         TooltipDB.Match m = text == null ? null : db.find(text);
         if (m == null && text != null && hero != null) {
             // Zauber haben keine mitgelieferte Beschreibung – trotzdem Werte und eigene Notiz zeigen
@@ -316,6 +333,12 @@ public final class TooltipHook implements AWTEventListener {
         HeroData h = hero;
         Map<String, String> x = new LinkedHashMap<>();
         if (h == null) return x;
+        if (m.entry != null && "E".equals(m.entry.typ)) {
+            String k = KUERZEL.get(m.entry.name);
+            Integer v = k == null ? null : h.eig.containsKey(k) ? h.eig.get(k) : h.abgeleitet.get(k);
+            if (v != null) x.put("Wert", String.valueOf(v));
+            return x;
+        }
         HeroData.Talent t = h.talent(m.shown);
         if (t == null && m.entry != null) t = h.talent(m.entry.name);
         HeroData.Talent z = t == null ? h.zauber(m.shown) : null;
@@ -335,6 +358,16 @@ public final class TooltipHook implements AWTEventListener {
             else if (!t.lernmethode.isEmpty()) x.put("Lernen", t.lernmethode);
         }
         return x;
+    }
+
+    /** Eigenschaften und Basiswerte → Kürzel in HeroData (eig bzw. abgeleitet). */
+    static final Map<String, String> KUERZEL = new HashMap<>();
+    static {
+        String[][] k = {{"Mut", "MU"}, {"Klugheit", "KL"}, {"Intuition", "IN"}, {"Charisma", "CH"}, {"Fingerfertigkeit", "FF"},
+                {"Gewandtheit", "GE"}, {"Konstitution", "KO"}, {"Körperkraft", "KK"}, {"Sozialstatus", "SO"},
+                {"Lebensenergie", "LE"}, {"Ausdauer", "AU"}, {"Astralenergie", "AE"}, {"Karmaenergie", "KE"},
+                {"Magieresistenz", "MR"}, {"Initiative", "INI"}, {"Attacke", "AT"}, {"Parade", "PA"}, {"Fernkampf-Basis", "FK"}};
+        for (String[] p : k) KUERZEL.put(p[0], p[1]);
     }
 
     /** Beschriftung eines Eingabefelds: per labelFor oder das JLabel direkt davor im selben Container. */

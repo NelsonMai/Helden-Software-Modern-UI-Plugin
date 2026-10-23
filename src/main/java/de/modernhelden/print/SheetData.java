@@ -37,8 +37,8 @@ public final class SheetData {
     }
 
     public static final class Eintrag {
-        public String name = "", bereich = "";
-        public boolean nachteil;
+        public String name = "", bereich = "", bezeichner = "";
+        public boolean nachteil, vorteil;
     }
 
     public static final class Nahkampfwaffe {
@@ -168,7 +168,9 @@ public final class SheetData {
             Eintrag x = new Eintrag();
             x.name = text(e, "namemitkommentar");
             if (x.name.isEmpty()) x.name = text(e, "name");
+            x.bezeichner = text(e, "bezeichner");
             x.nachteil = "true".equals(text(e, "istnachteil"));
+            x.vorteil = "true".equals(text(e, "istvorteil"));
             d.vorteile.add(x);
         }
         Element sfs = child(root, "sonderfertigkeiten");
