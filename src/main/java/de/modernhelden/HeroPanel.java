@@ -18,12 +18,13 @@ import java.util.function.Consumer;
 public final class HeroPanel extends JPanel {
 
     private static final String[] GRUPPEN = {"Nahkampf", "Fernkampf", "Körperlich", "Gesellschaft", "Natur", "Wissen",
-            "Sprache", "Schrift", "Handwerk", "Gabe", "Sonstige"};
+            "Sprache", "Schrift", "Handwerk", "Gabe", "Meta", "Sonstige"};
     private static final Map<String, String> GRUPPEN_TITEL = new HashMap<>();
     static {
         GRUPPEN_TITEL.put("Nahkampf", "Kampftalente · Nahkampf");
         GRUPPEN_TITEL.put("Fernkampf", "Kampftalente · Fernkampf");
         GRUPPEN_TITEL.put("Körperlich", "Körperliche Talente");
+        GRUPPEN_TITEL.put("Meta", "Meta-Talente");
         GRUPPEN_TITEL.put("Gesellschaft", "Gesellschaftliche Talente");
         GRUPPEN_TITEL.put("Natur", "Naturtalente");
         GRUPPEN_TITEL.put("Wissen", "Wissenstalente");
@@ -328,8 +329,9 @@ public final class HeroPanel extends JPanel {
         x.put("TaW", String.valueOf(t.wert));
         x.put("BE", t.be);
         if (!t.k.isEmpty()) x.put("Komplexität", t.k);
-        x.put("Lernen", t.lernmethode);
-        return db.html(m, x, hero.herkunft.talent(t.name, t.wert));
+        boolean meta = "berechnet".equals(t.lernmethode);
+        if (meta) x.put("Art", "Meta-Talent (berechnet)"); else x.put("Lernen", t.lernmethode);
+        return db.html(m, x, meta ? null : hero.herkunft.talent(t.name, t.wert));
     }
 
     /** Talentwert als Zahl mit kleinem Balken (0–21). */

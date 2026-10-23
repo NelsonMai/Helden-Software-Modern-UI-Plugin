@@ -106,6 +106,8 @@ kein „aktives“ Set, sondern berechnet die Werte für jedes Set einzeln.
 
 - **Tooltips** zu Talenten, Sonderfertigkeiten, Vor- und Nachteilen und Zaubern – überall in der Software,
   auch in den Original-Dialogen. Bei eigenen Talenten mit Probe und Eigenschaftswerten, TaW, BE bzw. AT/PA.
+  Meta-Talente (Ansitzjagd, Kräuter suchen, Wachehalten …) erklären zusätzlich, aus welchen Talenten die
+  Helden-Software ihren Wert berechnet.
 - **Herkunft eines Werts:** Startwert aus Rasse, Kultur und Profession, Professions-Auswahl, Steigerungen bei
   der Erschaffung und jede spätere Steigerung mit Datum, Lernmethode (Lehrmeister, Selbststudium …),
   Spezieller Erfahrung und AP-Kosten. Grundlage ist das Ereignisprotokoll der Helden-Software.
@@ -144,7 +146,7 @@ die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
 ### Reiter „Plugin: Modern-UI“
 
 Eine kompakte Heldenübersicht: Eigenschaften und Basiswerte als Kacheln, filterbare Talentliste mit
-Fortschrittsbalken, Sonderfertigkeiten und Vor-/Nachteile mit Kurzbeschreibung, Kampfwerte, Zauber und
+Fortschrittsbalken (Meta-Talente in einer eigenen Gruppe, sofern sie für den Helden eingeschaltet sind), Sonderfertigkeiten und Vor-/Nachteile mit Kurzbeschreibung, Kampfwerte, Zauber und
 Inventar mit Geldbörse. Die Übersicht aktualisiert sich automatisch.
 
 Das **Inventar** ist eine sortier- und filterbare Tabelle (Alle, Angelegt, Waffen, Rüstung, Schilde, Sonstiges)

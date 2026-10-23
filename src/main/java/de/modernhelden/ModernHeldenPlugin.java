@@ -221,6 +221,10 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
             Object res = exec("exportHeld", "id", "selected");
             if (res instanceof Document) {
                 h = HeroData.parse((Document) res, db);
+                try {
+                    Document v3 = heldDaten();
+                    if (v3 != null) h.metaTalente(de.modernhelden.print.SheetData.parse(v3));
+                } catch (RuntimeException ignore) { }
                 debugDump("exportHeld", (Document) res);
                 if (baseDir != null && new File(baseDir, "debug").isDirectory()) {
                     for (String v : new String[]{"1", "2", "3", "4"}) {

@@ -208,6 +208,27 @@ public final class HeroData {
 
     public Talent talent(String name) { return name == null ? null : talentByName.get(name); }
 
+    /**
+     * Meta-Talente (Ansitzjagd, Wachehalten …) stehen nicht in den Heldendaten; die Helden-Software berechnet sie
+     * nur für den Druck – und nur, wenn sie in ihren Druckeinstellungen eingeschaltet sind. Sie werden hier aus den
+     * Druckdaten ergänzt (Name in beiden Schreibweisen auffindbar: „incl“ wie im Reiter „Talente“, „inkl.“).
+     */
+    public void metaTalente(de.modernhelden.print.SheetData sd) {
+        if (sd == null || !sd.metaAktiv) return;
+        for (de.modernhelden.print.SheetData.Talent st : sd.talente) {
+            if (!st.meta || talentByName.containsKey(st.name)) continue;
+            Talent t = new Talent();
+            t.name = st.name;
+            t.probe = st.probe;
+            t.be = st.be;
+            t.wert = st.wert;
+            t.lernmethode = "berechnet";
+            talente.add(t);
+            talentByName.put(t.name, t);
+            talentByName.put(t.name.replace("inkl.", "incl"), t);
+        }
+    }
+
     /** Zauber des Helden zu einem angezeigten Namen (auch mit Zusätzen wie Variante oder Wert); sonst null. */
     public Talent zauber(String shown) {
         if (shown == null) return null;

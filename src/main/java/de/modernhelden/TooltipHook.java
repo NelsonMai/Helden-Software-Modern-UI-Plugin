@@ -306,6 +306,7 @@ public final class TooltipHook implements AWTEventListener {
         if (h == null) return null;
         HeroData.Talent t = h.talent(m.shown);
         if (t == null && m.entry != null) t = h.talent(m.entry.name);
+        if (t != null && "berechnet".equals(t.lernmethode)) return null;   // Meta-Talent: wird berechnet, nicht gesteigert
         if (t != null) return h.herkunft.talent(t.name, t.wert);
         for (HeroData.Item it : h.sf) if (it.name.equals(m.shown)) return h.herkunft.sonderfertigkeit(it.name);
         return null;
@@ -330,7 +331,8 @@ public final class TooltipHook implements AWTEventListener {
             if (kw != null) x.put("Werte", kw); else x.put("Probe", h.probeMitWerten(t.probe));
             x.put("TaW", String.valueOf(t.wert));
             if (!t.be.isEmpty()) x.put("BE", t.be);
-            if (!t.lernmethode.isEmpty()) x.put("Lernen", t.lernmethode);
+            if ("berechnet".equals(t.lernmethode)) x.put("Art", "Meta-Talent (berechnet)");
+            else if (!t.lernmethode.isEmpty()) x.put("Lernen", t.lernmethode);
         }
         return x;
     }
