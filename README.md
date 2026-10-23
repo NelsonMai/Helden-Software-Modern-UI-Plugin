@@ -28,7 +28,7 @@ zurückschalten.
   *+1* und *SE* funktionieren auch sortiert.
 - **Eigene Symbole:** über 40 neu gezeichnete Symbole, passend zu hell und dunkel.
 
-Die neu gestalteten Reiter *Inventar* und *Ausrüstung* samt Dialogen gibt es nur in den modernen Designs; im
+Die neu gestalteten Reiter *Inventar*, *Ausrüstung* und *Kampfwerte* samt Dialogen gibt es nur in den modernen Designs; im
 *Original* sehen sie aus wie bisher.
 Alle Änderungen am Helden laufen weiter über die Bedienelemente der Helden-Software.
 
@@ -62,6 +62,19 @@ Alle Änderungen am Helden laufen weiter über die Bedienelemente der Helden-Sof
 | Ausrüstung | Nahkampfwaffen bearbeiten |
 |---|---|
 | ![Reiter Ausrüstung im modernen Design](docs/bilder/ausruestung.png) | ![Dialog Nahkampfwaffen](docs/bilder/ausruestung-nahkampf.png) |
+
+### Kampfwerte
+
+- **Basiswerte erklärt:** AT-, PA-, FK- und INI-Basis mit Formel und den Eigenschaftswerten des Helden
+  (z. B. „(MU 15 + GE 14 + KK 15) / 5 = 8,8 → 9“).
+- **Nahkampf als Tabelle:** TaW, AT und PA je Talent, die Verteilung als Balken und die Anteile („+8 | +3“).
+  Der Tooltip zeigt den Rechenweg (AT = AT-Basis + AT-Anteil …).
+- **Verteilungsregeln:** freie TaP werden hervorgehoben; „+“ ist gesperrt, wenn keine TaP frei sind oder der
+  Unterschied zwischen AT- und PA-Anteil schon 5 beträgt – mit Begründung im Tooltip. Verteilt wird über die
+  Knöpfe der Helden-Software. **↺** gibt alle verteilten TaP eines Talents wieder frei, um neu zu verteilen.
+- **Fernkampf:** FK mit Rechenweg (FK-Basis + TaW).
+
+![Reiter „Kampfwerte“ im modernen Design](docs/bilder/kampfwerte.png)
 
 ### Tooltips und eigene Notizen
 
@@ -175,6 +188,7 @@ Kompilieren. GitHub Actions baut jeden Push und hängt das JAR an veröffentlich
 | `HeroPanel.java`, `HeroData.java`, `HauptReiter.java` | Kompaktansicht und Verlauf |
 | `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java`, `InventarInfo.java`, `VorlagenInfo.java`, `Geld.java` | Inventar, Hinzufügen, Geldbörse |
 | `AusruestungLayout.java`, `AusruestungDialoge.java` | Ausrüstung und ihre Dialoge |
+| `KampfwerteLayout.java` | Kampfwerte mit Rechenweg und Verteilungsregeln |
 | `TalenteSortierung.java` | Sortierbare Tabellen |
 | `ErschaffungsLayout.java`, `DebugBaum.java` | Erschaffungsdialog, Debug-Ausgabe |
 | `print/`, `update/` | Heldenbogen und PDF, automatische Aktualisierung |
