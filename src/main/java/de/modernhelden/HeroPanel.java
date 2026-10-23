@@ -276,7 +276,7 @@ public final class HeroPanel extends JPanel {
                 if (!tooltipsAn.getAsBoolean()) return null;
                 int r = rowAtPoint(e.getPoint());
                 if (r < 0) return null;
-                Row row = talentModel.rows.get(r);
+                Row row = talentModel.rows.get(convertRowIndexToModel(r));
                 return row.t == null ? null : talentTip(row.t);
             }
         };
@@ -288,7 +288,7 @@ public final class HeroPanel extends JPanel {
         table.getColumnModel().getColumn(4).setPreferredWidth(150);
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
-                Row row = talentModel.rows.get(r);
+                Row row = talentModel.rows.get(t.convertRowIndexToModel(r));
                 if (row.t == null) {
                     super.getTableCellRendererComponent(t, v, false, false, r, c);
                     setFont(getFont().deriveFont(Font.BOLD));
@@ -307,10 +307,13 @@ public final class HeroPanel extends JPanel {
             }
         });
         table.getColumnModel().getColumn(3).setCellRenderer(new BarRenderer(() -> talentModel));
+        // Spaltenkopf sortiert innerhalb der Talentgruppen
+        TalenteSortierung.sortierbarInGruppen(table, i -> talentModel.rows.get(i).t == null);
         attachPopup(table, e -> {
             int r = table.rowAtPoint(e.getPoint());
-            if (r < 0 || talentModel.rows.get(r).t == null) return null;
-            return talentModel.rows.get(r).t.name;
+            if (r < 0) return null;
+            Row row = talentModel.rows.get(table.convertRowIndexToModel(r));
+            return row.t == null ? null : row.t.name;
         });
 
         JPanel p = new JPanel(new BorderLayout(0, 8));
@@ -341,7 +344,7 @@ public final class HeroPanel extends JPanel {
         BarRenderer(java.util.function.Supplier<TalentModel> m) { model = m; }
         @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
             super.getTableCellRendererComponent(t, "", sel, false, r, c);
-            header = model.get().rows.get(r).t == null;
+            header = model.get().rows.get(t.convertRowIndexToModel(r)).t == null;
             value = v instanceof Integer ? (Integer) v : 0;
             if (header) setBackground(Theme.kopfzeile());
             else if (!sel) setBackground(Theme.zeile(r));
@@ -710,6 +713,7 @@ public final class HeroPanel extends JPanel {
             int r = table.rowAtPoint(e.getPoint());
             return r < 0 ? null : String.valueOf(table.getValueAt(r, 0));
         });
+        TalenteSortierung.sortierbar(table);
         JPanel p = new JPanel(new BorderLayout(0, 6));
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
         p.add(scroll(table));
@@ -725,22 +729,21 @@ public final class HeroPanel extends JPanel {
 
     private JComponent verlaufTab(final HeroData h) {
         final List<Herkunft.Ereignis> ev = h.herkunft.rueckgaengigMoeglich();
-        String[] cols = {"Datum", "Aktion", "Eintrag", "Änderung", "AP"};
+        String[] cols = {"Datum", "Aktion", "Eintrag", "Änderung", "Lernmethode", "AP"};
         List<Object[]> data = new ArrayList<>();
         for (Herkunft.Ereignis e : ev) {
             String aend = e.alt.isEmpty() && e.neu.isEmpty() ? "" : erster(e.alt) + " → " + erster(e.neu);
             int ap = -num(e.ap);
-            data.add(new Object[]{h.herkunft.datum(e), e.text, e.obj, aend, ap == 0 ? "" : String.valueOf(ap)});
+            // Lernmethode inkl. Spezieller Erfahrung (SE), wie von der Helden-Software vermerkt
+            data.add(new Object[]{h.herkunft.datum(e), e.text, e.obj, aend, Herkunft.lernText(e.info), ap == 0 ? "" : String.valueOf(ap)});
         }
         final JTable table = new JTable(data.toArray(new Object[0][]), cols) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         styleTable(table);
-        table.getColumnModel().getColumn(0).setPreferredWidth(90);
-        table.getColumnModel().getColumn(1).setPreferredWidth(190);
-        table.getColumnModel().getColumn(2).setPreferredWidth(260);
-        table.getColumnModel().getColumn(3).setPreferredWidth(90);
-        table.getColumnModel().getColumn(4).setPreferredWidth(60);
+        int[] breiten = {85, 170, 220, 80, 300, 50};
+        for (int i = 0; i < breiten.length; i++) table.getColumnModel().getColumn(i).setPreferredWidth(breiten[i]);
+        TalenteSortierung.sortierbar(table);
         for (int i = 0; i < cols.length; i++) {
             javax.swing.table.TableColumn col = table.getColumnModel().getColumn(i);
             col.setCellRenderer(new TabellenStil.Zebra(col.getCellRenderer()));
@@ -755,7 +758,7 @@ public final class HeroPanel extends JPanel {
         table.getSelectionModel().addListSelectionListener(e -> {
             int r = table.getSelectedRow();
             if (r < 0) { undo.setEnabled(false); return; }
-            Herkunft.Ereignis x = ev.get(r);
+            Herkunft.Ereignis x = ev.get(table.convertRowIndexToModel(r));
             Herkunft.Ereignis spaeter = h.herkunft.spaeteresZuSelbem(x);
             if (spaeter != null) {
                 undo.setEnabled(false);
@@ -772,7 +775,7 @@ public final class HeroPanel extends JPanel {
         undo.addActionListener(e -> {
             int r = table.getSelectedRow();
             if (r < 0 || rueckgaengig == null) return;
-            Herkunft.Ereignis x = ev.get(r);
+            Herkunft.Ereignis x = ev.get(table.convertRowIndexToModel(r));
             int ap = -num(x.ap);
             StringBuilder msg = new StringBuilder("<html><div style='width:360px'><b>" + esc(x.text) + ": " + esc(x.obj) + "</b>");
             if (!x.alt.isEmpty() || !x.neu.isEmpty()) msg.append("<br>Wert ").append(esc(erster(x.neu))).append(" → ").append(esc(erster(x.alt)));

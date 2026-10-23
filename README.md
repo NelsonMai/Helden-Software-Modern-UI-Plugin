@@ -127,7 +127,8 @@ kein „aktives“ Set, sondern berechnet die Werte für jedes Set einzeln.
 ### Steigerungen rückgängig machen
 
 Im Reiter „Plugin: Modern-UI“ → *Verlauf* stehen alle Steigerungen und erworbenen Sonderfertigkeiten aus
-dem Ereignisprotokoll (neueste zuerst). Ein Eintrag lässt sich mit *Rückgängig machen …* zurücknehmen;
+dem Ereignisprotokoll (neueste zuerst) mit Datum, Änderung, Lernmethode und AP. Wurde dabei eine
+**Spezielle Erfahrung (SE)** genutzt, steht das in der Spalte *Lernmethode*. Ein Eintrag lässt sich mit *Rückgängig machen …* zurücknehmen;
 die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
 
 - Möglich für: Talent, Zauber, Nahkampftalent (inkl. AT/PA-Verteilung) und Eigenschaft (auch LE/AU/AE) steigern,
@@ -151,6 +152,10 @@ die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
 Eine kompakte Heldenübersicht: Eigenschaften und Basiswerte als Kacheln, filterbare Talentliste mit
 Fortschrittsbalken (Meta-Talente in einer eigenen Gruppe, sofern sie für den Helden eingeschaltet sind), Sonderfertigkeiten und Vor-/Nachteile mit Kurzbeschreibung, Kampfwerte, Zauber und
 Inventar mit Geldbörse. Die Übersicht aktualisiert sich automatisch.
+
+Alle Tabellen in diesem Reiter sind **sortierbar**: Ein Klick auf den Spaltenkopf sortiert aufsteigend, ein
+zweiter absteigend, ein dritter stellt die ursprüngliche Reihenfolge wieder her. In der Talentliste wird
+innerhalb der Talentgruppen sortiert, die Gruppen selbst bleiben erhalten; der Filter funktioniert weiterhin.
 
 Das **Inventar** ist eine sortier- und filterbare Tabelle (Alle, Angelegt, Waffen, Rüstung, Schilde, Sonstiges)
 mit Anzahl, Gewicht in Stein, Wert (D/S/H/K) und angelegten Gegenständen. Die Spalte *Werte* zeigt die Angaben
@@ -308,7 +313,7 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `update/` | Automatische Aktualisierung über GitHub-Releases (`PluginUpdate`) und Installationshelfer (`UpdateInstaller`) |
 | `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java` | Reiter „Inventar / Tiere“, Hinzufügen-Dialog und Geldbörse in den modernen Designs |
 | `AusruestungLayout.java`, `AusruestungDialoge.java` | Reiter „Ausrüstung“ und seine Bearbeiten-Dialoge in den modernen Designs |
-| `TalenteSortierung.java` | Sortierbare Tabellen in den Reitern „Talente“ und „Zauber“ (moderne Designs) |
+| `TalenteSortierung.java` | Sortierbare Tabellen in den Reitern „Talente“ und „Zauber“ (moderne Designs) und im Reiter „Plugin: Modern-UI“ |
 | `DebugBaum.java` | Nur im Debug-Modus: Komponentenbaum offener Fenster für die Analyse ausgeben |
 | `ErschaffungsLayout.java` | Platzierung des GP/AP-Felds im Erschaffungsdialog (moderne Designs) |
 | `print/` | Druckvorschau, Heldenbogen-Layout (`ModernSheet`), Datenaufbereitung, PDF-Export |

@@ -214,7 +214,7 @@ public final class Herkunft {
         return out;
     }
 
-    private static String lernText(String info) {
+    static String lernText(String info) {
         if (info == null || info.trim().isEmpty()) return "";
         List<String> teile = new ArrayList<>();
         for (String p : info.split(",")) {

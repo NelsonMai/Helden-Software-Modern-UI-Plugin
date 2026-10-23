@@ -149,6 +149,94 @@ final class TalenteSortierung {
         }
     }
 
+    // ---------------------------------------------------------------- eigene Tabellen (Reiter „Plugin: Modern-UI“)
+
+    /** Macht eine eigene Tabelle per Spaltenkopf sortierbar (aufsteigend, absteigend, ursprünglich). */
+    static void sortierbar(JTable t) {
+        TableRowSorter<TableModel> s = new TableRowSorter<>(t.getModel());
+        for (int i = 0; i < t.getModel().getColumnCount(); i++) s.setComparator(i, TalenteSortierung::vergleiche);
+        s.setMaxSortKeys(1);
+        t.setRowSorter(new DreiStufen(s));
+    }
+
+    /**
+     * Sortierer für Tabellen mit Gruppen-Kopfzeilen (z. B. Talente nach Talentgruppe): sortiert nur innerhalb der
+     * Gruppen, die Kopfzeilen und die Reihenfolge der Gruppen bleiben erhalten.
+     */
+    static void sortierbarInGruppen(JTable t, java.util.function.IntPredicate kopfzeile) {
+        t.setRowSorter(new GruppenSortierer(t.getModel(), kopfzeile));
+    }
+
+    private static final class GruppenSortierer extends RowSorter<TableModel> {
+        final TableModel m;
+        final java.util.function.IntPredicate kopf;
+        List<SortKey> keys = Collections.emptyList();
+        int[] v2m = new int[0], m2v = new int[0];
+
+        GruppenSortierer(TableModel m, java.util.function.IntPredicate kopf) {
+            this.m = m;
+            this.kopf = kopf;
+            sortieren(false);
+        }
+
+        void sortieren(boolean melden) {
+            int[] alt = v2m;
+            int n = m.getRowCount();
+            Integer[] idx = new Integer[n];
+            final int[] gruppe = new int[n];
+            int g = -1;
+            for (int i = 0; i < n; i++) {
+                idx[i] = i;
+                if (kopf.test(i)) g = i;
+                gruppe[i] = g;
+            }
+            if (!keys.isEmpty()) {
+                final int c = keys.get(0).getColumn();
+                final int dir = keys.get(0).getSortOrder() == SortOrder.DESCENDING ? -1 : 1;
+                Arrays.sort(idx, (a, b) -> {
+                    if (gruppe[a] != gruppe[b]) return Integer.compare(gruppe[a], gruppe[b]);
+                    boolean ka = kopf.test(a), kb = kopf.test(b);
+                    if (ka || kb) return ka == kb ? 0 : ka ? -1 : 1;
+                    Object x = m.getValueAt(a, c), y = m.getValueAt(b, c);
+                    // leere Zellen bleiben auch absteigend am Ende
+                    if (leer(x) || leer(y)) return vergleiche(x, y);
+                    return dir * vergleiche(x, y);
+                });
+            }
+            v2m = new int[n];
+            m2v = new int[n];
+            for (int i = 0; i < n; i++) { v2m[i] = idx[i]; m2v[idx[i]] = i; }
+            if (melden) fireRowSorterChanged(alt);
+        }
+
+        @Override public TableModel getModel() { return m; }
+        @Override public void toggleSortOrder(int column) {
+            List<SortKey> k;
+            if (keys.isEmpty() || keys.get(0).getColumn() != column) k = Collections.singletonList(new SortKey(column, SortOrder.ASCENDING));
+            else if (keys.get(0).getSortOrder() == SortOrder.ASCENDING) k = Collections.singletonList(new SortKey(column, SortOrder.DESCENDING));
+            else k = Collections.emptyList();
+            setSortKeys(k);
+        }
+        @Override public void setSortKeys(List<? extends SortKey> k) {
+            keys = k == null ? Collections.emptyList() : new ArrayList<>(k);
+            fireSortOrderChanged();
+            sortieren(true);
+        }
+        @Override public List<? extends SortKey> getSortKeys() { return keys; }
+        @Override public int convertRowIndexToModel(int i) { return i < 0 || i >= v2m.length ? -1 : v2m[i]; }
+        @Override public int convertRowIndexToView(int i) { return i < 0 || i >= m2v.length ? -1 : m2v[i]; }
+        @Override public int getViewRowCount() { return v2m.length; }
+        @Override public int getModelRowCount() { return m.getRowCount(); }
+        @Override public void modelStructureChanged() { sortieren(true); }
+        @Override public void allRowsChanged() { sortieren(true); }
+        @Override public void rowsInserted(int a, int b) { sortieren(true); }
+        @Override public void rowsDeleted(int a, int b) { sortieren(true); }
+        @Override public void rowsUpdated(int a, int b) { sortieren(true); }
+        @Override public void rowsUpdated(int a, int b, int c) { sortieren(true); }
+    }
+
+    private static final java.util.regex.Pattern DATUM = java.util.regex.Pattern.compile("(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})");
+
     private static final Collator TEXT = Collator.getInstance(Locale.GERMAN);
 
     /** Zahlen nach Wert, Texte alphabetisch; leere Zellen (z. B. Kosten bei Meta-Talenten) immer ans Ende. */
@@ -156,9 +244,17 @@ final class TalenteSortierung {
         boolean la = leer(a), lb = leer(b);
         if (la || lb) return la == lb ? 0 : la ? 1 : -1;
         Double x = zahl(a), y = zahl(b);
+        if (x == null || y == null) { x = datum(a); y = datum(b); }
         if (x != null && y != null) return Double.compare(x, y);
         if (a instanceof Boolean && b instanceof Boolean) return Boolean.compare((Boolean) a, (Boolean) b);
         return TEXT.compare(String.valueOf(a), String.valueOf(b));
+    }
+
+    /** „TT.MM.JJJJ“ als sortierbare Zahl JJJJMMTT. */
+    private static Double datum(Object o) {
+        java.util.regex.Matcher d = DATUM.matcher(String.valueOf(o).trim());
+        if (!d.matches()) return null;
+        return Double.valueOf(d.group(3) + String.format("%02d%02d", Integer.parseInt(d.group(2)), Integer.parseInt(d.group(1))));
     }
 
     private static boolean leer(Object o) { return o == null || String.valueOf(o).trim().isEmpty(); }
