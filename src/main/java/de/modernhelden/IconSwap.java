@@ -84,6 +84,7 @@ public final class IconSwap {
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) return;
         if (c instanceof JTable) {
             TabellenStil.anwenden((JTable) c, modern);
+            TalenteSortierung.pruefen((JTable) c, modern);
             zellenSymbole((JTable) c);
         }
         if (c instanceof JTree) {

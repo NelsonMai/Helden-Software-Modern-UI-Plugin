@@ -35,6 +35,9 @@ Mit einem Klick lässt sich jederzeit zum Original-Design zurückschalten.
   Software einschließlich aller Dialoge (Steigern, Erschaffung, Ausrüstung …).
 - **Gut unterscheidbare Felder:** Tabellen mit Zebra-Streifen, Spaltenlinien und gut lesbarer Markierung.
   Bearbeitbare Eingabefelder sind hell, reine Anzeigefelder leicht getönt.
+- **Sortierbare Talente und Zauber:** In den Reitern „Talente“ und „Zauber“ sortiert ein Klick auf den
+  Spaltenkopf (z. B. *Kosten*, *Wert*, *Kat.*/*Komp*, *Talent*, *Merkmale*), ein zweiter Klick kehrt die Reihenfolge
+  um, ein dritter stellt die ursprüngliche wieder her. Steigern mit *+1* und *SE* funktionieren auch sortiert.
 - **Eigene Symbole:** über 40 neu gezeichnete Symbole für Werkzeugleiste, Dialoge, Meldungen und die
   Markierungen in Talent- und Zauberlisten (Basistalent, Hauszauber, Leittalent …), außerdem für die
   Heldengruppen, die Ordner im Gruppenvergleich und die Löschknöpfe im Inventar. Sie passen sich
@@ -305,6 +308,7 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `update/` | Automatische Aktualisierung über GitHub-Releases (`PluginUpdate`) und Installationshelfer (`UpdateInstaller`) |
 | `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java` | Reiter „Inventar / Tiere“, Hinzufügen-Dialog und Geldbörse in den modernen Designs |
 | `AusruestungLayout.java`, `AusruestungDialoge.java` | Reiter „Ausrüstung“ und seine Bearbeiten-Dialoge in den modernen Designs |
+| `TalenteSortierung.java` | Sortierbare Tabellen in den Reitern „Talente“ und „Zauber“ (moderne Designs) |
 | `DebugBaum.java` | Nur im Debug-Modus: Komponentenbaum offener Fenster für die Analyse ausgeben |
 | `ErschaffungsLayout.java` | Platzierung des GP/AP-Felds im Erschaffungsdialog (moderne Designs) |
 | `print/` | Druckvorschau, Heldenbogen-Layout (`ModernSheet`), Datenaufbereitung, PDF-Export |
