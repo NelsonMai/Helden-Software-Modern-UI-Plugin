@@ -24,7 +24,39 @@ final class GeldboerseLayout {
     private static double auftrag;
     private static String ergebnis;
 
-    static void auftrag(double silber) { auftrag = silber; if (silber > 0) ergebnis = null; }
+    static void auftrag(double silber) {
+        auftrag = silber;
+        if (silber > 0) { ergebnis = null; versteckenInstallieren(); }
+    }
+
+    private static boolean versteckenInstalliert;
+    private static final int WEG = -30000;
+
+    /**
+     * Beim Kaufen soll die Geldbörse nicht aufblitzen: Ihr Dialog wird schon beim Erzeugen (vor dem Anzeigen)
+     * außerhalb des Bildschirms platziert. Reicht das Geld nicht oder klappt etwas nicht, wird er wieder
+     * sichtbar in die Mitte gesetzt, damit man selbst entscheiden kann.
+     */
+    private static void versteckenInstallieren() {
+        if (versteckenInstalliert) return;
+        versteckenInstalliert = true;
+        Toolkit.getDefaultToolkit().addAWTEventListener(ev -> {
+            if (auftrag <= 0 || !(ev instanceof java.awt.event.HierarchyEvent)) return;
+            java.awt.event.HierarchyEvent h = (java.awt.event.HierarchyEvent) ev;
+            if ((h.getChangeFlags() & java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED) == 0) return;
+            if (!(h.getComponent() instanceof JDialog) || !h.getComponent().isDisplayable()) return;
+            final JDialog d = (JDialog) h.getComponent();
+            d.setLocation(WEG, WEG);
+            // Sicherheitsnetz: ist der Dialog nach kurzer Zeit noch offen und versteckt, wieder zeigen
+            javax.swing.Timer t = new javax.swing.Timer(1500, e -> zeigenFallsVersteckt(d));
+            t.setRepeats(false);
+            t.start();
+        }, AWTEvent.HIERARCHY_EVENT_MASK);
+    }
+
+    private static void zeigenFallsVersteckt(JDialog d) {
+        if (d.isShowing() && d.getX() <= WEG / 2) d.setLocationRelativeTo(d.getOwner());
+    }
 
     /** „bezahlt“, „fehlt“ oder null (nicht bestätigt). */
     static String ergebnis() { return ergebnis; }
@@ -43,6 +75,16 @@ final class GeldboerseLayout {
     }
 
     static void anwenden(JDialog d) {
+        try {
+            umbauen(d);
+        } finally {
+            // nur ein erfolgreich bezahlter Kauf bleibt unsichtbar (er schließt sich gleich selbst)
+            if (auftrag > 0 && "bezahlt".equals(ergebnis)) d.setLocation(WEG, WEG);
+            else zeigenFallsVersteckt(d);
+        }
+    }
+
+    private static void umbauen(JDialog d) {
         if (d.getRootPane().getClientProperty("modernhelden.geld") != null) return;
         Container cp = d.getContentPane();
         JPanel o = null;

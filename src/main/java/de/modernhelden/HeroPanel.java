@@ -782,7 +782,7 @@ public final class HeroPanel extends JPanel {
         undo.setIcon(ModernIcons.nurModern("refresh", 16));
         undo.setEnabled(false);
         final JLabel hinweis = new JLabel(ev.isEmpty()
-                ? "Keine Steigerungen oder Sonderfertigkeiten nach der Erschaffung vorhanden."
+                ? " "
                 : "Eintrag wählen, um ihn rückgängig zu machen. Die AP werden erstattet.");
         hinweis.setForeground(Theme.muted());
         table.getSelectionModel().addListSelectionListener(e -> {
@@ -872,8 +872,27 @@ public final class HeroPanel extends JPanel {
         unten.add(undo, BorderLayout.EAST);
         JPanel p = new JPanel(new BorderLayout(0, 8));
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
-        p.add(scroll(table), BorderLayout.CENTER);
+        if (ev.isEmpty()) p.add(leererVerlauf(), BorderLayout.CENTER);
+        else p.add(scroll(table), BorderLayout.CENTER);
         p.add(unten, BorderLayout.SOUTH);
+        return p;
+    }
+
+    /** Hinweis statt leerer Tabelle, z. B. bei importierten oder eingegebenen Helden. */
+    private static JComponent leererVerlauf() {
+        JLabel l = new JLabel("<html><div style='text-align:center;width:520px'>"
+                + "<b style='font-size:125%'>Noch keine Einträge im Verlauf</b><br><br>"
+                + "Der Verlauf zeigt nur, was nach der Erschaffung <b>in der Helden-Software</b> gesteigert oder "
+                + "erworben wurde: Talente, Zauber, Eigenschaften, aktivierte Talente und Sonderfertigkeiten.<br><br>"
+                + "Werte, die beim Importieren oder Eingeben eines Helden übernommen oder außerhalb der "
+                + "Helden-Software geändert wurden, stehen hier nicht – sie lassen sich deshalb auch nicht "
+                + "rückgängig machen. Ab der nächsten Steigerung erscheinen die Einträge hier.</div></html>",
+                SwingConstants.CENTER);
+        l.setForeground(Theme.muted());
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBorder(BorderFactory.createLineBorder(Theme.trenner()));
+        p.setBackground(UIManager.getColor("Table.background"));
+        p.add(l, BorderLayout.CENTER);
         return p;
     }
 

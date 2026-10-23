@@ -127,8 +127,7 @@ kein „aktives“ Set, sondern berechnet die Werte für jedes Set einzeln.
 
 ### Steigerungen rückgängig machen
 
-Im Reiter „Verlauf“ (moderne Designs: eigener Hauptreiter; Design „Original“: Reiter „Plugin: Modern-UI“ →
-*Verlauf*) stehen alle Steigerungen und erworbenen Sonderfertigkeiten aus
+Im Reiter „Verlauf“ stehen alle Steigerungen und erworbenen Sonderfertigkeiten aus
 dem Ereignisprotokoll (neueste zuerst) mit Datum, Änderung, Lernmethode und AP. Wurde dabei eine
 **Spezielle Erfahrung (SE)** genutzt, steht das in der Spalte *Lernmethode*. Ein Eintrag lässt sich mit *Rückgängig machen …* zurücknehmen;
 die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
@@ -154,10 +153,10 @@ die AP werden erstattet und der Eintrag verschwindet aus dem Protokoll.
 
 ### Reiter „Kompaktansicht“ (Plugin: Modern-UI)
 
-In den modernen Designs heißt der Plugin-Reiter „Kompaktansicht“, und der *Verlauf* hat daneben einen eigenen
-Reiter. Er wird hinter den übrigen Reitern angehängt, damit sich die Positionen der Reiter der Helden-Software und
-anderer Plugins nicht verschieben. Im Design „Original“ bleibt es bei „Plugin: Modern-UI“ mit dem Verlauf als
-Unterreiter.
+Der Plugin-Reiter heißt „Kompaktansicht“, und der *Verlauf* hat daneben einen eigenen Reiter (in allen Designs).
+Er wird hinter den übrigen Reitern angehängt, damit sich die Positionen der Reiter der Helden-Software und
+anderer Plugins nicht verschieben. Ohne Steigerungen (z. B. bei importierten Helden) erklärt ein Hinweis, warum
+der Verlauf leer ist.
 
 Eine kompakte Heldenübersicht: Eigenschaften und Basiswerte als Kacheln, filterbare Talentliste mit
 Fortschrittsbalken (Meta-Talente in einer eigenen Gruppe, sofern sie für den Helden eingeschaltet sind), Sonderfertigkeiten und Vor-/Nachteile mit Kurzbeschreibung, Kampfwerte, Zauber und
@@ -276,7 +275,7 @@ Die automatische Aktualisierung funktioniert ab Version 1.16.0 – ältere Versi
 | Ausrüstung ablegen | Reiter *Ausrüstung* → rotes „✕“ hinter dem Gegenstand |
 | Geld einnehmen / ausgeben | Reiter *Inventar / Tiere* → *Geldbörse* → Betrag eingeben → *Einnehmen* bzw. *Ausgeben* → *OK* |
 | Heldenbogen drucken / als PDF | Reiter *Druckvorschau* → *Drucken …* bzw. *PDF …* |
-| Steigerung / SF rückgängig machen | Reiter *Verlauf* (Design „Original“: *Plugin: Modern-UI* → *Verlauf*) → Eintrag wählen → *Rückgängig machen …* |
+| Steigerung / SF rückgängig machen | Reiter *Verlauf* → Eintrag wählen → *Rückgängig machen …* |
 | Nach Updates suchen | *Erweiterungen → Modern-UI → Nach Updates suchen …* (automatisch: siehe [Automatische Aktualisierung](#automatische-aktualisierung)) |
 
 Doppelklick öffnet die Notiz nur dort, wo die Helden-Software selbst nichts mit einem Doppelklick macht
@@ -319,7 +318,7 @@ Entwurf, keine Vorabversion) sein und `ModernUI-Plugin.jar` enthalten – das er
 | `Herkunft.java` | Auswertung des Ereignisprotokolls (Herkunft von Werten und Abenteuerpunkten) |
 | `Rueckgaengig.java` | Steigerungen/SF über die Undo-Logik der Helden-Software zurücknehmen |
 | `HeroPanel.java`, `HeroData.java` | Reiter „Kompaktansicht“ / „Plugin: Modern-UI“ und Verlauf |
-| `HauptReiter.java` | Reiter „Kompaktansicht“ und eigener Reiter „Verlauf“ (moderne Designs) |
+| `HauptReiter.java` | Reiter „Kompaktansicht“ und eigener Reiter „Verlauf“ |
 | `Geld.java` | Münzen, Reihenfolge und Umrechnung |
 | `update/` | Automatische Aktualisierung über GitHub-Releases (`PluginUpdate`) und Installationshelfer (`UpdateInstaller`) |
 | `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java` | Reiter „Inventar / Tiere“, Hinzufügen-Dialog und Geldbörse in den modernen Designs |

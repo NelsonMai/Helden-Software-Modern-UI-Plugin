@@ -4,9 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Hauptreiter der Helden-Software in den modernen Designs: Der Plugin-Reiter heißt „Kompaktansicht“, der
- * Verlauf bekommt einen eigenen Reiter. Im Design „Original“ bleibt alles wie in der Helden-Software
- * („Plugin: Modern-UI“, Verlauf als Unterreiter).
+ * Hauptreiter in allen Designs: Der Plugin-Reiter heißt „Kompaktansicht“, der Verlauf bekommt einen eigenen
+ * Reiter.
  *
  * Die Helden-Software spricht ihre eigenen Reiter und die Plugin-Reiter über deren Position an. Der Verlauf
  * wird deshalb nur ans Ende angehängt, so dass sich keine bestehende Position verschiebt.
@@ -23,7 +22,7 @@ final class HauptReiter {
         Container p = panel.getParent();
         if (!(p instanceof JTabbedPane)) return;
         JTabbedPane tabs = (JTabbedPane) p;
-        boolean modern = Theme.isModern();
+        boolean modern = true;   // gilt in allen Designs (auch „Original“)
         int i = tabs.indexOfComponent(panel);
         if (i >= 0) {
             String titel = modern ? KOMPAKT : pluginTitel;
