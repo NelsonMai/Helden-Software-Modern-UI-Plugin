@@ -244,7 +244,7 @@ final class KampfwerteLayout {
     // ------------------------------------------------------------------ Ansicht
 
     /** Sichtbares Element im Scrollbereich: folgt der Fensterbreite, solange der Inhalt hineinpasst. */
-    private static final class Huelle extends JPanel implements Scrollable {
+    static final class Huelle extends JPanel implements Scrollable {
         final JComponent inhalt;
         Huelle(JComponent inhalt) { super(new BorderLayout()); this.inhalt = inhalt; }
         public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
@@ -295,12 +295,12 @@ final class KampfwerteLayout {
         }
     }
 
-    private static JComponent links(JComponent c) {
+    static JComponent links(JComponent c) {
         c.setAlignmentX(0);
         return c;
     }
 
-    private static JPanel karte(String titel) {
+    static JPanel karte(String titel) {
         // volle Breite, aber nur so hoch wie nötig
         JPanel k = new JPanel(new BorderLayout(0, 8)) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
@@ -314,7 +314,7 @@ final class KampfwerteLayout {
     }
 
     /** Tabelle, die nie schmaler wird als ihr Inhalt (sonst schneidet GridBagLayout Zellen ab). */
-    private static JPanel tabelle() {
+    static JPanel tabelle() {
         return new JPanel(new GridBagLayout()) {
             @Override public Dimension getMinimumSize() { return getPreferredSize(); }
             /** Jede Beschriftung bekommt rechts etwas Luft – manche Schriften (z. B. Segoe UI) ragen sonst über die berechnete Breite. */
@@ -326,7 +326,7 @@ final class KampfwerteLayout {
         };
     }
 
-    private static JLabel klein(String t) {
+    static JLabel klein(String t) {
         JLabel l = new JLabel(t);
         l.setForeground(Theme.muted());
         l.setFont(l.getFont().deriveFont(l.getFont().getSize2D() - 1f));
@@ -354,7 +354,7 @@ final class KampfwerteLayout {
      * Kacheln in so vielen gleich breiten Spalten, wie nebeneinander passen (4, 2 oder 1) – bei großer Schrift
      * oder schmalem Fenster brechen sie um, statt abgeschnitten zu werden.
      */
-    private static final class Kacheln extends JPanel {
+    static final class Kacheln extends JPanel {
         final int abstand;
         Kacheln(int abstand) { super(null); this.abstand = abstand; setOpaque(false); }
 
@@ -413,7 +413,7 @@ final class KampfwerteLayout {
         }
     }
 
-    private static JComponent basis(String titel, Integer wert, HeroData h, String[] eig, String zweck) {
+    static JComponent basis(String titel, Integer wert, HeroData h, String[] eig, String zweck) {
         JPanel t = new JPanel(new BorderLayout(10, 0));
         t.setBackground(Theme.kachel());
         t.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createCompoundBorder(
@@ -568,7 +568,7 @@ final class KampfwerteLayout {
     }
 
     /** Spaltenkopf; Zahlenspalten mit demselben rechten Rand wie die Werte darunter. */
-    private static JLabel kopfzelle(String text, boolean rechts) {
+    static JLabel kopfzelle(String text, boolean rechts) {
         JLabel l = klein(text);
         l.setFont(l.getFont().deriveFont(Font.BOLD));
         if (rechts) {
@@ -660,7 +660,7 @@ final class KampfwerteLayout {
         return gesetzt;
     }
 
-    private static JLabel wert(String text, boolean gross, String tip) {
+    static JLabel wert(String text, boolean gross, String tip) {
         // Breite immer für drei Ziffern in der aktuellen Schrift – auch nach einem Design- oder Schriftwechsel
         JLabel l = new JLabel(text, SwingConstants.RIGHT) {
             @Override public Dimension getPreferredSize() {

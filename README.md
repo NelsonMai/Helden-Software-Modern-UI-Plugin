@@ -28,13 +28,24 @@ zurückschalten.
   *+1* und *SE* funktionieren auch sortiert.
 - **Eigene Symbole:** über 40 neu gezeichnete Symbole, passend zu hell und dunkel.
 
-Die neu gestalteten Reiter *Inventar*, *Ausrüstung* und *Kampfwerte* samt Dialogen gibt es nur in den modernen Designs; im
+Die neu gestalteten Reiter *Eigenschaften*, *Inventar*, *Ausrüstung* und *Kampfwerte* samt Dialogen gibt es nur in den modernen Designs; im
 *Original* sehen sie aus wie bisher.
 Alle Änderungen am Helden laufen weiter über die Bedienelemente der Helden-Software.
 
 | Modern dunkel | Neue Symbole |
 |---|---|
 | ![Talentliste im dunklen Design](docs/bilder/modern-dunkel.png) | ![Übersicht der neuen Symbole](docs/bilder/symbole.png) |
+
+### Eigenschaften
+
+- **Eigenschaften als Tabelle:** Wert, Startwert, SE, *Steigern* mit Kosten und wofür die Eigenschaft gebraucht
+  wird (z. B. „LE (×2), AU, MR“). Ist der Höchstwert erreicht, steht dort „Maximum“.
+- **LE, AU, AE und MR mit Rechenweg:** Grundwert aus den Eigenschaften, Modifikator und Zukauf
+  (z. B. „(KO 12 + KO 12 + KK 11) / 2 = 17,5 → 18 · Modifikator +10“); AE und KE nur bei Helden, die sie haben,
+  dauerhaft verlorene AE mit *Zurückkaufen*.
+- **Kampf-Basiswerte** mit Formel sowie **Sozialstatus** und **Gildenzugehörigkeit**.
+
+![Reiter „Eigenschaften“ im modernen Design](docs/bilder/eigenschaften.png)
 
 ### Inventar, Hinzufügen und Geldbörse
 
@@ -188,6 +199,7 @@ Kompilieren. GitHub Actions baut jeden Push und hängt das JAR an veröffentlich
 | `HeroPanel.java`, `HeroData.java`, `HauptReiter.java` | Kompaktansicht und Verlauf |
 | `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java`, `InventarInfo.java`, `VorlagenInfo.java`, `Geld.java` | Inventar, Hinzufügen, Geldbörse |
 | `AusruestungLayout.java`, `AusruestungDialoge.java` | Ausrüstung und ihre Dialoge |
+| `EigenschaftenLayout.java` | Eigenschaften, Energien und Basiswerte mit Rechenweg |
 | `KampfwerteLayout.java` | Kampfwerte mit Rechenweg und Verteilungsregeln |
 | `TalenteSortierung.java` | Sortierbare Tabellen |
 | `ErschaffungsLayout.java`, `DebugBaum.java` | Erschaffungsdialog, Debug-Ausgabe |

@@ -28,6 +28,9 @@ public final class HeroData {
     public final Map<String, Integer> eig = new LinkedHashMap<>();     // effektive Werte MU..KK, SO
     public final Map<String, Integer> eigMod = new HashMap<>();
     public final Map<String, Integer> eigVal = new HashMap<>();
+    public final Map<String, Integer> eigStart = new HashMap<>();      // Startwert bei der Erschaffung
+    /** LE, AU, AE, KE, MR: Modifikator (Rasse, Vor-/Nachteile …) und zugekaufte Punkte. */
+    public final Map<String, Integer> energieMod = new HashMap<>(), energieKauf = new HashMap<>();
     public final Map<String, Integer> abgeleitet = new LinkedHashMap<>();
     public final List<Talent> talente = new ArrayList<>();
     public final Map<String, Talent> talentByName = new HashMap<>();
@@ -80,6 +83,14 @@ public final class HeroData {
             h.eig.put(x[1], v + m);
             h.eigVal.put(x[1], v);
             h.eigMod.put(x[1], m);
+            if (!e.getAttribute("startwert").isEmpty()) h.eigStart.put(x[1], num(e.getAttribute("startwert")));
+        }
+        for (String[] x : new String[][]{{"Lebensenergie", "LE"}, {"Ausdauer", "AU"}, {"Astralenergie", "AE"},
+                {"Karmaenergie", "KE"}, {"Magieresistenz", "MR"}}) {
+            Element e = eigEl.get(x[0]);
+            if (e == null) continue;
+            h.energieMod.put(x[1], num(e.getAttribute("mod")));
+            h.energieKauf.put(x[1], num(e.getAttribute("value")));
         }
         int MU = h.e("MU"), KL = h.e("KL"), IN = h.e("IN"), CH = h.e("CH"), FF = h.e("FF"), GE = h.e("GE"), KO = h.e("KO"), KK = h.e("KK");
         h.abgeleitet.put("LE", round((KO + KO + KK) / 2.0) + sum(eigEl.get("Lebensenergie")));

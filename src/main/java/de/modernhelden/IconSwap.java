@@ -96,6 +96,7 @@ public final class IconSwap {
         if (c instanceof JPanel) InventarLayout.pruefen(c, modern);
         if (c instanceof JPanel) AusruestungLayout.pruefen(c, modern);
         if (c instanceof JPanel) KampfwerteLayout.pruefen(c, modern);
+        if (c instanceof JPanel) EigenschaftenLayout.pruefen(c, modern);
         if (c instanceof AbstractButton) {
             AbstractButton b = (AbstractButton) c;
             slot(b, "icon", b.getIcon(), b::setIcon);

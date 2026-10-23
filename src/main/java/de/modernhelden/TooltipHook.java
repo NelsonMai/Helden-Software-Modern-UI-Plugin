@@ -186,6 +186,19 @@ public final class TooltipHook implements AWTEventListener {
         Component comp = e.getComponent();
         if (!(comp instanceof JComponent) || comp instanceof JToolTip) return;
         JComponent c = (JComponent) comp;
+        // markierte Zellen eigener Ansichten (z. B. „Mut“ im Reiter Eigenschaften): Notiz zu diesem Eintrag
+        for (Component d = SwingUtilities.getDeepestComponentAt(c, e.getX(), e.getY()); d != null; d = d.getParent()) {
+            Object f = d instanceof JComponent ? ((JComponent) d).getClientProperty(TOOLTIP_FUER) : null;
+            if (f instanceof String) {
+                TooltipDB.Match m = db.find((String) f);
+                if (m == null || editAction == null) return;
+                lastMatch = m;
+                hide();
+                SwingUtilities.invokeLater(editAction);
+                return;
+            }
+            if (d == c) break;
+        }
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) return;   // eigener Reiter regelt das selbst
         if (!(c instanceof JTable || c instanceof JList || c instanceof JTree || c instanceof JLabel)) return;
         String belegt = eigeneDoppelklickLogik(c, e.getPoint());
@@ -218,7 +231,25 @@ public final class TooltipHook implements AWTEventListener {
         return null;
     }
 
+    /** Eigene Ansichten markieren Zellen damit, für welchen Eintrag (z. B. „Mut“) der Tooltip gezeigt wird. */
+    static final String TOOLTIP_FUER = "modernhelden.tooltipFuer";
+
+    /** Setzt die Markierung auf die Komponenten – sie zeigen dann denselben Tooltip wie die Helden-Ansichten. */
+    static void tooltipFuer(String name, JComponent... cs) {
+        for (JComponent k : cs) if (k != null) { k.putClientProperty(TOOLTIP_FUER, name); k.setToolTipText(null); }
+    }
+
     private void handle(JComponent c, MouseEvent e) {
+        String fest = null;
+        for (Component d = SwingUtilities.getDeepestComponentAt(c, e.getX(), e.getY()); d != null; d = d.getParent()) {
+            if (d instanceof JComponent && ((JComponent) d).getClientProperty(TOOLTIP_FUER) instanceof String) {
+                fest = (String) ((JComponent) d).getClientProperty(TOOLTIP_FUER);
+                c = (JComponent) d;
+                break;
+            }
+            if (d == c) break;
+        }
+        if (fest != null) { zeige(c, e, fest, "fest|" + fest); return; }
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) { hide(); return; }
         // Abenteuerpunkte-Felder im Reiter „Allgemein“: Herkunft der AP erklären
         if (c instanceof javax.swing.text.JTextComponent && hero != null) {
@@ -258,6 +289,10 @@ public final class TooltipHook implements AWTEventListener {
                 if (em != null && em.entry != null && "E".equals(em.entry.typ)) { text = lt; c = (JComponent) d; }
             }
         }
+        zeige(c, e, text, null);
+    }
+
+    private void zeige(JComponent c, MouseEvent e, String text, String festerSchluessel) {
         TooltipDB.Match m = text == null ? null : db.find(text);
         if (m == null && text != null && hero != null) {
             // Zauber haben keine mitgelieferte Beschreibung – trotzdem Werte und eigene Notiz zeigen
@@ -267,7 +302,7 @@ public final class TooltipHook implements AWTEventListener {
         log(c, text, m);
         if (m == null) { hide(); return; }
         lastMatch = m;
-        String key = System.identityHashCode(c) + "|" + m.shown;
+        String key = festerSchluessel != null ? festerSchluessel : System.identityHashCode(c) + "|" + m.shown;
         if (key.equals(shownKey)) return;           // Tooltip steht bereits
         if (popup != null) hidePopupOnly();
         Map<String, String> x = extra(m);
