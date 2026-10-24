@@ -14,7 +14,7 @@ import java.util.List;
  * ursprüngliche Reihenfolge wieder her. Die Helden-Software greift beim Steigern über den Knopf bzw. über die
  * Tabelle selbst auf die Zeilen zu – das funktioniert auch sortiert. Im Design „Original“ wird nicht sortiert.
  */
-final class TalenteSortierung {
+public final class TalenteSortierung {
 
     private TalenteSortierung() {}
 
@@ -82,8 +82,57 @@ final class TalenteSortierung {
             leiste.einbauen();
         }
 
+        // ---- Spaltenbreiten: lesbar auch im kleinen Fenster (sonst „Kost…“, „LCD: …“)
+
+        /** Sinnvolle Breiten je Spalte (Pixel bei Schriftgröße 13, werden mit der Schrift skaliert). */
+        private final Map<String, Integer> BREITEN = new HashMap<String, Integer>() {{
+            put("SE", 30); put("Art", 90); put("Talent", 210); put("Wert", 45); put("Lernmethode", 160);
+            put("Kat.", 40); put("Kosten", 60); put("Steigern", 70);
+            put("Zauberfertigkeit", 230); put("Komp", 50); put("Rep", 45); put("Merkmale", 120); put("Haus", 45);
+            put("Info", 40); put("Quelle", 80); put("Lern", 45);
+        }};
+        Integer altModus;
+        java.awt.event.ComponentListener vpHoerer;
+        JViewport vp;
+
+        /**
+         * Breiten setzen; passt die Tabelle nicht ins Fenster, wird sie waagerecht rollbar statt die Spalten
+         * zu stauchen. Im großen Fenster verteilt die Tabelle den Platz wie gewohnt.
+         */
+        void breiten() {
+            float f = t.getFont() == null ? 1f : t.getFont().getSize2D() / 13f;
+            javax.swing.table.TableColumnModel cm = t.getColumnModel();
+            for (int i = 0; i < cm.getColumnCount(); i++) {
+                Integer b = BREITEN.get(String.valueOf(cm.getColumn(i).getHeaderValue()).trim());
+                if (b != null) cm.getColumn(i).setPreferredWidth(Math.round(b * f));
+            }
+            if (altModus == null) altModus = t.getAutoResizeMode();
+            JViewport v = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, t);
+            if (v != vp) {
+                if (vp != null && vpHoerer != null) vp.removeComponentListener(vpHoerer);
+                vp = v;
+                vpHoerer = new java.awt.event.ComponentAdapter() {
+                    @Override public void componentResized(java.awt.event.ComponentEvent e) { modusAnpassen(); }
+                };
+                if (vp != null) vp.addComponentListener(vpHoerer);
+            }
+            modusAnpassen();
+        }
+
+        void modusAnpassen() {
+            if (!aktiv || vp == null || altModus == null) return;
+            int summe = 0;
+            javax.swing.table.TableColumnModel cm = t.getColumnModel();
+            for (int i = 0; i < cm.getColumnCount(); i++) summe += cm.getColumn(i).getPreferredWidth();
+            int soll = vp.getWidth() > 0 && vp.getWidth() < summe ? JTable.AUTO_RESIZE_OFF : altModus;
+            if (t.getAutoResizeMode() != soll) t.setAutoResizeMode(soll);
+        }
+
         void aus() {
             if (!aktiv) return;
+            if (altModus != null) t.setAutoResizeMode(altModus);
+            if (vp != null && vpHoerer != null) vp.removeComponentListener(vpHoerer);
+            vp = null;
             aktiv = false;
             t.setRowSorter(null);
             t.getTableHeader().repaint();
@@ -141,6 +190,7 @@ final class TalenteSortierung {
             t.setRowSorter(new DreiStufen(s));
             t.getTableHeader().repaint();
             sorter = s;
+            breiten();
             filtern();
             if (leiste != null) leiste.gruppenNeu();
         }
@@ -149,8 +199,8 @@ final class TalenteSortierung {
     // ---------------------------------------------------------------- Suche und Gruppenauswahl
 
     /** Wie FlowLayout, bricht aber in weitere Zeilen um, statt Schalter rechts abzuschneiden. */
-    static final class Umbruch extends FlowLayout {
-        Umbruch(int hgap, int vgap) { super(FlowLayout.LEFT, hgap, vgap); }
+    public static final class Umbruch extends FlowLayout {
+        public Umbruch(int hgap, int vgap) { super(FlowLayout.LEFT, hgap, vgap); }
         @Override public Dimension preferredLayoutSize(Container c) { return groesse(c, true); }
         @Override public void layoutContainer(Container c) {
             super.layoutContainer(c);
@@ -238,7 +288,7 @@ final class TalenteSortierung {
             zahl.setForeground(Theme.muted());
             zahl.putClientProperty("modernhelden.own", true);
             zahl.setVerticalAlignment(SwingConstants.TOP);
-            zahl.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
+            zahl.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 4));
             add(zahl, BorderLayout.EAST);
             gruppenNeu();
         }
@@ -397,6 +447,34 @@ final class TalenteSortierung {
     }
 
     // ---------------------------------------------------------------- eigene Tabellen (Reiter „Plugin: Modern-UI“)
+
+    /**
+     * Eigene Tabelle: Spalten bekommen ihre bevorzugte Breite; ist das Fenster schmaler als die Summe, wird die
+     * Tabelle waagerecht rollbar, statt Inhalte mit „…“ abzuschneiden. Im breiten Fenster füllt sie die Breite.
+     */
+    static void breitOderRollen(JTable t) {
+        final int modus = t.getAutoResizeMode();
+        Runnable anpassen = () -> {
+            JViewport vp = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, t);
+            if (vp == null) return;
+            int summe = 0;
+            for (int i = 0; i < t.getColumnModel().getColumnCount(); i++) summe += t.getColumnModel().getColumn(i).getPreferredWidth();
+            int soll = vp.getWidth() > 0 && vp.getWidth() < summe ? JTable.AUTO_RESIZE_OFF : modus;
+            if (t.getAutoResizeMode() != soll) t.setAutoResizeMode(soll);
+        };
+        java.awt.event.ComponentAdapter hoerer = new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) { anpassen.run(); }
+        };
+        t.addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.PARENT_CHANGED) == 0) return;
+            JViewport vp = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, t);
+            if (vp != null) {
+                vp.removeComponentListener(hoerer);
+                vp.addComponentListener(hoerer);
+                anpassen.run();
+            }
+        });
+    }
 
     /** Macht eine eigene Tabelle per Spaltenkopf sortierbar (aufsteigend, absteigend, ursprünglich). */
     static void sortierbar(JTable t) {

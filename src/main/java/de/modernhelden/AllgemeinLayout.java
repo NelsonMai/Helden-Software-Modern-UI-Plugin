@@ -323,7 +323,8 @@ final class AllgemeinLayout {
     private static final class Liste {
         final String titel, leer;
         final List<String> eintraege = new ArrayList<>();
-        final JPanel inhalt = new JPanel();
+        /** Breite folgt der Spalte (Namen brechen um statt abgeschnitten zu werden), Höhe dem Inhalt. */
+        final JPanel inhalt = new ListenInhalt();
         final JLabel anzahl = new JLabel();
 
         Liste(String titel, String leer) {
@@ -746,10 +747,10 @@ final class AllgemeinLayout {
         z.setBorder(new EmptyBorder(2, 6, 2, 6));
         z.setAlignmentX(0);
         InventarLayout.eigen(z);
-        JLabel n = new JLabel(name) {
-            @Override public Dimension getPreferredSize() { return new Dimension(40, super.getPreferredSize().height); }
-        };
-        n.setFont(n.getFont().deriveFont(Font.BOLD));
+        // Name bricht bei schmaler Spalte in eine zweite Zeile um, statt gekürzt zu werden
+        Umbruchtext n = new Umbruchtext(name);
+        n.setFont(UIManager.getFont("Label.font").deriveFont(Font.BOLD));
+        n.setForeground(UIManager.getColor("Label.foreground"));
         InventarLayout.eigen(n);
         z.add(n, BorderLayout.NORTH);
         if (!beschreibung.isEmpty()) {
@@ -847,4 +848,16 @@ final class AllgemeinLayout {
             if (h != getPreferredSize().height) SwingUtilities.invokeLater(this::revalidate);
         }
     }
+
+    /** Spalteninhalt: so breit wie der sichtbare Bereich, nie breiter. */
+    private static final class ListenInhalt extends JPanel implements Scrollable {
+        public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        public int getScrollableUnitIncrement(Rectangle r, int o, int d) { return 16; }
+        public int getScrollableBlockIncrement(Rectangle r, int o, int d) { return 160; }
+        public boolean getScrollableTracksViewportWidth() { return true; }
+        public boolean getScrollableTracksViewportHeight() {
+            return getParent() instanceof JViewport && getParent().getHeight() > getPreferredSize().height;
+        }
+    }
+
 }

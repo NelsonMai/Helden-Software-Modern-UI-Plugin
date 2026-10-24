@@ -248,7 +248,8 @@ final class InventarLayout {
         final JTextField suchfeld = new JTextField();
         final JComboBox<String> artWahl = new JComboBox<>();
         final JCheckBox gruppieren = new JCheckBox("Nach Art gruppieren", true);
-        final JLabel info = new JLabel();
+        /** Übersicht (Einträge, Gewicht) – bricht im kleinen Fenster um statt abgeschnitten zu werden. */
+        final Umbruchtext info = new Umbruchtext("");
         JPanel inhalt;
         TableModel letztesModell;
         int[] origBreiten, origMin, origMax;
@@ -339,6 +340,7 @@ final class InventarLayout {
                 t.setAlignmentX(0);
                 info.setAlignmentX(0);
                 info.setForeground(Theme.muted());
+                info.setFont(UIManager.getFont("Label.font"));
                 links.add(t);
                 links.add(Box.createVerticalStrut(2));
                 links.add(info);
@@ -403,6 +405,7 @@ final class InventarLayout {
                 // eigene Felder waren im Design „Original“ nicht eingehängt – an das aktuelle Design anpassen
                 for (JComponent c : new JComponent[]{suchfeld, artWahl, gruppieren, info}) SwingUtilities.updateComponentTreeUI(c);
                 info.setForeground(Theme.muted());
+                info.setFont(UIManager.getFont("Label.font"));
                 tipp.setForeground(Theme.muted());
                 // Aktionen, die die markierte Zeile als Index ins Modell nehmen, auf die sortierte Ansicht umleiten
                 umleiten(edit);

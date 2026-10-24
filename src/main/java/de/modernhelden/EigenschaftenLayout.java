@@ -277,7 +277,7 @@ final class EigenschaftenLayout {
         InventarLayout.eigen(t);
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0;
-        c.insets = new Insets(0, 0, 4, 12);
+        c.insets = new Insets(0, 0, 4, 8);
         String[] kopf = {"Eigenschaft", "", "Wert", "Start", "SE", "Steigern", "Kosten", "Fließt ein in", ""};
         for (int i = 0; i < kopf.length; i++) {
             c.gridx = i;
@@ -306,7 +306,7 @@ final class EigenschaftenLayout {
 
     private static void zeile(JPanel t, GridBagConstraints c, String name, String kuerzel, Zeile z, Integer wert,
                               Integer start, String spalteText, String tip) {
-        c.insets = new Insets(3, 0, 3, 12);
+        c.insets = new Insets(3, 0, 3, 8);
         c.weightx = 0;
         c.gridx = 0;
         c.anchor = GridBagConstraints.WEST;
@@ -327,6 +327,8 @@ final class EigenschaftenLayout {
 
         c.gridx = 3;
         JLabel st = KampfwerteLayout.wert(start == null ? "" : String.valueOf(start), false, tip);
+        // ohne Startwert (LE, AU …) belegt die Spalte keinen Platz
+        if (start == null) st.setVisible(false);
         st.setForeground(Theme.muted());
         t.add(st, c);
 
@@ -343,13 +345,20 @@ final class EigenschaftenLayout {
 
         c.gridx = 7;
         c.anchor = GridBagConstraints.WEST;
-        JLabel w = KampfwerteLayout.klein(spalteText);
+        // Rechenweg in zwei Zeilen (Formel / Modifikatoren), damit er auch im kleinen Fenster ganz sichtbar ist
+        int teil = spalteText.indexOf(" · ");
+        String zeigen = teil > 0
+                ? "<html>" + esc(spalteText.substring(0, teil)) + "<br>" + esc(spalteText.substring(teil + 3)) + "</html>"
+                : spalteText;
+        JLabel w = KampfwerteLayout.klein(zeigen);
         InventarLayout.eigen(w);
         t.add(w, c);
         // dieselben Tooltips wie in der Kompaktansicht und in der Ansicht der Helden-Software
         TooltipHook.tooltipFuer(name, n, kz, wl, st);
         // „Fließt ein in“ und „Rechenweg“ bleiben ohne Tooltip
     }
+
+    private static String esc(String t) { return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"); }
 
     /** Wofür eine Eigenschaft gebraucht wird – aus den Formeln der Grundwerte. */
     static String wirkung(String k) {
@@ -428,7 +437,7 @@ final class EigenschaftenLayout {
         InventarLayout.eigen(t);
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0;
-        c.insets = new Insets(0, 0, 4, 12);
+        c.insets = new Insets(0, 0, 4, 8);
         String[] kopf = {"Name", "", "Wert", "", "SE", "Zukaufen", "Kosten", "Rechenweg", ""};
         for (int i = 0; i < kopf.length; i++) {
             c.gridx = i;
@@ -578,7 +587,7 @@ final class EigenschaftenLayout {
             t.add(sozialstatus(so.feld), c);
             c.gridx = 2;
             c.weightx = 1;
-            t.add(KampfwerteLayout.klein("Gesellschaftlicher Rang (höchstens 21). Kostet keine AP; Änderungen stehen im Verlauf."), c);
+            t.add(KampfwerteLayout.klein("Höchstens 21, kostet keine AP"), c);
             c.weightx = 0;
             c.gridy++;
         }
@@ -642,7 +651,7 @@ final class EigenschaftenLayout {
 
     private static JComponent regeln() {
         JPanel k = KampfwerteLayout.karte("So wird gerechnet");
-        JLabel l = new JLabel("<html><div style='width:820px'>"
+        JLabel l = new HtmlText("<html>"
                 + "• <b>Steigern:</b> Jeder Schritt erhöht den Wert um 1; die Kosten zeigt die Spalte „Kosten“. "
                 + "Höhere Werte werden teurer.<br>"
                 + "• <b>SE:</b> Eine Spezielle Erfahrung macht den nächsten Schritt günstiger und wird danach verbraucht.<br>"
@@ -651,7 +660,7 @@ final class EigenschaftenLayout {
                 + "• <b>Grundwerte:</b> LE, AU, AE, MR und die Kampf-Basiswerte werden aus den Eigenschaften berechnet "
                 + "(kaufmännisch gerundet) und steigen mit ihnen.<br>"
                 + "• Gesteigert wird über die Helden-Software; dauerhaft wird die Änderung erst beim Speichern des Helden."
-                + "</div></html>");
+                + "</html>");
         InventarLayout.eigen(l);
         k.add(l, BorderLayout.CENTER);
         return k;

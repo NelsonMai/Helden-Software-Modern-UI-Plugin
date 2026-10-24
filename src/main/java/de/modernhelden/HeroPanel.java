@@ -322,11 +322,12 @@ public final class HeroPanel extends JPanel {
             }
         };
         styleTable(table);
-        table.getColumnModel().getColumn(0).setPreferredWidth(230);
-        table.getColumnModel().getColumn(1).setPreferredWidth(200);
-        table.getColumnModel().getColumn(2).setPreferredWidth(60);
-        table.getColumnModel().getColumn(3).setPreferredWidth(140);
-        table.getColumnModel().getColumn(4).setPreferredWidth(150);
+        // Lernmethode („Gegenseitiges Lehren“) soll auch im kleinen Fenster ganz lesbar sein
+        table.getColumnModel().getColumn(0).setPreferredWidth(200);
+        table.getColumnModel().getColumn(1).setPreferredWidth(160);
+        table.getColumnModel().getColumn(2).setPreferredWidth(50);
+        table.getColumnModel().getColumn(3).setPreferredWidth(120);
+        table.getColumnModel().getColumn(4).setPreferredWidth(175);
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
                 Row row = talentModel.rows.get(t.convertRowIndexToModel(r));
@@ -550,8 +551,9 @@ public final class HeroPanel extends JPanel {
         styleTable(table);
         final javax.swing.table.TableRowSorter<javax.swing.table.TableModel> sorter = new javax.swing.table.TableRowSorter<>(model);
         table.setRowSorter(sorter);
-        int[] breiten = {45, 220, 140, 95, 85, 70, 420};
+        int[] breiten = {45, 220, 195, 115, 85, 70, 420};
         for (int i = 0; i < cols.length; i++) table.getColumnModel().getColumn(i).setPreferredWidth(breiten[i]);
+        TalenteSortierung.breitOderRollen(table);
         DefaultTableCellRenderer zentriert = new DefaultTableCellRenderer();
         zentriert.setHorizontalAlignment(SwingConstants.CENTER);
         DefaultTableCellRenderer gewicht = new DefaultTableCellRenderer() {
@@ -744,6 +746,7 @@ public final class HeroPanel extends JPanel {
         };
         styleTable(table);
         table.getColumnModel().getColumn(0).setPreferredWidth(260);
+        TalenteSortierung.breitOderRollen(table);
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 1; i < cols.length; i++) table.getColumnModel().getColumn(i).setCellRenderer(center);
@@ -786,8 +789,9 @@ public final class HeroPanel extends JPanel {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         styleTable(table);
-        int[] breiten = {85, 170, 220, 80, 300, 50};
+        int[] breiten = {95, 205, 300, 85, 260, 50};
         for (int i = 0; i < breiten.length; i++) table.getColumnModel().getColumn(i).setPreferredWidth(breiten[i]);
+        TalenteSortierung.breitOderRollen(table);
         TalenteSortierung.sortierbar(table);
         for (int i = 0; i < cols.length; i++) {
             javax.swing.table.TableColumn col = table.getColumnModel().getColumn(i);

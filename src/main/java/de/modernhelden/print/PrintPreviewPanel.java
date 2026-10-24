@@ -100,19 +100,26 @@ public final class PrintPreviewPanel extends JPanel {
 
         Color sep = UIManager.getColor("Component.borderColor");
         if (sep == null) sep = Color.LIGHT_GRAY;
+        // links Ansicht/Zoom/Optionen, rechts Seiten/PDF/Drucken – reicht die Breite nicht, rechts in eine zweite Zeile
+        JPanel leiste = new JPanel(new ZweiTeile(8, 4));
+        leiste.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, sep), new EmptyBorder(5, 8, 5, 8)));
         JPanel bar = new JPanel();
-        bar.setLayout(new BoxLayout(bar, BoxLayout.X_AXIS));
-        bar.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, sep), new EmptyBorder(5, 8, 5, 8)));
+        bar.setOpaque(false);
+        // umbrechend: im kleinen Fenster rutscht z. B. „Optionen“ in die nächste Zeile, statt abgeschnitten zu werden
+        bar.setLayout(new de.modernhelden.TalenteSortierung.Umbruch(0, 2));
+        JPanel rechts = new JPanel();
+        rechts.setOpaque(false);
+        rechts.setLayout(new BoxLayout(rechts, BoxLayout.X_AXIS));
+        zoom.setPrototypeDisplayValue("Seitenbreite  ");
         bar.add(modern);
         bar.add(Box.createHorizontalStrut(4));
         bar.add(original);
         modernTools.setOpaque(false);
         modernTools.setLayout(new BoxLayout(modernTools, BoxLayout.X_AXIS));
-        modernTools.add(Box.createHorizontalStrut(14));
-        modernTools.add(new JLabel("Zoom "));
-        zoom.setMaximumSize(zoom.getPreferredSize());
-        modernTools.add(zoom);
         modernTools.add(Box.createHorizontalStrut(8));
+        modernTools.add(new JLabel("Zoom "));
+        modernTools.add(zoom);
+        modernTools.add(Box.createHorizontalStrut(6));
         final JPopupMenu optMenu = new JPopupMenu();
         for (JCheckBox cb : new JCheckBox[]{desc, meta, notes, portrait}) {
             final JCheckBox src = cb;
@@ -147,19 +154,20 @@ public final class PrintPreviewPanel extends JPanel {
         });
         modernTools.add(optBtn);
         bar.add(modernTools);
-        bar.add(Box.createHorizontalGlue());
         info.setForeground(UIManager.getColor("Label.disabledForeground"));
-        bar.add(info);
-        bar.add(Box.createHorizontalStrut(8));
+        rechts.add(info);
+        rechts.add(Box.createHorizontalStrut(8));
         refreshBtn.setToolTipText("Aktualisieren");
-        bar.add(refreshBtn);
-        bar.add(Box.createHorizontalStrut(4));
+        rechts.add(refreshBtn);
+        rechts.add(Box.createHorizontalStrut(4));
         pdf.setText("PDF …");
         pdf.setToolTipText("Als PDF speichern");
-        bar.add(pdf);
-        bar.add(Box.createHorizontalStrut(4));
+        rechts.add(pdf);
+        rechts.add(Box.createHorizontalStrut(4));
         print.setText("Drucken …");
-        bar.add(print);
+        rechts.add(print);
+        leiste.add(bar);
+        leiste.add(rechts);
         // Symbole nur in den modernen Designs; „↻“ als Text im Original-Design
         pdf.setIcon(de.modernhelden.ModernIcons.nurModern("pdf", 16));
         print.setIcon(de.modernhelden.ModernIcons.nurModern("print", 16));
@@ -169,7 +177,7 @@ public final class PrintPreviewPanel extends JPanel {
         UIManager.addPropertyChangeListener(ev -> {
             if ("lookAndFeel".equals(ev.getPropertyName())) SwingUtilities.invokeLater(symbole);
         });
-        add(bar, BorderLayout.NORTH);
+        add(leiste, BorderLayout.NORTH);
 
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(24);
@@ -534,5 +542,44 @@ public final class PrintPreviewPanel extends JPanel {
         public int getScrollableBlockIncrement(Rectangle r, int o, int d) { return r.height - 40; }
         public boolean getScrollableTracksViewportWidth() { return getParent() != null && getParent().getWidth() > getPreferredSize().width; }
         public boolean getScrollableTracksViewportHeight() { return getParent() != null && getParent().getHeight() > getPreferredSize().height; }
+    }
+
+    /** Zwei Teile in einer Zeile (links und rechts); passt das nicht, steht der rechte Teil darunter (rechtsbündig). */
+    static final class ZweiTeile implements LayoutManager {
+        final int hgap, vgap;
+        ZweiTeile(int hgap, int vgap) { this.hgap = hgap; this.vgap = vgap; }
+        public void addLayoutComponent(String n, Component c) {}
+        public void removeLayoutComponent(Component c) {}
+        private boolean eineZeile(Container c) {
+            if (c.getComponentCount() < 2) return true;
+            Insets i = c.getInsets();
+            int w = c.getWidth() - i.left - i.right;
+            if (w <= 0) return true;
+            return c.getComponent(0).getPreferredSize().width + hgap + c.getComponent(1).getPreferredSize().width <= w;
+        }
+        public Dimension preferredLayoutSize(Container c) {
+            Insets i = c.getInsets();
+            if (c.getComponentCount() < 2) return new Dimension(i.left + i.right, i.top + i.bottom);
+            Dimension a = c.getComponent(0).getPreferredSize(), b = c.getComponent(1).getPreferredSize();
+            int h = eineZeile(c) ? Math.max(a.height, b.height) : a.height + vgap + b.height;
+            return new Dimension(Math.max(a.width, b.width) + i.left + i.right, h + i.top + i.bottom);
+        }
+        public Dimension minimumLayoutSize(Container c) { return preferredLayoutSize(c); }
+        public void layoutContainer(Container c) {
+            if (c.getComponentCount() < 2) return;
+            Insets i = c.getInsets();
+            int w = c.getWidth() - i.left - i.right;
+            Component l = c.getComponent(0), r = c.getComponent(1);
+            Dimension a = l.getPreferredSize(), b = r.getPreferredSize();
+            if (eineZeile(c)) {
+                int h = Math.max(a.height, b.height);
+                l.setBounds(i.left, i.top + (h - a.height) / 2, Math.min(a.width, w), a.height);
+                r.setBounds(i.left + w - b.width, i.top + (h - b.height) / 2, b.width, b.height);
+            } else {
+                l.setBounds(i.left, i.top, Math.min(a.width, w), a.height);
+                r.setBounds(i.left + Math.max(0, w - b.width), i.top + a.height + vgap, Math.min(b.width, w), b.height);
+            }
+            if (c.getHeight() != preferredLayoutSize(c).height) SwingUtilities.invokeLater(c::revalidate);
+        }
     }
 }

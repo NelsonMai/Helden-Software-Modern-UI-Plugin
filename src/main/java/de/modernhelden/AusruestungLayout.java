@@ -196,7 +196,7 @@ final class AusruestungLayout {
     /** Breite folgt dem Fenster, Höhe dem Inhalt (scrollt bei Bedarf). */
     private static final class Ansicht extends JPanel implements Scrollable {
         Ansicht() {
-            super(new SetLayout(12, 320));
+            super(new SetLayout(12, 340));
             setOpaque(false);
             setBorder(new EmptyBorder(12, 12, 12, 12));
             putClientProperty("modernhelden.own", true);
@@ -482,19 +482,23 @@ final class AusruestungLayout {
     }
 
     private static JComponent eintrag(String name, String werte, AbstractButton stift, AusruestungDialoge.Ablegen auftrag) {
-        JPanel z = new JPanel(new BorderLayout(0, 1));
+        JPanel z = new JPanel(new BorderLayout(0, 1)) {
+            // Höhe wächst mit umbrechenden Werten
+            @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+        };
         z.setOpaque(false);
         z.setAlignmentX(0);
         z.setBorder(new EmptyBorder(5, 2, 5, 2));
         JLabel n = new JLabel(name);
         n.setFont(n.getFont().deriveFont(Font.BOLD));
-        // Werte dürfen gekürzt werden („…“), statt unter den ✕-Knopf zu laufen; vollständig im Tooltip
-        JLabel w = new JLabel(werte.isEmpty() ? " " : werte) {
-            @Override public Dimension getPreferredSize() { return new Dimension(40, super.getPreferredSize().height); }
-        };
+        // Werte brechen bei Platzmangel in eine weitere Zeile um, statt unter den ✕-Knopf zu laufen
+        // innerhalb eines Werts („DK N“, „TP 1W+6“) nicht umbrechen – nur zwischen den Werten
+        String fest = werte.isEmpty() ? " " : String.join(" · ", java.util.Arrays.stream(werte.split(" · "))
+                .map(t -> t.replace(' ', '\u00a0')).toArray(String[]::new));
+        Umbruchtext w = new Umbruchtext(fest);
+        w.setFont(UIManager.getFont("Label.font"));
         w.setForeground(Theme.muted());
         w.setBorder(new EmptyBorder(0, 0, 0, 6));
-        if (!werte.isEmpty()) TooltipHook.infoTip(w, werte);
         JPanel text = new JPanel(new BorderLayout(0, 1));
         text.setOpaque(false);
         text.add(n, BorderLayout.NORTH);
@@ -514,7 +518,6 @@ final class AusruestungLayout {
         r.setOpaque(false);
         r.add(weg);
         z.add(r, BorderLayout.EAST);
-        z.setMaximumSize(new Dimension(Integer.MAX_VALUE, z.getPreferredSize().height));
         return z;
     }
 
@@ -525,6 +528,9 @@ final class AusruestungLayout {
         a.setForeground(Theme.muted());
         JLabel b = new JLabel(v);
         b.setFont(b.getFont().deriveFont(Font.BOLD));
+        // etwas Luft rechts: manche Windows-Schriften (Segoe UI) ragen über die berechnete Breite hinaus
+        a.setBorder(new EmptyBorder(0, 0, 0, 4));
+        b.setBorder(new EmptyBorder(0, 2, 0, 5));
         z.add(a, BorderLayout.WEST);
         z.add(b, BorderLayout.EAST);
         return z;

@@ -314,9 +314,15 @@ final class KampfwerteLayout {
     }
 
     /** Tabelle, die nie schmaler wird als ihr Inhalt (sonst schneidet GridBagLayout Zellen ab). */
-    static JPanel tabelle() {
+    static JPanel tabelle() { return tabelle(false); }
+
+    /**
+     * @param schrumpfbar true: im kleinen Fenster dürfen Zellen mit kleinerer Mindestgröße (Hinweis, Balken) schmaler
+     *                    werden; alle übrigen behalten ihre volle Breite.
+     */
+    static JPanel tabelle(boolean schrumpfbar) {
         return new JPanel(new GridBagLayout()) {
-            @Override public Dimension getMinimumSize() { return getPreferredSize(); }
+            @Override public Dimension getMinimumSize() { return schrumpfbar ? super.getMinimumSize() : getPreferredSize(); }
             /** Jede Beschriftung bekommt rechts etwas Luft – manche Schriften (z. B. Segoe UI) ragen sonst über die berechnete Breite. */
             @Override protected void addImpl(Component comp, Object constraints, int index) {
                 if (comp instanceof JLabel && ((JLabel) comp).getBorder() == null)
@@ -345,8 +351,14 @@ final class KampfwerteLayout {
         reihe.add(basis("INI-Basis", h == null ? null : h.abgeleitet.get("INI"), h, new String[]{"MU", "MU", "IN", "GE"},
                 "Initiative-Basiswert: Grundlage der Reihenfolge im Kampf; dazu kommen 1W6 sowie Waffen- und Rüstungsmodifikatoren"));
         k.add(reihe, BorderLayout.CENTER);
-        if (!d.rs.isEmpty()) k.add(klein("Rüstungsschutz wird berechnet nach: " + d.rs
-                + " · Waffen- und Rüstungsmodifikatoren stehen im Reiter „Ausrüstung“"), BorderLayout.SOUTH);
+        if (!d.rs.isEmpty()) {
+            // bricht im kleinen Fenster um, statt die Seite zu verbreitern
+            JLabel hin = new HtmlText("<html>Rüstungsschutz wird berechnet nach: " + d.rs
+                    + " · Waffen- und Rüstungsmodifikatoren stehen im Reiter „Ausrüstung“</html>");
+            hin.setForeground(Theme.muted());
+            hin.setFont(hin.getFont().deriveFont(hin.getFont().getSize2D() - 1f));
+            k.add(hin, BorderLayout.SOUTH);
+        }
         return k;
     }
 
@@ -374,7 +386,7 @@ final class KampfwerteLayout {
             int n = getComponentCount();
             if (n == 0) return 1;
             // Reserve je Kachel: manche Schriften (z. B. Segoe UI) laufen breiter als berechnet
-            int b = breiteste() + 24;
+            int b = breiteste() + 32;
             for (int sp : new int[]{n, (n + 1) / 2, 1})
                 if (sp >= 1 && sp * b + (sp - 1) * abstand <= breite) return sp;
             return 1;
@@ -457,26 +469,66 @@ final class KampfwerteLayout {
         JLabel w = new JLabel(wert == null ? "–" : String.valueOf(wert));
         w.setFont(w.getFont().deriveFont(Font.BOLD, w.getFont().getSize2D() * 1.7f));
         t.add(w, BorderLayout.WEST);
-        JPanel text = new JPanel(new GridLayout(0, 1));
+        JPanel text = new JPanel();
+        text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setOpaque(false);
         JLabel tl = new JLabel(titel);
+        tl.setAlignmentX(0);
         tl.setFont(tl.getFont().deriveFont(Font.BOLD));
         text.add(tl);
         // Formel in zwei Zeilen („(MU 13 + GE 11 + KK 11)“ / „/ 5 = 7“) – so passen die Kacheln auch im kleinen Fenster
-        String f = formel(eig, h, wert);
-        int teil = f.indexOf(") / ");
-        String[] zeilen = teil > 0 ? new String[]{f.substring(0, teil + 1), f.substring(teil + 2)} : new String[]{f};
         tl.setBorder(new EmptyBorder(0, 0, 0, 6));
-        for (String z : zeilen) {
-            JLabel fl = klein(z);
-            fl.setBorder(new EmptyBorder(0, 0, 0, 6));
-            text.add(fl);
-        }
+        text.add(new Formel(formel(eig, h, wert)));
         t.add(text, BorderLayout.CENTER);
         TooltipHook.infoTip(t, "<html><b>" + titel + "</b><br>" + zweck + ".<br>Formel: (" + String.join(" + ", eig)
                 + ") / 5, kaufmännisch gerundet.</html>");
         InventarLayout.eigen(t);
         return t;
+    }
+
+    /**
+     * Formel einer Basiswert-Kachel: in einer Zeile, wenn die Kachel breit genug ist (mit etwas Reserve für
+     * Windows-Schriften), sonst in zwei Zeilen („(MU 13 + GE 11 + KK 11)“ / „/ 5 = 7“).
+     */
+    static final class Formel extends JLabel {
+        final String ganz, zweizeilig;
+        final int breitEinzeilig;
+        boolean einzeilig;
+
+        Formel(String f) {
+            int teil = f.indexOf(") / ");
+            ganz = f;
+            zweizeilig = teil > 0 ? "<html>" + esc(f.substring(0, teil + 1)) + "<br>" + esc(f.substring(teil + 2)) + "</html>" : f;
+            setForeground(Theme.muted());
+            setFont(getFont().deriveFont(getFont().getSize2D() - 1f));
+            setBorder(new EmptyBorder(0, 0, 0, 6));
+            setAlignmentX(0);
+            setVerticalAlignment(CENTER);
+            breitEinzeilig = getFontMetrics(getFont()).stringWidth(f) + 6 + 10;   // + Rand + Reserve
+            setText(zweizeilig);
+        }
+        private static String esc(String t) { return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"); }
+        /**
+         * Größe immer von der zweizeiligen Fassung: Breite klein (mehr Kacheln nebeneinander), Höhe fest – so
+         * springt beim Umschalten nichts, die einzeilige Fassung steht einfach mittig.
+         */
+        @Override public Dimension getPreferredSize() {
+            JLabel probe = new JLabel(zweizeilig);
+            probe.setFont(getFont());
+            probe.setBorder(getBorder());
+            return probe.getPreferredSize();
+        }
+        @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+        @Override public void setBounds(int x, int y, int w, int h) {
+            super.setBounds(x, y, w, h);
+            boolean soll = w >= breitEinzeilig;
+            if (soll != einzeilig) {
+                einzeilig = soll;
+                setText(soll ? ganz : zweizeilig);
+                // einzeilig direkt unter dem Titel
+                setVerticalAlignment(soll ? TOP : CENTER);
+            }
+        }
     }
 
     /** „(MU 15 + GE 14 + KK 15) / 5 = 8,8 → 9“ mit den Werten des Helden. */
@@ -505,15 +557,15 @@ final class KampfwerteLayout {
 
     private static JComponent nahkampf(Daten d, HeroData h) {
         JPanel k = karte("Nahkampf");
-        JPanel t = tabelle();
+        JPanel t = tabelle(true);
         t.setOpaque(false);
         InventarLayout.eigen(t);
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0;
-        c.insets = new Insets(0, 0, 4, 12);
+        c.insets = new Insets(0, 0, 4, 8);
         c.anchor = GridBagConstraints.WEST;
         // „Hinweis“ so breit wie sein längster Text, „Zurücksetzen“ direkt dahinter, der Rest bleibt frei
-        String[] kopf = {"Talent", "TaW", "AT", "", "PA", "", "Verteilung", "AT | PA", "Hinweis", "Zurücksetzen", ""};
+        String[] kopf = {"Talent", "TaW", "AT", "", "PA", "", "Verteilung", "AT | PA", "Hinweis", "<html><center>Zurück-<br>setzen</center></html>", ""};
         for (int i = 0; i < kopf.length; i++) {
             c.gridx = i;
             c.weightx = i == 10 ? 1 : 0;
@@ -548,7 +600,7 @@ final class KampfwerteLayout {
                 && atA >= 0 && paA >= 0;
         String rechenweg = rechenweg(n.name, at, pa, atA, paA, frei, taw, d, stimmig);
 
-        c.insets = new Insets(3, 0, 3, 12);
+        c.insets = new Insets(3, 0, 3, 8);
         c.fill = GridBagConstraints.NONE;
         c.weightx = 0;
         c.gridx = 0;
@@ -587,7 +639,13 @@ final class KampfwerteLayout {
         t.add(anteile, c);
 
         c.gridx = 8;
-        JLabel hinweis = new JLabel(hinweis(frei, atA, paA, stimmig));
+        // zweizeilig („3 TaP / frei“, „AT/PA- / Grenze“) – so bleibt die Spalte schmal und alles passt ins Fenster
+        String hw = hinweis(frei, atA, paA, stimmig);
+        int lz = hw.lastIndexOf(' ');
+        if (hw.startsWith("AT/PA-")) hw = "<html>AT/PA-<br>Grenze</html>";
+        else if (lz > 0) hw = "<html>" + hw.substring(0, lz) + "<br>" + hw.substring(lz + 1) + "</html>";
+        JLabel hinweis = new JLabel(hw);
+        hinweis.setFont(hinweis.getFont().deriveFont(hinweis.getFont().getSize2D() - 1f));
         if (frei != null && frei > 0) hinweis.setForeground(Theme.accent()); else hinweis.setForeground(Theme.muted());
         TooltipHook.infoTip(hinweis, rechenweg);
         InventarLayout.eigen(hinweis);
@@ -708,7 +766,7 @@ final class KampfwerteLayout {
                 Dimension d = super.getPreferredSize();
                 FontMetrics fm = getFontMetrics(getFont());
                 Insets i = getInsets();
-                return new Dimension(Math.max(d.width, fm.stringWidth("888") + i.left + i.right + 2), d.height);
+                return new Dimension(Math.max(d.width, fm.stringWidth("888") + i.left + i.right + 4), d.height);
             }
             @Override public Dimension getMinimumSize() { return getPreferredSize(); }
         };
@@ -811,8 +869,8 @@ final class KampfwerteLayout {
     }
 
     static String hinweis(Integer frei, Integer atA, Integer paA, boolean stimmig) {
-        if (frei != null && frei > 0) return frei + " TaP frei – verteilen";
-        if (stimmig && Math.abs(atA - paA) >= MAX_DIFFERENZ) return "Unterschied AT/PA ausgeschöpft (" + MAX_DIFFERENZ + ")";
+        if (frei != null && frei > 0) return frei + " TaP frei";
+        if (stimmig && Math.abs(atA - paA) >= MAX_DIFFERENZ) return "AT/PA-Grenze";
         return "";
     }
 
@@ -841,7 +899,8 @@ final class KampfwerteLayout {
 
         Balken(int at, int pa, int frei) {
             this.at = at; this.pa = pa; this.frei = frei;
-            setPreferredSize(new Dimension(180, 16));
+            setPreferredSize(new Dimension(80, 16));
+            setMinimumSize(new Dimension(50, 16));
             putClientProperty("modernhelden.own", true);
         }
 
@@ -948,7 +1007,7 @@ final class KampfwerteLayout {
 
     private static JComponent regeln() {
         JPanel k = karte("So wird gerechnet");
-        JLabel l = new JLabel("<html><div style='width:820px'>"
+        JLabel l = new HtmlText("<html>"
                 + "• <b>Nahkampf:</b> Der TaW eines Kampftalents wird auf Attacke und Parade verteilt. "
                 + "AT = AT-Basis + AT-Anteil, PA = PA-Basis + PA-Anteil.<br>"
                 + "• <b>Grenze:</b> AT- und PA-Anteil dürfen sich um höchstens " + MAX_DIFFERENZ + " unterscheiden.<br>"
@@ -958,7 +1017,7 @@ final class KampfwerteLayout {
                 + "\u21ba gibt alle verteilten TaP eines Talents wieder frei.<br>"
                 + "• <b>Fernkampf:</b> FK = FK-Basis + TaW; hier wird nichts verteilt.<br>"
                 + "• Waffen, Schilde und Rüstung verändern die Werte zusätzlich – siehe Reiter „Ausrüstung“."
-                + "</div></html>");
+                + "</html>");
         InventarLayout.eigen(l);
         k.add(l, BorderLayout.CENTER);
         return k;
