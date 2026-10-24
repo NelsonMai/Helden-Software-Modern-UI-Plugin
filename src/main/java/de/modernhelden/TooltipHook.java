@@ -239,6 +239,24 @@ public final class TooltipHook implements AWTEventListener {
         for (JComponent k : cs) if (k != null) { k.putClientProperty(TOOLTIP_FUER, name); k.setToolTipText(null); }
     }
 
+    /** Markierung für eigene Ansichten: Tooltip „Herkunft der Abenteuerpunkte“. */
+    static final String AP_HERKUNFT = "\u0000AP";
+
+    /** Woher die AP kommen und wofür sie ausgegeben wurden. */
+    private void apTooltip(JComponent c, MouseEvent e) {
+        HeroData h = hero;
+        if (h == null) { hide(); return; }
+        String key = System.identityHashCode(c) + "|AP";
+        if (key.equals(shownKey)) return;
+        if (popup != null) hidePopupOnly();
+        pendingKey = key;
+        pendingComp = c;
+        pendingHtml = TooltipDB.htmlInfo("Abenteuerpunkte: " + h.ap, "Woher die AP kommen und wofür sie ausgegeben wurden",
+                h.herkunft.abenteuerpunkte(h.ap, h.freieAp));
+        pendingScreen = e.getLocationOnScreen();
+        showTimer.restart();
+    }
+
     private void handle(JComponent c, MouseEvent e) {
         String fest = null;
         for (Component d = SwingUtilities.getDeepestComponentAt(c, e.getX(), e.getY()); d != null; d = d.getParent()) {
@@ -249,22 +267,14 @@ public final class TooltipHook implements AWTEventListener {
             }
             if (d == c) break;
         }
+        if (AP_HERKUNFT.equals(fest)) { apTooltip(c, e); return; }
         if (fest != null) { zeige(c, e, fest, "fest|" + fest); return; }
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) { hide(); return; }
         // Abenteuerpunkte-Felder im Reiter „Allgemein“: Herkunft der AP erklären
         if (c instanceof javax.swing.text.JTextComponent && hero != null) {
             String lab = labelVor(c);
             if (lab != null && (lab.startsWith("Abenteuerpunkte") || lab.startsWith("AP Guthaben") || lab.startsWith("AP-Guthaben"))) {
-                HeroData h = hero;
-                String key = System.identityHashCode(c) + "|AP";
-                if (key.equals(shownKey)) return;
-                if (popup != null) hidePopupOnly();
-                pendingKey = key;
-                pendingComp = c;
-                pendingHtml = TooltipDB.htmlInfo("Abenteuerpunkte: " + h.ap, "Woher die AP kommen und wofür sie ausgegeben wurden",
-                        h.herkunft.abenteuerpunkte(h.ap, h.freieAp));
-                pendingScreen = e.getLocationOnScreen();
-                showTimer.restart();
+                apTooltip(c, e);
                 return;
             }
         }

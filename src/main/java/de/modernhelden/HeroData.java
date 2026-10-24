@@ -41,6 +41,10 @@ public final class HeroData {
     public final List<Talent> zauber = new ArrayList<>();
     public final List<Item> inventar = new ArrayList<>();
     public String geld = "";
+    /** Gildenzugehörigkeit (nur Gildenmagier/Lehrmeister), sonst leer. */
+    public String gilde = "";
+    /** Aus „Angaben bearbeiten“: Titel, Stand und Tarnidentität (leer, wenn nicht gesetzt). */
+    public String titel = "", stand = "", tarnidentitaet = "";
     public double geldSilber;
     /** Auswertung des Ereignisprotokolls (Herkunft von Talentwerten und SF). */
     public Herkunft herkunft = new Herkunft(null);
@@ -66,7 +70,10 @@ public final class HeroData {
             Element ausb = first(basis, "ausbildungen");
             if (ausb != null) {
                 List<String> p = new ArrayList<>();
-                for (Element a : children(ausb, "ausbildung")) p.add(a.getAttribute("string"));
+                for (Element a : children(ausb, "ausbildung")) {
+                    p.add(a.getAttribute("string"));
+                    if (h.tarnidentitaet.isEmpty()) h.tarnidentitaet = a.getAttribute("tarnidentitaet").trim();
+                }
                 h.profession = String.join(" / ", p);
             }
             if ((e = first(basis, "abenteuerpunkte")) != null) h.ap = num(e.getAttribute("value"));
@@ -185,6 +192,13 @@ public final class HeroData {
             h.inventar.add(new Item(n, anz.isEmpty() || "1".equals(anz) ? "" : anz + "×"));
         }
         h.herkunft = new Herkunft(first(held, "ereignisse"));
+        org.w3c.dom.NodeList al = held.getElementsByTagName("aussehen");
+        if (al.getLength() > 0) {
+            h.titel = ((Element) al.item(0)).getAttribute("titel").trim();
+            h.stand = ((Element) al.item(0)).getAttribute("stand").trim();
+        }
+        org.w3c.dom.NodeList gl = held.getElementsByTagName("gilde");
+        if (gl.getLength() > 0) h.gilde = ((Element) gl.item(0)).getAttribute("name");
         Element gb = first(held, "geldboerse");
         if (gb != null) {
             // Mittelreich in fester Reihenfolge (Dukaten, Silbertaler, Heller, Kreuzer), danach andere Münzen

@@ -28,13 +28,24 @@ zurückschalten.
   *+1* und *SE* funktionieren auch sortiert.
 - **Eigene Symbole:** über 40 neu gezeichnete Symbole, passend zu hell und dunkel.
 
-Die neu gestalteten Reiter *Eigenschaften*, *Inventar*, *Ausrüstung* und *Kampfwerte* samt Dialogen gibt es nur in den modernen Designs; im
+Die neu gestalteten Reiter *Allgemein*, *Eigenschaften*, *Inventar*, *Ausrüstung* und *Kampfwerte* samt Dialogen gibt es nur in den modernen Designs; im
 *Original* sehen sie aus wie bisher.
 Alle Änderungen am Helden laufen weiter über die Bedienelemente der Helden-Software.
 
 | Modern dunkel | Neue Symbole |
 |---|---|
 | ![Talentliste im dunklen Design](docs/bilder/modern-dunkel.png) | ![Übersicht der neuen Symbole](docs/bilder/symbole.png) |
+
+### Allgemein
+
+- **Steckbrief in zwei Spalten:** links Name (direkt änderbar), Rasse, Kultur, Profession, Aussehen und Daten mit
+  Stand, Titel, Sozialstatus, Tarnidentität und Gildenzugehörigkeit (*Angaben bearbeiten …* öffnet den Dialog der Helden-Software); rechts die Abenteuerpunkte
+  (gesamt, ausgegeben, frei mit Balken; Gesamt-AP direkt eingeben, auch „+350“; Tooltip zur Herkunft der AP;
+  *AP hinzufügen …* öffnet „Ereignis hinzufügen“).
+- **Drei Spalten:** Vorteile, Nachteile und Sonderfertigkeiten nebeneinander, jeweils mit Kurzbeschreibung und
+  gemeinsamem Suchfeld. *Nachteile senken* und *Hinzufügen* öffnen die Dialoge der Helden-Software.
+
+![Reiter „Allgemein“ im modernen Design](docs/bilder/allgemein.png)
 
 ### Eigenschaften
 
@@ -199,6 +210,7 @@ Kompilieren. GitHub Actions baut jeden Push und hängt das JAR an veröffentlich
 | `HeroPanel.java`, `HeroData.java`, `HauptReiter.java` | Kompaktansicht und Verlauf |
 | `InventarLayout.java`, `HinzufuegenLayout.java`, `GeldboerseLayout.java`, `InventarInfo.java`, `VorlagenInfo.java`, `Geld.java` | Inventar, Hinzufügen, Geldbörse |
 | `AusruestungLayout.java`, `AusruestungDialoge.java` | Ausrüstung und ihre Dialoge |
+| `AllgemeinLayout.java` | Allgemein als Steckbrief mit AP-Übersicht, Vor-/Nachteilen und SF |
 | `EigenschaftenLayout.java` | Eigenschaften, Energien und Basiswerte mit Rechenweg |
 | `KampfwerteLayout.java` | Kampfwerte mit Rechenweg und Verteilungsregeln |
 | `TalenteSortierung.java` | Sortierbare Tabellen |
