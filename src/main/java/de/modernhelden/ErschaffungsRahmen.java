@@ -271,7 +271,7 @@ final class ErschaffungsRahmen {
     }
 
     /** Knopftext ohne HTML-Zeilenumbruch, gleich hohe Knöpfe, „Weiter“/„Fertigstellen“ hervorgehoben. */
-    private static void knopfText(AbstractButton b) {
+    static void knopfText(AbstractButton b) {
         String t = b.getText();
         if (t != null && t.startsWith("<html>")) {
             String neu = t.substring(6).replaceAll("(?i)<br>\\s*$", "").replaceAll("(?i)<br>", " ").trim();
@@ -279,7 +279,7 @@ final class ErschaffungsRahmen {
             t = neu;
         }
         if (t == null) return;
-        boolean vor = t.startsWith("Weiter") || t.startsWith("Erschaffung") || t.startsWith("Fertigstellen");
+        boolean vor = t.startsWith("Weiter") || t.startsWith("Erschaffung") || t.startsWith("Fertig");
         Object stil = vor ? "font: bold" : null;
         if (vor && b.isEnabled()) {
             Color a = Theme.accent();
@@ -718,21 +718,27 @@ final class ErschaffungsRahmen {
         @Override protected void paintComponent(Graphics g) {
             int i = index();
             if (i < 0) return;
+            boolean an = reiter.isEnabledAt(i);
+            int sel = reiter.getSelectedIndex();
+            schrittMalen(g, this, reiter.getFont(), i + 1, reiter.getTitleAt(i), an, i == sel,
+                    an && i != sel && i < sel, an && reiter.getIconAt(i) != null);
+        }
+    }
+
+    /** Zeichnet einen Schritt der Schrittleiste: Kreis (Nummer, Häkchen oder „!“) und Name. */
+    static void schrittMalen(Graphics g, Component c, Font schrift, int nummer, String titel,
+                             boolean an, boolean aktuell, boolean erledigt, boolean warnung) {
+        {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            boolean an = reiter.isEnabledAt(i);
-            int sel = reiter.getSelectedIndex();
-            boolean aktuell = i == sel;
-            boolean warnung = an && reiter.getIconAt(i) != null;
-            boolean erledigt = an && !aktuell && i < sel;
             Color akzent = Theme.accent();
             Color blass = Theme.muted();
             Color text = an ? UIManager.getColor("Label.foreground") : blass;
             if (text == null) text = Color.BLACK;
-            int d = 18, y = (getHeight() - d) / 2;
+            int d = 18, y = (c.getHeight() - d) / 2;
             Ellipse2D kreis = new Ellipse2D.Float(4, y, d, d);
-            String zeichen = String.valueOf(i + 1);
+            String zeichen = String.valueOf(nummer);
             Color zeichenFarbe;
             if (warnung) {
                 g2.setColor(fehlerFarbe());
@@ -765,19 +771,19 @@ final class ErschaffungsRahmen {
                 zeichenFarbe = an ? text : blass;
             }
             if (zeichen != null) {
-                Font f = reiter.getFont().deriveFont(Font.BOLD, 10.5f);
+                Font f = schrift.deriveFont(Font.BOLD, 10.5f);
                 g2.setFont(f);
                 FontMetrics fm = g2.getFontMetrics();
                 g2.setColor(zeichenFarbe);
                 g2.drawString(zeichen, 4 + (d - fm.stringWidth(zeichen)) / 2f,
                         y + (d - fm.getHeight()) / 2f + fm.getAscent());
             }
-            Font f = reiter.getFont();
+            Font f = schrift;
             if (aktuell) f = f.deriveFont(Font.BOLD);
             g2.setFont(f);
             FontMetrics fm = g2.getFontMetrics();
-            g2.setColor(aktuell ? text : (an ? text : blass));
-            g2.drawString(reiter.getTitleAt(i), 30, (getHeight() - fm.getHeight()) / 2f + fm.getAscent());
+            g2.setColor(an ? text : blass);
+            g2.drawString(titel, 30, (c.getHeight() - fm.getHeight()) / 2f + fm.getAscent());
             g2.dispose();
         }
     }

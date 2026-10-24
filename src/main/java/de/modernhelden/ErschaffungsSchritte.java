@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  */
 final class ErschaffungsSchritte {
 
-    private static final String KOPF = "modernhelden.schrittKopf";
+    static final String KOPF = "modernhelden.schrittKopf";
     private static final String ANSICHT = "modernhelden.schrittAnsicht";
 
     private ErschaffungsSchritte() {}
@@ -129,7 +129,7 @@ final class ErschaffungsSchritte {
             "Vor- und Nachteile", "verbilligte SF", "Sonderfertigkeiten", "Talente", "Zauber"));
 
     /** Kopf eines Schritts: „Schritt 4“ klein darüber, Titel groß, Erklärung blass. */
-    private static final class Kopf extends JPanel {
+    static final class Kopf extends JPanel {
         final String titel; final int nr;
         Suchleiste leiste;
         void suche(JPanel huelle) {
@@ -165,6 +165,12 @@ final class ErschaffungsSchritte {
             for (JComponent c : new JComponent[]{this, schritt, t, text}) InventarLayout.eigen(c);
         }
         boolean passt(String titel, int nr) { return this.titel.equals(titel) && this.nr == nr; }
+        /** Werkzeug unter dem Text (z. B. Suchfeld), sofern noch keine Suchleiste da ist. */
+        void werkzeug(JComponent w) {
+            if (leiste != null) return;
+            add(w, BorderLayout.SOUTH);
+            revalidate();
+        }
     }
 
     /** Suchfeld und (bei Talenten) Schalter je Kategorie; filtert alle Tabellen des Schritts. */
@@ -339,7 +345,7 @@ final class ErschaffungsSchritte {
     // ------------------------------------------------------------------ eigene Ansichten
 
     /** Eigene Ansicht eines Schritts; das Original bleibt erhalten und wird im Original-Design wieder eingesetzt. */
-    private abstract static class Ansicht extends JPanel {
+    abstract static class Ansicht extends JPanel {
         final JComponent orig;
         final JPanel inhalt = new JPanel();
         String stand = "";
@@ -395,11 +401,12 @@ final class ErschaffungsSchritte {
     }
 
     /** Regelbasis: Auswahl des Regelwerks mit Beschreibung, darunter die Regelbücher und Erweiterungen. */
-    private static final class Regelbasis extends Ansicht {
+    static final class Regelbasis extends Ansicht {
         Regelbasis(JComponent orig) { super(orig); }
 
         @Override String stand() {
             StringBuilder sb = new StringBuilder();
+            for (JRadioButton r : alle(orig, JRadioButton.class)) sb.append(r.getText()).append(r.isEnabled());
             JComboBox<?> cb = ErschaffungsRahmen.erstes(orig, JComboBox.class);
             if (cb != null) sb.append(cb.getSelectedItem());
             JEditorPane ep = ErschaffungsRahmen.erstes(orig, JEditorPane.class);
@@ -416,6 +423,23 @@ final class ErschaffungsSchritte {
         }
 
         @Override void aufbauen() {
+            // „Einen Helden eingeben“: Geschlecht steht auf derselben Seite
+            List<JRadioButton> radios = alle(orig, JRadioButton.class);
+            if (!radios.isEmpty()) {
+                JPanel g = karte("Geschlecht");
+                JPanel r = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+                r.setOpaque(false);
+                for (JRadioButton o : radios) {
+                    JRadioButton n = new JRadioButton(o.getText());
+                    n.setModel(o.getModel());
+                    n.setOpaque(false);
+                    n.setBorder(new EmptyBorder(2, 0, 2, 22));
+                    r.add(n);
+                }
+                g.add(r, BorderLayout.WEST);
+                for (JLabel lb : alle(orig, JLabel.class))
+                    if (lb.getText() != null && lb.getText().contains("Geschlecht")) { g.add(KampfwerteLayout.klein(lb.getText()), BorderLayout.SOUTH); break; }
+            }
             JPanel k = karte("Regelwerk");
             JPanel z = new JPanel();
             z.setLayout(new BoxLayout(z, BoxLayout.Y_AXIS));
@@ -430,8 +454,12 @@ final class ErschaffungsSchritte {
                 z.add(KampfwerteLayout.links(cb));
             }
             JEditorPane ep = ErschaffungsRahmen.erstes(orig, JEditorPane.class);
-            if (ep != null) {
-                String t = ep.getText().replaceAll("(?is)<head>.*?</head>", "").replaceAll("<[^>]*>", "\n")
+            String beschreibung = ep != null ? ep.getText() : null;
+            if (beschreibung == null)
+                for (JLabel lb : alle(orig, JLabel.class))
+                    if (lb.getText() != null && lb.getText().startsWith("<html>")) { beschreibung = lb.getText(); break; }
+            if (beschreibung != null) {
+                String t = beschreibung.replaceAll("(?is)<head>.*?</head>", "").replaceAll("<[^>]*>", "\n")
                         .replaceAll("[ \\t]+", " ").replaceAll("\\s*\\n\\s*", "\n").trim();
                 if (!t.isEmpty()) {
                     z.add(Box.createVerticalStrut(6));
@@ -682,11 +710,18 @@ final class ErschaffungsSchritte {
 
     // ------------------------------------------------------------------ Feinschliff an den Original-Bausteinen
 
-    private static final String RUECK = "modernhelden.schrittRueck";
+    static final String RUECK = "modernhelden.schrittRueck";
     private static final String GESTYLT = "modernhelden.schrittStil";
 
+    /** Alle gemerkten Änderungen an dieser Hülle zurücknehmen. */
+    static void rueckgaengig(JPanel huelle) {
+        Object r = huelle.getClientProperty(RUECK);
+        if (r instanceof List) for (Object o : (List<?>) r) ((Runnable) o).run();
+        huelle.putClientProperty(RUECK, null);
+    }
+
     @SuppressWarnings("unchecked")
-    private static void rueck(JPanel huelle, Runnable r) {
+    static void rueck(JPanel huelle, Runnable r) {
         Object o = huelle.getClientProperty(RUECK);
         List<Runnable> l = o instanceof List ? (List<Runnable>) o : new ArrayList<>();
         l.add(r);
@@ -697,7 +732,7 @@ final class ErschaffungsSchritte {
      * Überschriften wie „Nicht aktivierte Talente:“ hervorheben, Listen luftiger, Auswahl-Raster oben links statt
      * mitten im leeren Feld. Jede Änderung merkt sich, wie sie rückgängig gemacht wird.
      */
-    private static void stil(JPanel huelle, JComponent mitte) {
+    static void stil(JPanel huelle, JComponent mitte) {
         for (JLabel l : alle(mitte, JLabel.class)) {
             if (l.getClientProperty(GESTYLT) != null || Boolean.TRUE.equals(l.getClientProperty("modernhelden.own"))) continue;
             String t = l.getText();
@@ -810,7 +845,7 @@ final class ErschaffungsSchritte {
     private static final String BAUM = "modernhelden.erschaffungsBaum";
     private static final Pattern KOSTEN = Pattern.compile("^(.*?)\\s*\\(([^()]*GP)\\)\\s*$");
 
-    private static void baeume(JComponent c) {
+    static void baeume(JComponent c) {
         for (JTree t : alle(c, JTree.class)) {
             if (t.getClientProperty(BAUM) != null) continue;
             Object[] orig = {t.getCellRenderer(), t.getRowHeight(), t.isRootVisible(), t.getShowsRootHandles()};
@@ -848,7 +883,7 @@ final class ErschaffungsSchritte {
         }
     }
 
-    private static void baeumeZurueck(JComponent c) {
+    static void baeumeZurueck(JComponent c) {
         for (JTree t : alle(c, JTree.class)) {
             Object o = t.getClientProperty(BAUM);
             if (!(o instanceof Object[])) continue;

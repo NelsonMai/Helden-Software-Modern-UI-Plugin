@@ -456,7 +456,12 @@ final class KampfwerteLayout {
             }
             // Höhe hängt von der Spaltenzahl ab – bei Änderung neu anordnen lassen
             int zeilen = (n + sp - 1) / sp, soll = zeilen * zh + (zeilen - 1) * abstand + i.top + i.bottom;
-            if (getHeight() != soll) SwingUtilities.invokeLater(this::revalidate);
+            // nur einmal je Größe (sonst Endlosschleife, falls der Bereich die Höhe nicht hergibt)
+            String stand = getWidth() + "x" + getHeight() + ">" + soll;
+            if (getHeight() != soll && !stand.equals(getClientProperty("modernhelden.umbruch"))) {
+                putClientProperty("modernhelden.umbruch", stand);
+                SwingUtilities.invokeLater(this::revalidate);
+            }
         }
     }
 

@@ -204,8 +204,15 @@ public final class TalenteSortierung {
         @Override public Dimension preferredLayoutSize(Container c) { return groesse(c, true); }
         @Override public void layoutContainer(Container c) {
             super.layoutContainer(c);
-            // Höhe hängt von der Breite ab – nach einer Größenänderung einmal neu anordnen lassen
-            if (c.getHeight() != groesse(c, true).height) {
+            // Höhe hängt von der Breite ab – nach einer Größenänderung einmal neu anordnen lassen. Nur einmal je
+            // Breite und Höhe: Gibt der umgebende Bereich die Höhe nicht her, entstünde sonst eine Endlosschleife,
+            // die das ganze Fenster ständig neu anordnet (Flackern, z. B. der Hover-Markierung der Reiter).
+            int soll = groesse(c, true).height;
+            if (c.getHeight() != soll && c instanceof JComponent) {
+                JComponent j = (JComponent) c;
+                String stand = c.getWidth() + "x" + soll;
+                if (stand.equals(j.getClientProperty("modernhelden.umbruch"))) return;
+                j.putClientProperty("modernhelden.umbruch", stand);
                 Container p = c.getParent();
                 SwingUtilities.invokeLater(() -> { c.invalidate(); if (p != null) p.revalidate(); });
             }

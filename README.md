@@ -36,6 +36,8 @@ GP-Kosten als Plakette. Die Tabellen (Eigenschaften, Vor-/Nachteile, Sonderferti
 sind per Spaltenkopf sortierbar, z. B. nach Kosten oder Wert; Vor-/Nachteile, Sonderfertigkeiten, Talente und Zauber
 haben eine Suche, Talente zusätzlich Schalter je Kategorie, Unterreiter zeigen die Trefferzahl.
 Gerechnet und geprüft wird weiter von der Helden-Software.
+„Einen Helden eingeben“ und „Einen Helden editieren“ haben denselben Rahmen (Schrittleiste, Kopf, Info-Spalte,
+Karten für Geschlecht/Setting und Person) und eine Suche bei Rasse, Kultur, Profession und Talenten.
 
 ![Erschaffung: Schritt Kultur mit Info-Spalte](docs/bilder/erschaffung.png)
 

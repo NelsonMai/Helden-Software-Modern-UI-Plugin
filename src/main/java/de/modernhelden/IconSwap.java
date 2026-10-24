@@ -115,6 +115,7 @@ public final class IconSwap {
         }
         if (ErschaffungsLayout.KLASSE.equals(c.getClass().getName())) ErschaffungsLayout.anwenden(c, modern);
         if (c instanceof JRootPane) ErschaffungsRahmen.pruefen((JRootPane) c, modern);
+        if (c instanceof JRootPane) EingabeRahmen.pruefen((JRootPane) c, modern);
         if (c instanceof JPanel) InventarLayout.pruefen(c, modern);
         if (c instanceof JPanel) AusruestungLayout.pruefen(c, modern);
         if (c instanceof JPanel) KampfwerteLayout.pruefen(c, modern);

@@ -119,6 +119,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
             });
             panel.setRueckgaengig(e -> {
                 String f = Rueckgaengig.ausfuehren(frame, e.time, e.text);
+                panelStand = null;
                 refresh();
                 return f;
             });
@@ -215,11 +216,32 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
 
     // ------------------------------------------------------------ Logik
 
+    /**
+     * Stand der Daten, aus denen die Kompaktansicht zuletzt aufgebaut wurde. Die Helden-Software meldet auch beim
+     * bloßen Reiterwechsel eine Änderung; ohne diesen Vergleich würde der sichtbare Reiter jedes Mal neu aufgebaut
+     * (Flackern).
+     */
+    private String panelStand;
+
+    private static String text(Document d) {
+        try {
+            javax.xml.transform.Transformer t = javax.xml.transform.TransformerFactory.newInstance().newTransformer();
+            java.io.StringWriter w = new java.io.StringWriter();
+            t.transform(new DOMSource(d), new StreamResult(w));
+            // die Signatur ist bei jedem Export neu und sagt nichts über Änderungen am Helden
+            return w.toString().replaceAll("(?s)<SignatureValue>.*?</SignatureValue>", "");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private void refresh() {
         HeroData h = null;
+        String stand = null;
         try {
             Object res = exec("exportHeld", "id", "selected");
             if (res instanceof Document) {
+                stand = text((Document) res);
                 h = HeroData.parse((Document) res, db);
                 try {
                     Document v3 = heldDaten();
@@ -258,7 +280,11 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         EigenschaftenLayout.aktualisieren();
         AllgemeinLayout.db = db;
         AllgemeinLayout.aktualisieren();
-        if (panel != null) panel.showHero(h);
+        if (panel != null) {
+            String neu = stand == null ? null : stand + "|" + Theme.current() + "|" + hook.isEnabled();
+            if (neu == null || !neu.equals(panelStand)) panel.showHero(h);
+            panelStand = neu;
+        }
         HauptReiter.pruefen(panel, "Plugin: " + getMenuName());
         installDruckvorschau();
         if (printPanel != null) printPanel.markDirty();
@@ -388,6 +414,7 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(frame, "Konnte nicht speichern: " + e.getMessage(), "Modern-UI", JOptionPane.ERROR_MESSAGE);
         }
+        panelStand = null;
         refresh();
     }
 

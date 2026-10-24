@@ -551,7 +551,7 @@ final class AllgemeinLayout {
     }
 
     /** Menüpunkt der Helden-Software, dessen Text so beginnt. */
-    private static JMenuItem menuepunkt(Window w, String anfang) {
+    static JMenuItem menuepunkt(Window w, String anfang) {
         if (!(w instanceof RootPaneContainer)) return null;
         JMenuBar bar = ((RootPaneContainer) w).getRootPane().getJMenuBar();
         if (bar == null) return null;
@@ -845,7 +845,13 @@ final class AllgemeinLayout {
                     ap.setBounds(0, p.height + d.height + 2 * ZEILE, b, a.height);
                 }
             }
-            if (h != getPreferredSize().height) SwingUtilities.invokeLater(this::revalidate);
+            // nur einmal je Größe neu anordnen lassen (sonst Endlosschleife, falls der Bereich die Höhe nicht hergibt)
+            int soll = getPreferredSize().height;
+            String stand = b + "x" + h + ">" + soll;
+            if (h != soll && !stand.equals(getClientProperty("modernhelden.umbruch"))) {
+                putClientProperty("modernhelden.umbruch", stand);
+                SwingUtilities.invokeLater(this::revalidate);
+            }
         }
     }
 

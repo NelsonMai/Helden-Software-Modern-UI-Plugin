@@ -402,6 +402,7 @@ final class EigenschaftenLayout {
         b.setFocusable(false);
         b.putClientProperty("JButton.buttonType", "roundRect");
         InventarLayout.eigen(b);
+        if (z.knopf == null && "Karmaenergie".equals(name)) return karmalqueste(b);
         if (z.knopf == null) { b.setVisible(false); return b; }
         b.setEnabled(z.knopf.isEnabled());
         String grund = z.knopf.getToolTipText();
@@ -418,6 +419,28 @@ final class EigenschaftenLayout {
         return b;
     }
 
+    /**
+     * Karmaenergie hat in der Helden-Software keinen „Steigern“-Knopf; erhöht wird sie über „Steigern → Karmalqueste …“.
+     * Der Knopf löst genau diesen Menüpunkt aus und ist nur aktiv, wenn er es auch ist.
+     */
+    private static JComponent karmalqueste(JButton b) {
+        b.setText("Karmalqueste …");
+        JMenuItem m = null;
+        for (Frame f : Frame.getFrames()) {
+            if (!f.isDisplayable()) continue;
+            m = AllgemeinLayout.menuepunkt(f, "Karmalqueste");
+            if (m != null) break;
+        }
+        final JMenuItem punkt = m;
+        if (punkt == null) { b.setVisible(false); return b; }
+        b.setEnabled(punkt.isEnabled());
+        TooltipHook.infoTip(b, punkt.isEnabled()
+                ? "Karmaenergie über eine Karmalqueste erhöhen (wie Steigern → Karmalqueste …)."
+                : "Eine Karmalqueste ist für diesen Helden gerade nicht möglich.");
+        b.addActionListener(e -> { if (punkt.isEnabled()) punkt.doClick(0); });
+        return b;
+    }
+
     private static JLabel kosten(Zeile z) {
         String text = z.kosten == null ? "" : String.valueOf(z.kosten.getText()).trim();
         boolean max = z.knopf != null && !z.knopf.isEnabled() && "Maximum erreicht".equals(z.knopf.getToolTipText());
@@ -431,7 +454,11 @@ final class EigenschaftenLayout {
     // ------------------------------------------------------------------ Energien und MR
 
     private static JComponent energien(Daten d, HeroData h) {
-        JPanel k = KampfwerteLayout.karte("Lebensenergie, Ausdauer, Astralenergie und Magieresistenz");
+        // Überschrift nach den vorhandenen Werten (AE und KE nur bei Helden, die sie haben)
+        List<String> titel = new ArrayList<>(Arrays.asList("Lebensenergie", "Ausdauer"));
+        if (d.zahl("Astralenergie") != null) titel.add("Astralenergie");
+        if (d.zahl("Karmaenergie") != null) titel.add("Karmaenergie");
+        JPanel k = KampfwerteLayout.karte(String.join(", ", titel) + " und Magieresistenz");
         JPanel t = KampfwerteLayout.tabelle();
         t.setOpaque(false);
         InventarLayout.eigen(t);
@@ -456,7 +483,8 @@ final class EigenschaftenLayout {
             String weg = rechenweg(e, h, wert, e.kuerzel.equals("AE") ? verlorenAe(d) : null);
             String tip = "<html><div style='width:340px'><b>" + e.name + " (" + e.kuerzel + ")</b><br>" + e.zweck + ".<br><br>"
                     + (weg.isEmpty() ? "" : weg + "<br>")
-                    + (e.eig == null ? "Wird nicht mit AP gesteigert."
+                    + (e.kuerzel.equals("KE") ? "Wird nicht direkt gesteigert, sondern über eine Karmalqueste erhöht."
+                    : e.eig == null ? "Wird nicht mit AP gesteigert."
                     : "Steigt eine der Eigenschaften, steigt der Grundwert mit. Zukaufen ist nur begrenzt möglich.")
                     + "</div></html>";
             zeile(t, c, e.name, e.kuerzel, z, wert, null, weg, tip);
