@@ -31,6 +31,7 @@ public final class IconSwap {
 
     public static synchronized void setModern(boolean m) {
         modern = m;
+        if (!m) AngabenDialog.zuruecksetzen();
         installieren();
         factory(m);
         alleFenster();
@@ -51,6 +52,7 @@ public final class IconSwap {
                     String t = ((JDialog) w).getTitle();
                     if (HinzufuegenLayout.TITEL.equals(t)) HinzufuegenLayout.anwenden((JDialog) w);
                     else if (GeldboerseLayout.TITEL.equals(t)) GeldboerseLayout.anwenden((JDialog) w);
+                    else if (AngabenDialog.TITEL.equalsIgnoreCase(t)) AngabenDialog.anwenden((JDialog) w);
                     else AusruestungDialoge.anwenden((JDialog) w);   // erkennt die Ausrüstungs-Dialoge am Aufbau
                 }
                 SwingUtilities.invokeLater(() -> baum(w));
@@ -71,6 +73,7 @@ public final class IconSwap {
                     // (die Geldbörse regelt das selbst über WINDOW_OPENED)
                     String t = ((JDialog) c).getTitle();
                     if (HinzufuegenLayout.TITEL.equals(t)) HinzufuegenLayout.anwenden((JDialog) c);
+                    else if (AngabenDialog.TITEL.equalsIgnoreCase(t)) AngabenDialog.anwenden((JDialog) c);
                     else if (!GeldboerseLayout.TITEL.equals(t)) AusruestungDialoge.anwenden((JDialog) c);
                     // Symbole und Tabellen sofort umstellen, nicht erst nach dem ersten Bild
                     if (!GeldboerseLayout.TITEL.equals(t)) baum(c);
