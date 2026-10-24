@@ -347,7 +347,8 @@ final class EigenschaftenLayout {
         InventarLayout.eigen(w);
         t.add(w, c);
         // dieselben Tooltips wie in der Kompaktansicht und in der Ansicht der Helden-Software
-        TooltipHook.tooltipFuer(name, n, kz, wl, st, w);
+        TooltipHook.tooltipFuer(name, n, kz, wl, st);
+        // „Fließt ein in“ und „Rechenweg“ bleiben ohne Tooltip
     }
 
     /** Wofür eine Eigenschaft gebraucht wird – aus den Formeln der Grundwerte. */
@@ -396,7 +397,10 @@ final class EigenschaftenLayout {
         b.setEnabled(z.knopf.isEnabled());
         String grund = z.knopf.getToolTipText();
         String kosten = z.kosten == null ? "" : String.valueOf(z.kosten.getText()).trim();
-        if (!z.knopf.isEnabled())
+        if (!z.knopf.isEnabled() && (grund == null || grund.isEmpty()) && "Astralenergie".equals(name))
+            // die Helden-Software sperrt den Zukauf, solange AE dauerhaft verloren ist
+            b.setToolTipText("Erst die dauerhaft verlorene Astralenergie zurückkaufen, dann kann wieder zugekauft werden.");
+        else if (!z.knopf.isEnabled())
             b.setToolTipText(grund != null && !grund.isEmpty() ? name + ": " + grund : name + " kann nicht gesteigert werden.");
         else
             b.setToolTipText(name + (wert == null ? "" : " von " + wert + " auf " + (wert + 1)) + " steigern"
@@ -440,7 +444,7 @@ final class EigenschaftenLayout {
             // AE und KE nur bei Helden, die sie haben
             if (wert == null && (e.kuerzel.equals("AE") || e.kuerzel.equals("KE"))) continue;
             c.gridy++;
-            String weg = rechenweg(e, h, wert);
+            String weg = rechenweg(e, h, wert, e.kuerzel.equals("AE") ? verlorenAe(d) : null);
             String tip = "<html><div style='width:340px'><b>" + e.name + " (" + e.kuerzel + ")</b><br>" + e.zweck + ".<br><br>"
                     + (weg.isEmpty() ? "" : weg + "<br>")
                     + (e.eig == null ? "Wird nicht mit AP gesteigert."
@@ -453,12 +457,11 @@ final class EigenschaftenLayout {
         return k;
     }
 
-    /** Zeile für dauerhaft verlorene Astralenergie mit „Zurückkaufen“ – nur wenn die Helden-Software sie zeigt. */
+    /** Zeile für dauerhaft verlorene Astralenergie mit „Zurückkaufen“ – bei Helden mit AE immer (ohne Verlust ausgegraut). */
     private static void verloreneAe(JPanel t, GridBagConstraints c, Daten d) {
         Zeile z = d.z("Astralenergie-permanent");
         if (z == null || z.feld == null) return;
         String v = String.valueOf(z.feld.getText()).trim();
-        if (v.isEmpty() && (z.knopf == null || !z.knopf.isEnabled())) return;
         c.gridy++;
         c.insets = new Insets(0, 0, 3, 12);
         c.gridx = 0;
@@ -493,10 +496,22 @@ final class EigenschaftenLayout {
         c.anchor = GridBagConstraints.WEST;
     }
 
+    /** Dauerhaft verlorene AE laut Feld der Helden-Software (leer = 0); null, wenn es das Feld nicht gibt. */
+    private static Integer verlorenAe(Daten d) {
+        if (d.z("Astralenergie-permanent") == null) return null;
+        Integer v = d.zahl("Astralenergie-permanent");
+        return v == null ? 0 : v;
+    }
+
     /** „(KO 12 + KO 12 + KK 11) / 2 = 17,5 → 18 · Modifikator +5 · zugekauft +2“. */
-    static String rechenweg(Energie e, HeroData h, Integer wert) {
+    static String rechenweg(Energie e, HeroData h, Integer wert, Integer verloren) {
         if (h == null) return "";
         Integer mod = h.energieMod.get(e.kuerzel), kauf = h.energieKauf.get(e.kuerzel);
+        // dauerhaft verlorene AE getrennt zeigen (die Helden-Software zählt sie in den Modifikator);
+        // der aktuelle Stand kommt aus ihrem Feld, weil „Zurückkaufen“ die Heldendaten nicht sofort neu liefert
+        Integer perm = h.energiePermanent.get(e.kuerzel);
+        if (mod != null && perm != null) mod = mod - perm;
+        if (verloren == null) verloren = perm;
         if (e.eig == null) {
             if (wert == null) return "";
             return kauf != null && kauf != 0 ? "durch Weihe und Liturgiekenntnis" : "";
@@ -517,6 +532,7 @@ final class EigenschaftenLayout {
         long gesamt = grund;
         if (mod != null && mod != 0) { sb.append(" · Modifikator ").append(vz(mod)); gesamt += mod; }
         if (kauf != null && kauf != 0) { sb.append(" · zugekauft ").append(vz(kauf)); gesamt += kauf; }
+        if (verloren != null && verloren != 0) { sb.append(" · dauerhaft verloren ").append(vz(verloren)); gesamt += verloren; }
         if (wert != null && wert != gesamt) sb.append(" · weitere ").append(vz((int) (wert - gesamt)));
         return sb.toString();
     }
