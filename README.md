@@ -26,6 +26,19 @@ am Helden laufen immer über die Bedienelemente der Helden-Software.
 |---|---|
 | ![Talentliste im dunklen Design](docs/bilder/modern-dunkel.png) | ![Übersicht der neuen Symbole](docs/bilder/symbole.png) |
 
+### Helden erschaffen
+
+Der Erschaffungs-Assistent in neuem Rahmen: links die Schritte mit Nummer, Häkchen und Warnung, in der Mitte der
+Schritt mit kurzer Erklärung, rechts eine Info-Spalte mit dem bisherigen Helden, den Punkten (GP, AP, Nachteile …)
+als Balken, Hinweisen der Regelprüfung und dem, was die gewählte Rasse, Kultur oder Profession mitbringt.
+Regelbasis, Einstellungen und Aussehen sind als Karten aufgebaut, Rassen, Kulturen und Professionen zeigen ihre
+GP-Kosten als Plakette. Die Tabellen (Eigenschaften, Vor-/Nachteile, Sonderfertigkeiten, Talente, Zauber, Kosten)
+sind per Spaltenkopf sortierbar, z. B. nach Kosten oder Wert; Vor-/Nachteile, Sonderfertigkeiten, Talente und Zauber
+haben eine Suche, Talente zusätzlich Schalter je Kategorie, Unterreiter zeigen die Trefferzahl.
+Gerechnet und geprüft wird weiter von der Helden-Software.
+
+![Erschaffung: Schritt Kultur mit Info-Spalte](docs/bilder/erschaffung.png)
+
 ### Allgemein
 
 Links der Steckbrief mit allen Angaben (*Angaben bearbeiten …*), rechts die Abenteuerpunkte mit Balken,

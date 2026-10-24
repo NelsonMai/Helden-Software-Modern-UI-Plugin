@@ -60,7 +60,7 @@ final class ErschaffungsLayout {
     }
 
     private static void platzieren(JComponent ext, JTabbedPane reiter, JComponent feld) {
-        if (!Theme.isModern() || reiter.getUI() == null) return;
+        if (!Theme.isModern() || reiter.getUI() == null || ErschaffungsRahmen.aktiv(ext)) return;
         int n = reiter.getTabCount();
         if (n == 0 || ext.getHeight() <= 0) return;
         // Reiter so flach machen, dass die sichtbaren GP/AP-Felder darunter vollständig Platz haben

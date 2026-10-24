@@ -56,6 +56,27 @@ public final class IconSwap {
                 SwingUtilities.invokeLater(() -> baum(w));
             }
         }, AWTEvent.WINDOW_EVENT_MASK);
+        // Erschaffungs-Assistent umbauen, sobald er sichtbar wird – noch bevor er zum ersten Mal gezeichnet ist
+        // (WINDOW_OPENED kommt erst danach; sonst blitzt kurz das alte, kleinere Fenster auf)
+        Toolkit.getDefaultToolkit().addAWTEventListener(ev -> {
+            if (!modern || !(ev instanceof java.awt.event.HierarchyEvent)) return;
+            java.awt.event.HierarchyEvent he = (java.awt.event.HierarchyEvent) ev;
+            if ((he.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) == 0) return;
+            Component c = he.getChanged();
+            if (!(c instanceof Window) || !c.isShowing() || he.getComponent() != c) return;
+            try {
+                if (ErschaffungsRahmen.DIALOG.equals(c.getClass().getName())) baum(c);
+                else if (c instanceof JDialog) {
+                    // Dialoge, die neu angeordnet werden, ebenfalls vor dem ersten Zeichnen umbauen
+                    // (die Geldbörse regelt das selbst über WINDOW_OPENED)
+                    String t = ((JDialog) c).getTitle();
+                    if (HinzufuegenLayout.TITEL.equals(t)) HinzufuegenLayout.anwenden((JDialog) c);
+                    else if (!GeldboerseLayout.TITEL.equals(t)) AusruestungDialoge.anwenden((JDialog) c);
+                    // Symbole und Tabellen sofort umstellen, nicht erst nach dem ersten Bild
+                    if (!GeldboerseLayout.TITEL.equals(t)) baum(c);
+                }
+            } catch (RuntimeException ignore) { }
+        }, AWTEvent.HIERARCHY_EVENT_MASK);
         // Reiter und Listen der Helden-Software entstehen teils erst beim Anzeigen: regelmäßig nachziehen
         // während ein Gegenstand gezogen wird nichts anfassen – das Neuzeichnen ließ den Mauszeiger flackern
         timer = new javax.swing.Timer(1500, e -> { if (!HinzufuegenLayout.ziehtGerade) alleFenster(); });
@@ -93,6 +114,7 @@ public final class IconSwap {
             if (geaendert) c.repaint();
         }
         if (ErschaffungsLayout.KLASSE.equals(c.getClass().getName())) ErschaffungsLayout.anwenden(c, modern);
+        if (c instanceof JRootPane) ErschaffungsRahmen.pruefen((JRootPane) c, modern);
         if (c instanceof JPanel) InventarLayout.pruefen(c, modern);
         if (c instanceof JPanel) AusruestungLayout.pruefen(c, modern);
         if (c instanceof JPanel) KampfwerteLayout.pruefen(c, modern);
@@ -172,6 +194,10 @@ public final class IconSwap {
                     k = tr.getTableCellRendererComponent(t, t.getValueAt(row, ci), false, false, row, ci);
                 } catch (RuntimeException ex) { continue; }
                 if ((k instanceof AbstractButton || k instanceof JLabel) && erledigt.add(k)) komponente((JComponent) k);
+                // Zellen aus mehreren Symbolen (z. B. Hauszauber + Leitzauber in der Erschaffung)
+                else if (k instanceof JPanel && erledigt.add(k))
+                    for (Component kk : ((JPanel) k).getComponents())
+                        if ((kk instanceof AbstractButton || kk instanceof JLabel) && erledigt.add(kk)) komponente((JComponent) kk);
             }
         }
         // Renderer-Komponenten werden nur beim Zeichnen benutzt – neu zeichnen, damit die Symbole sofort stimmen

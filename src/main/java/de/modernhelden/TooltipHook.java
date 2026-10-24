@@ -199,9 +199,13 @@ public final class TooltipHook implements AWTEventListener {
             }
             // beim Ziehen eines Gegenstands keine Tooltips – sie lägen unter dem Mauszeiger und störten das Ablegen
             if (HinzufuegenLayout.ziehtGerade) { hide(); return; }
-            if (!enabled || id != MouseEvent.MOUSE_MOVED) return;
+            if (id != MouseEvent.MOUSE_MOVED) return;
             MouseEvent e = (MouseEvent) ev;
             Component c = e.getComponent();
+            if (!enabled) {
+                if (c instanceof JComponent && ((JComponent) c).getClientProperty(TABELLEN_TIP) != null) schlichterTip((JComponent) c, e);
+                return;
+            }
             if (!(c instanceof JComponent) || c instanceof JToolTip) { hide(); return; }
             handle((JComponent) c, e);
         } catch (RuntimeException ignore) {
@@ -261,6 +265,33 @@ public final class TooltipHook implements AWTEventListener {
                     && !n.startsWith("sun.") && !n.startsWith("de.modernhelden.")) return n;
         }
         return null;
+    }
+
+    /**
+     * Tabellen, deren eigener Tooltip falsch wäre (Erschaffung: sortiert/gefiltert) – liefert den richtigen Text
+     * zum Mauspunkt ({@code Function<Point, String>}). Der Swing-Tooltip ist für sie abgemeldet.
+     */
+    static final String TABELLEN_TIP = "modernhelden.tabellenTip";
+
+    @SuppressWarnings("unchecked")
+    private static String tabellenTip(JComponent c, MouseEvent e) {
+        Object f = c.getClientProperty(TABELLEN_TIP);
+        if (!(f instanceof java.util.function.Function)) return null;
+        try { return ((java.util.function.Function<Point, String>) f).apply(e.getPoint()); } catch (RuntimeException ex) { return null; }
+    }
+
+    /** Nur den Tooltip der Helden-Software zeigen (z. B. wenn die erweiterten Tooltips aus sind). */
+    private void schlichterTip(JComponent c, MouseEvent e) {
+        String t = tabellenTip(c, e);
+        if (t == null) { hide(); return; }
+        String key = System.identityHashCode(c) + "|tab|" + t.hashCode();
+        if (key.equals(shownKey)) return;
+        if (popup != null) hidePopupOnly();
+        pendingKey = key;
+        pendingComp = c;
+        pendingHtml = t;
+        pendingScreen = e.getLocationOnScreen();
+        showTimer.restart();
     }
 
     /** Eigene Ansichten markieren Zellen damit, für welchen Eintrag (z. B. „Mut“) der Tooltip gezeigt wird. */
@@ -342,13 +373,14 @@ public final class TooltipHook implements AWTEventListener {
             if (z != null) m = new TooltipDB.Match(z.name, null, z.name);
         }
         log(c, text, m);
+        if (m == null && c.getClientProperty(TABELLEN_TIP) != null) { schlichterTip(c, e); return; }
         if (m == null) { hide(); return; }
         lastMatch = m;
         String key = festerSchluessel != null ? festerSchluessel : System.identityHashCode(c) + "|" + m.shown;
         if (key.equals(shownKey)) return;           // Tooltip steht bereits
         if (popup != null) hidePopupOnly();
         Map<String, String> x = extra(m);
-        String own = c.getToolTipText(e);
+        String own = c.getClientProperty(TABELLEN_TIP) != null ? tabellenTip(c, e) : c.getToolTipText(e);
         if (own != null && !own.trim().isEmpty() && !own.contains("modernhelden"))
             x.put("Helden-Software", own.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim());
         pendingKey = key;

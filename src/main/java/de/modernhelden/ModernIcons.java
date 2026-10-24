@@ -30,6 +30,8 @@ public final class ModernIcons {
     /** Ermittelt aus Bildpfad bzw. Beschreibung des Originals den Symbolnamen; null = unbekannt. */
     public static String schluessel(String beschreibung) {
         if (beschreibung == null) return null;
+        // „Leittalent/Leitzauber“ ist eine Beschreibung, kein Pfad
+        if (beschreibung.equalsIgnoreCase("Leittalent/Leitzauber")) return "leittalent";
         String d = beschreibung.replace('\\', '/');
         int slash = d.lastIndexOf('/');
         String n = slash >= 0 ? d.substring(slash + 1) : d;
