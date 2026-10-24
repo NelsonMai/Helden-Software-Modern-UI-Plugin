@@ -314,27 +314,27 @@ final class AusruestungDialoge {
             if (z.feld != null) {
                 z.feld.setColumns(8);
                 z.feld.putClientProperty("JTextField.placeholderText", "frei");
-                z.feld.setToolTipText("Hierher ziehen oder in der Liste doppelklicken, um eine " + ding + " anzulegen");
+                TooltipHook.infoTip(z.feld, "Hierher ziehen oder in der Liste doppelklicken, um eine " + ding + " anzulegen");
             }
-            if (z.add != null) z.add.setToolTipText("Markierten Gegenstand aus der Liste auf diesen Platz legen");
-            if (z.rem != null) z.rem.setToolTipText("Diesen Platz leeren");
+            if (z.add != null) TooltipHook.infoTip(z.add, "Markierten Gegenstand aus der Liste auf diesen Platz legen");
+            if (z.rem != null) TooltipHook.infoTip(z.rem, "Diesen Platz leeren");
             int radio = 0;
             for (Component k : z.rest) {
                 if (k instanceof AbstractButton && "I".equals(((AbstractButton) k).getText())) {
                     ((AbstractButton) k).setText("Werte …");
-                    ((AbstractButton) k).setToolTipText("Waffenwerte bearbeiten: Bruchfaktor (aktuell/minimal) und Kampftalent");
+                    TooltipHook.infoTip(((AbstractButton) k), "Waffenwerte bearbeiten: Bruchfaktor (aktuell/minimal) und Kampftalent");
                 } else if (k instanceof JRadioButton) {
                     radio++;
                     ((JRadioButton) k).setText("Schild " + radio);
-                    ((JRadioButton) k).setToolTipText("<html>Schild bzw. Parierwaffe " + radio + " zusammen mit dieser Waffe führen</html>");
+                    TooltipHook.infoTip(((JRadioButton) k), "<html>Schild bzw. Parierwaffe " + radio + " zusammen mit dieser Waffe führen</html>");
                 } else if (k instanceof JComboBox && String.valueOf(k.getName()).startsWith("hand")) {
-                    ((JComponent) k).setToolTipText("Hand, in der die Waffe geführt wird");
+                    TooltipHook.infoTip(((JComponent) k), "Hand, in der die Waffe geführt wird");
                 } else if (k instanceof JCheckBox && String.valueOf(((JCheckBox) k).getText()).startsWith("ist NKW")) {
-                    ((JComponent) k).setToolTipText("Die Parierwaffe ist zugleich eine Nahkampfwaffe");
+                    TooltipHook.infoTip(((JComponent) k), "Die Parierwaffe ist zugleich eine Nahkampfwaffe");
                 } else if (k instanceof JCheckBox && String.valueOf(((JCheckBox) k).getText()).startsWith("Jagd")) {
-                    ((JComponent) k).setToolTipText("Als Jagdwaffe verwenden (für Jagd-Talente)");
+                    TooltipHook.infoTip(((JComponent) k), "Als Jagdwaffe verwenden (für Jagd-Talente)");
                 } else if (k instanceof JComboBox) {
-                    ((JComponent) k).setToolTipText("Schild oder Parierwaffe");
+                    TooltipHook.infoTip(((JComponent) k), "Schild oder Parierwaffe");
                 }
             }
         }
@@ -507,7 +507,7 @@ final class AusruestungDialoge {
             if (k instanceof JRadioButton) {
                 r++;
                 ((JRadioButton) k).setText("Schild " + r);
-                ((JRadioButton) k).setToolTipText("Schild bzw. Parierwaffe " + r + " mit keiner Waffe führen");
+                TooltipHook.infoTip(((JRadioButton) k), "Schild bzw. Parierwaffe " + r + " mit keiner Waffe führen");
                 ((JRadioButton) k).setOpaque(false);
             }
             if (k instanceof JCheckBox) {
@@ -530,8 +530,8 @@ final class AusruestungDialoge {
         JTable angelegt = tabellen.get(0), inventar = tabellen.get(1);
         JScrollPane sl = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, angelegt);
         JScrollPane sr = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, inventar);
-        add.setToolTipText("Markiertes Rüstungsteil aus dem Inventar anlegen");
-        rem.setToolTipText("Markiertes Rüstungsteil ablegen");
+        TooltipHook.infoTip(add, "Markiertes Rüstungsteil aus dem Inventar anlegen");
+        TooltipHook.infoTip(rem, "Markiertes Rüstungsteil ablegen");
 
         innen.removeAll();
         innen.setLayout(new BorderLayout(0, 10));
@@ -666,7 +666,7 @@ final class AusruestungDialoge {
             String farbe = sel ? "" : "color:" + HinzufuegenLayout.farbe(Theme.muted());
             setText("<html><b>" + HinzufuegenLayout.esc(String.valueOf(v)) + "</b>"
                     + (werte.isEmpty() ? "" : "<br><span style='" + farbe + "'>" + HinzufuegenLayout.esc(werte) + "</span>") + "</html>");
-            setToolTipText(werte.isEmpty() ? null : werte);
+            TooltipHook.infoTip(this, werte.isEmpty() ? null : werte);
             return this;
         }
     }

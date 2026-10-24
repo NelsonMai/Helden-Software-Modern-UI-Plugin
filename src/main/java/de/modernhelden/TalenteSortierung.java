@@ -3,8 +3,10 @@ package de.modernhelden;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import java.awt.*;
 import java.text.Collator;
 import java.util.*;
+import java.util.List;
 
 /**
  * Reiter „Talente“ und „Zauber“ in den modernen Designs: Klick auf einen Spaltenkopf sortiert die Tabelle (Art, Talent, Wert,
@@ -51,6 +53,11 @@ final class TalenteSortierung {
         final JTable t;
         boolean aktiv;
         List<? extends RowSorter.SortKey> sortierung = Collections.emptyList();
+        /** Suche und ausgewählte Talentgruppen (leer = alle) – bleiben beim Heldenwechsel erhalten. */
+        String suche = "";
+        final Set<String> gruppen = new LinkedHashSet<>();
+        TableRowSorter<TableModel> sorter;
+        Suchleiste leiste;
 
         Zustand(JTable t) {
             this.t = t;
@@ -64,9 +71,15 @@ final class TalenteSortierung {
         }
 
         void an() {
-            if (aktiv) return;
+            if (aktiv) {
+                // Designwechsel zwischen hell und dunkel: Schalterfarben neu
+                if (leiste != null && !Theme.current().equals(leiste.thema)) leiste.gruppenNeu();
+                return;
+            }
             aktiv = true;
             einrichten();
+            if (leiste == null) leiste = new Suchleiste(this);
+            leiste.einbauen();
         }
 
         void aus() {
@@ -74,6 +87,35 @@ final class TalenteSortierung {
             aktiv = false;
             t.setRowSorter(null);
             t.getTableHeader().repaint();
+            if (leiste != null) leiste.ausbauen();
+        }
+
+        /** Spalte „Art“ (Talentgruppe) – nur in der Talenttabelle. */
+        int artSpalte() {
+            String[] sp = spalten(t);
+            if (sp == null) return -1;
+            for (int i = 0; i < sp.length; i++) if ("Art".equals(sp[i])) return i;
+            return -1;
+        }
+
+        void filtern() {
+            if (sorter == null) return;
+            String q = suche == null ? "" : suche.trim().toLowerCase(Locale.GERMAN);
+            int art = artSpalte();
+            if (q.isEmpty() && (art < 0 || gruppen.isEmpty())) sorter.setRowFilter(null);
+            else sorter.setRowFilter(new RowFilter<TableModel, Integer>() {
+                @Override public boolean include(Entry<? extends TableModel, ? extends Integer> e) {
+                    if (art >= 0 && !gruppen.isEmpty() && !gruppen.contains(String.valueOf(e.getValue(art)))) return false;
+                    if (q.isEmpty()) return true;
+                    for (int i = 0; i < e.getValueCount(); i++) {
+                        Object v = e.getValue(i);
+                        if (v == null || v instanceof Boolean || v instanceof Number) continue;
+                        if (String.valueOf(v).toLowerCase(Locale.GERMAN).contains(q)) return true;
+                    }
+                    return false;
+                }
+            });
+            if (leiste != null) leiste.anzahl();
         }
 
         void einrichten() {
@@ -98,6 +140,211 @@ final class TalenteSortierung {
             });
             t.setRowSorter(new DreiStufen(s));
             t.getTableHeader().repaint();
+            sorter = s;
+            filtern();
+            if (leiste != null) leiste.gruppenNeu();
+        }
+    }
+
+    // ---------------------------------------------------------------- Suche und Gruppenauswahl
+
+    /** Wie FlowLayout, bricht aber in weitere Zeilen um, statt Schalter rechts abzuschneiden. */
+    static final class Umbruch extends FlowLayout {
+        Umbruch(int hgap, int vgap) { super(FlowLayout.LEFT, hgap, vgap); }
+        @Override public Dimension preferredLayoutSize(Container c) { return groesse(c, true); }
+        @Override public void layoutContainer(Container c) {
+            super.layoutContainer(c);
+            // Höhe hängt von der Breite ab – nach einer Größenänderung einmal neu anordnen lassen
+            if (c.getHeight() != groesse(c, true).height) {
+                Container p = c.getParent();
+                SwingUtilities.invokeLater(() -> { c.invalidate(); if (p != null) p.revalidate(); });
+            }
+        }
+        @Override public Dimension minimumLayoutSize(Container c) {
+            Dimension d = groesse(c, false);
+            d.width = 0;
+            return d;
+        }
+        private Dimension groesse(Container c, boolean pref) {
+            synchronized (c.getTreeLock()) {
+                int ziel = c.getWidth();
+                // noch keine Breite: an der des umgebenden Bereichs orientieren
+                for (Container p = c.getParent(); ziel <= 0 && p != null; p = p.getParent()) ziel = p.getWidth();
+                if (ziel <= 0) ziel = Integer.MAX_VALUE;
+                Insets i = c.getInsets();
+                int max = ziel - i.left - i.right - getHgap() * 2;
+                int b = 0, h = 0, zb = 0, zh = 0;
+                for (Component k : c.getComponents()) {
+                    if (!k.isVisible()) continue;
+                    Dimension d = pref ? k.getPreferredSize() : k.getMinimumSize();
+                    if (zb > 0 && zb + getHgap() + d.width > max) {
+                        b = Math.max(b, zb);
+                        h += zh + getVgap();
+                        zb = 0;
+                        zh = 0;
+                    }
+                    zb += (zb > 0 ? getHgap() : 0) + d.width;
+                    zh = Math.max(zh, d.height);
+                }
+                b = Math.max(b, zb);
+                h += zh;
+                return new Dimension(b + i.left + i.right + getHgap() * 2, h + i.top + i.bottom + getVgap() * 2);
+            }
+        }
+    }
+
+    /**
+     * Zeile unter der Kopfleiste der Helden-Software („Freie AP …“): Suchfeld wie im Inventar und – bei den Talenten –
+     * Schalter für die Talentgruppen (keiner gewählt = alle Gruppen).
+     */
+    private static final class Suchleiste extends JPanel {
+        final Zustand z;
+        final JTextField feld = new JTextField(18);
+        final JPanel chips = new JPanel(new Umbruch(4, 4));
+        final JLabel zahl = new JLabel();
+        JPanel nav;
+
+        /** Breite bestimmt die Kopfleiste (füllt sie); nur die Höhe kommt aus dem Inhalt. */
+        @Override public Dimension getPreferredSize() { Dimension d = super.getPreferredSize(); d.width = 100; return d; }
+        @Override public Dimension getMinimumSize() { return getPreferredSize(); }
+
+        Suchleiste(Zustand z) {
+            super(new BorderLayout(10, 0));
+            this.z = z;
+            setOpaque(false);
+            putClientProperty("modernhelden.own", true);
+            setBorder(BorderFactory.createEmptyBorder(2, 5, 4, 5));
+            boolean talente = z.artSpalte() >= 0;
+            feld.putClientProperty("JTextField.placeholderText", talente ? "Talente suchen …" : "Zauber suchen …");
+            feld.putClientProperty("JTextField.showClearButton", true);
+            feld.putClientProperty("JTextField.leadingIcon", new com.formdev.flatlaf.icons.FlatSearchIcon());
+            feld.putClientProperty("modernhelden.own", true);
+            feld.setText(z.suche);
+            feld.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                public void insertUpdate(javax.swing.event.DocumentEvent e) { neu(); }
+                public void removeUpdate(javax.swing.event.DocumentEvent e) { neu(); }
+                public void changedUpdate(javax.swing.event.DocumentEvent e) { neu(); }
+                void neu() { z.suche = feld.getText(); z.filtern(); }
+            });
+            // Suchfeld oben halten, auch wenn die Schalter in mehrere Zeilen umbrechen
+            JPanel links = new JPanel(new BorderLayout());
+            links.setOpaque(false);
+            links.putClientProperty("modernhelden.own", true);
+            links.add(feld, BorderLayout.NORTH);
+            add(links, BorderLayout.WEST);
+            chips.setOpaque(false);
+            chips.putClientProperty("modernhelden.own", true);
+            add(chips, BorderLayout.CENTER);
+            zahl.setForeground(Theme.muted());
+            zahl.putClientProperty("modernhelden.own", true);
+            zahl.setVerticalAlignment(SwingConstants.TOP);
+            zahl.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
+            add(zahl, BorderLayout.EAST);
+            gruppenNeu();
+        }
+
+        /** Über der Tabelle einhängen: in die Kopfleiste „Navigationspanel“ der Helden-Software, eine Zeile tiefer. */
+        /** Vorherige Deckkraft von Kopfleiste und Tabellenhintergrund – für das Design „Original“. */
+        Boolean navOpak, vpOpak;
+        JViewport vp;
+
+        void einbauen() {
+            if (getParent() != null) return;
+            nav = navigation();
+            if (nav == null || !(nav.getLayout() instanceof GridBagLayout)) return;
+            // ruhiger Hintergrund (weiß bzw. grau) statt des Bildes der Helden-Software
+            JScrollPane sp = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, z.t);
+            vp = sp == null ? null : sp.getViewport();
+            navOpak = nav.isOpaque();
+            nav.setOpaque(true);
+            nav.setBackground(UIManager.getColor("Panel.background"));
+            if (vp != null) {
+                vpOpak = vp.isOpaque();
+                vp.setOpaque(true);
+                vp.setBackground(UIManager.getColor("Table.background"));
+            }
+            GridBagConstraints c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = 50;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1;
+            nav.add(this, c);
+            // war die Leiste ausgehängt (Design „Original“), hat sie den Designwechsel verpasst
+            SwingUtilities.updateComponentTreeUI(this);
+            gruppenNeu();
+            nav.revalidate();
+            nav.repaint();
+        }
+
+        void ausbauen() {
+            if (nav != null && navOpak != null) nav.setOpaque(navOpak);
+            if (vp != null && vpOpak != null) vp.setOpaque(vpOpak);
+            navOpak = vpOpak = null;
+            Container p = getParent();
+            if (p == null) return;
+            p.remove(this);
+            p.revalidate();
+            p.repaint();
+        }
+
+        private JPanel navigation() {
+            Container sp = SwingUtilities.getAncestorOfClass(JScrollPane.class, z.t);
+            Container reiter = sp == null ? null : sp.getParent();
+            if (reiter == null) return null;
+            for (Component k : reiter.getComponents())
+                if (k instanceof JPanel && "Navigationspanel".equals(k.getName())) return (JPanel) k;
+            return null;
+        }
+
+        /** Schalter für die Talentgruppen aus der Spalte „Art“, mit Anzahl. */
+        String thema;
+
+        void gruppenNeu() {
+            thema = Theme.current();
+            chips.removeAll();
+            int art = z.artSpalte();
+            if (art >= 0) {
+                Map<String, Integer> n = new LinkedHashMap<>();
+                TableModel m = z.t.getModel();
+                for (int i = 0; i < m.getRowCount(); i++) n.merge(String.valueOf(m.getValueAt(i, art)), 1, Integer::sum);
+                z.gruppen.retainAll(n.keySet());
+                JToggleButton alle = chip("Alle", z.gruppen.isEmpty(), "Alle Talentgruppen zeigen");
+                alle.addActionListener(e -> { z.gruppen.clear(); gruppenNeu(); z.filtern(); });
+                chips.add(alle);
+                for (Map.Entry<String, Integer> g : n.entrySet()) {
+                    JToggleButton b = chip(g.getKey() + " " + g.getValue(), z.gruppen.contains(g.getKey()),
+                            "Nur diese Talentgruppe zeigen – weitere Gruppen dazuklicken");
+                    b.addActionListener(e -> {
+                        if (!z.gruppen.remove(g.getKey())) z.gruppen.add(g.getKey());
+                        gruppenNeu();
+                        z.filtern();
+                    });
+                    chips.add(b);
+                }
+            }
+            anzahl();
+            chips.revalidate();
+            chips.repaint();
+        }
+
+        private JToggleButton chip(String text, boolean an, String tip) {
+            JToggleButton b = new JToggleButton(text, an);
+            b.setFocusable(false);
+            b.putClientProperty("JButton.buttonType", "roundRect");
+            b.putClientProperty("modernhelden.own", true);
+            b.setMargin(new Insets(1, 8, 1, 8));
+            TooltipHook.infoTip(b, tip);
+            // gewählte Gruppen deutlich in der Akzentfarbe
+            Color a = Theme.accent();
+            b.putClientProperty("FlatLaf.style", String.format(
+                    "selectedBackground: #%02x%02x%02x; selectedForeground: #ffffff", a.getRed(), a.getGreen(), a.getBlue()));
+            return b;
+        }
+
+        void anzahl() {
+            int alle = z.t.getModel().getRowCount(), sichtbar = z.t.getRowCount();
+            zahl.setText(sichtbar == alle ? alle + " Einträge" : sichtbar + " von " + alle);
         }
     }
 

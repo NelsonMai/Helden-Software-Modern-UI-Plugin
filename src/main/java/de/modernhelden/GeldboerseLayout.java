@@ -225,11 +225,11 @@ final class GeldboerseLayout {
             for (Muenze m : aktuelle()) {
                 JSpinner sp = new JSpinner(new SpinnerNumberModel(0, 0, 999999, 1));
                 ((JSpinner.DefaultEditor) sp.getEditor()).getTextField().setColumns(3);
-                sp.setToolTipText(m.name);
+                TooltipHook.infoTip(sp, m.name);
                 InventarLayout.eigen(sp);
                 betrag.put(m, sp);
                 JLabel k = new JLabel(m.kurz);
-                k.setToolTipText(m.name);
+                TooltipHook.infoTip(k, m.name);
                 betragPanel.add(sp);
                 betragPanel.add(k);
                 betragPanel.add(Box.createHorizontalStrut(6));

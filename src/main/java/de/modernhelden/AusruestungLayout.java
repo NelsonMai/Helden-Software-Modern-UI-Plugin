@@ -147,10 +147,56 @@ final class AusruestungLayout {
 
     // ------------------------------------------------------------------ Ansicht
 
+    /**
+     * Die drei Sets nebeneinander, solange jedes mindestens {@code mindest} Pixel breit sein kann – sonst zwei
+     * bzw. eins je Zeile (z. B. in der Startgröße des Fensters), damit nichts rechts abgeschnitten wird.
+     */
+    private static final class SetLayout implements LayoutManager {
+        final int abstand, mindest;
+        SetLayout(int abstand, int mindest) { this.abstand = abstand; this.mindest = mindest; }
+
+        private int spalten(Container c, int breite) {
+            int n = c.getComponentCount();
+            for (int sp = Math.max(n, 1); sp > 1; sp--) if (sp * mindest + (sp - 1) * abstand <= breite) return sp;
+            return 1;
+        }
+        private int innenBreite(Container c) {
+            Insets i = c.getInsets();
+            int w = c.getWidth();
+            if (w <= 0 && c.getParent() != null) w = c.getParent().getWidth();
+            return Math.max(0, w - i.left - i.right);
+        }
+        public void addLayoutComponent(String name, Component comp) {}
+        public void removeLayoutComponent(Component comp) {}
+        public Dimension preferredLayoutSize(Container c) {
+            Insets i = c.getInsets();
+            int b = innenBreite(c), n = c.getComponentCount(), sp = spalten(c, b), h = 0;
+            for (int z = 0; z < n; z += sp) {
+                int zh = 0;
+                for (int k = z; k < Math.min(n, z + sp); k++) zh = Math.max(zh, c.getComponent(k).getPreferredSize().height);
+                h += zh + (z > 0 ? abstand : 0);
+            }
+            return new Dimension(mindest + i.left + i.right, h + i.top + i.bottom);
+        }
+        public Dimension minimumLayoutSize(Container c) { return preferredLayoutSize(c); }
+        public void layoutContainer(Container c) {
+            Insets i = c.getInsets();
+            int b = innenBreite(c), n = c.getComponentCount(), sp = spalten(c, b);
+            int w = (b - (sp - 1) * abstand) / sp, y = i.top;
+            for (int z = 0; z < n; z += sp) {
+                int zh = 0;
+                for (int k = z; k < Math.min(n, z + sp); k++) zh = Math.max(zh, c.getComponent(k).getPreferredSize().height);
+                for (int k = z; k < Math.min(n, z + sp); k++)
+                    c.getComponent(k).setBounds(i.left + (k - z) * (w + abstand), y, w, zh);
+                y += zh + abstand;
+            }
+        }
+    }
+
     /** Breite folgt dem Fenster, Höhe dem Inhalt (scrollt bei Bedarf). */
     private static final class Ansicht extends JPanel implements Scrollable {
         Ansicht() {
-            super(new GridLayout(1, 3, 12, 0));
+            super(new SetLayout(12, 320));
             setOpaque(false);
             setBorder(new EmptyBorder(12, 12, 12, 12));
             putClientProperty("modernhelden.own", true);
@@ -302,12 +348,12 @@ final class AusruestungLayout {
             public int getIconHeight() { Icon i = akt(); return i == null ? 0 : i.getIconHeight(); }
         });
         bearbeiten.putClientProperty("JButton.buttonType", "toolBarButton");
-        bearbeiten.setToolTipText(titel + " dieses Sets an- oder ablegen");
+        TooltipHook.infoTip(bearbeiten, titel + " dieses Sets an- oder ablegen");
         bearbeiten.addActionListener(e -> stift.doClick());
         // die Helden-Software sperrt den Stift, wenn passende Gegenstände im Inventar fehlen – das übernehmen
         bearbeiten.setEnabled(stift.isEnabled());
         if (!stift.isEnabled() && stift.getToolTipText() != null && !stift.getToolTipText().isEmpty())
-            bearbeiten.setToolTipText(stift.getToolTipText());
+            TooltipHook.infoTip(bearbeiten, stift.getToolTipText());
         kopf.add(bearbeiten, BorderLayout.EAST);
         p.add(kopf);
         p.add(trenner());
@@ -442,8 +488,13 @@ final class AusruestungLayout {
         z.setBorder(new EmptyBorder(5, 2, 5, 2));
         JLabel n = new JLabel(name);
         n.setFont(n.getFont().deriveFont(Font.BOLD));
-        JLabel w = new JLabel(werte.isEmpty() ? " " : werte);
+        // Werte dürfen gekürzt werden („…“), statt unter den ✕-Knopf zu laufen; vollständig im Tooltip
+        JLabel w = new JLabel(werte.isEmpty() ? " " : werte) {
+            @Override public Dimension getPreferredSize() { return new Dimension(40, super.getPreferredSize().height); }
+        };
         w.setForeground(Theme.muted());
+        w.setBorder(new EmptyBorder(0, 0, 0, 6));
+        if (!werte.isEmpty()) TooltipHook.infoTip(w, werte);
         JPanel text = new JPanel(new BorderLayout(0, 1));
         text.setOpaque(false);
         text.add(n, BorderLayout.NORTH);
@@ -454,7 +505,7 @@ final class AusruestungLayout {
         JButton weg = new JButton(ModernIcons.icon("minidelete", 14, 14));
         weg.setMargin(new Insets(2, 10, 2, 10));
         weg.putClientProperty("JComponent.minimumWidth", 0);
-        weg.setToolTipText("<html>" + HinzufuegenLayout.esc(name) + " ablegen<br>(bleibt im Inventar)</html>");
+        TooltipHook.infoTip(weg, "<html>" + HinzufuegenLayout.esc(name) + " ablegen<br>(bleibt im Inventar)</html>");
         weg.setEnabled(stift.isEnabled());
         weg.addActionListener(e -> {
             AusruestungDialoge.unsichtbarAusfuehren(auftrag, stift::doClick);
@@ -535,7 +586,7 @@ final class AusruestungLayout {
                     {"rechterarm", "Rechter Arm"}, {"linkerarm", "Linker Arm"}, {"rechtesbein", "Rechtes Bein"}, {"linkesbein", "Linkes Bein"}};
             for (String[] e : n) if (zonen.containsKey(e[0])) tip.append("<br>").append(e[1]).append(": ").append(zonen.get(e[0]));
             if (zonen.isEmpty()) tip.append("<br>Gesamt: ").append(gesamt.isEmpty() ? "–" : gesamt);
-            setToolTipText(tip.append("</html>").toString());
+            TooltipHook.infoTip(this, tip.append("</html>").toString());
         }
 
         @Override protected void paintComponent(Graphics g0) {

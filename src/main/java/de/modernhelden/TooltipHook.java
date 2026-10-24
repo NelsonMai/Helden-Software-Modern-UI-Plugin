@@ -124,7 +124,39 @@ public final class TooltipHook implements AWTEventListener {
         showTimer.restart();
         return true;
     }
-    public void setEnabled(boolean b) { enabled = b; if (!b) hide(); }
+    public void setEnabled(boolean b) {
+        enabled = b;
+        if (!b) hide();
+        infoAn = b;
+        SwingUtilities.invokeLater(TooltipHook::infoTipsAktualisieren);
+    }
+
+    // ---------------------------------------------------------------- erklärende Tooltips der eigenen Ansichten
+
+    private static final String INFO = "modernhelden.infoTip";
+    /** Folgt dem Schalter „Erweiterte Tooltips anzeigen“. */
+    static volatile boolean infoAn = true;
+
+    /**
+     * Erklärender Tooltip (Rechenweg, Formel …) einer eigenen Ansicht – erscheint nur, wenn „Erweiterte Tooltips
+     * anzeigen“ eingeschaltet ist. Hinweise an Knöpfen (z. B. warum gesperrt) bleiben normale Tooltips.
+     */
+    static void infoTip(JComponent c, String text) {
+        c.putClientProperty(INFO, text);
+        c.setToolTipText(infoAn ? text : null);
+    }
+
+    private static void infoTipsAktualisieren() {
+        for (Window w : Window.getWindows()) infoTips(w);
+    }
+
+    private static void infoTips(Component c) {
+        if (c instanceof JComponent) {
+            Object t = ((JComponent) c).getClientProperty(INFO);
+            if (t instanceof String) ((JComponent) c).setToolTipText(infoAn ? (String) t : null);
+        }
+        if (c instanceof Container) for (Component k : ((Container) c).getComponents()) infoTips(k);
+    }
     public boolean isEnabled() { return enabled; }
     public TooltipDB.Match getLastMatch() { return lastMatch; }
 
@@ -236,7 +268,7 @@ public final class TooltipHook implements AWTEventListener {
 
     /** Setzt die Markierung auf die Komponenten – sie zeigen dann denselben Tooltip wie die Helden-Ansichten. */
     static void tooltipFuer(String name, JComponent... cs) {
-        for (JComponent k : cs) if (k != null) { k.putClientProperty(TOOLTIP_FUER, name); k.setToolTipText(null); }
+        for (JComponent k : cs) if (k != null) { k.putClientProperty(TOOLTIP_FUER, name); k.putClientProperty(INFO, null); k.setToolTipText(null); }
     }
 
     /** Markierung für eigene Ansichten: Tooltip „Herkunft der Abenteuerpunkte“. */

@@ -26,6 +26,8 @@ zurückschalten.
 - **Lesbare Tabellen:** Zebra-Streifen, Spaltenlinien; bearbeitbare Felder hell, reine Anzeigen getönt.
 - **Sortierbar:** Talente und Zauber per Klick auf den Spaltenkopf (aufsteigend, absteigend, ursprünglich);
   *+1* und *SE* funktionieren auch sortiert.
+- **Suchen und filtern:** Suchfeld über Talenten und Zaubern (Name, Merkmale, Lernmethode …); bei den Talenten
+  zusätzlich Schalter für die Talentgruppen – eine oder mehrere wählen, *Alle* zeigt wieder alles.
 - **Eigene Symbole:** über 40 neu gezeichnete Symbole, passend zu hell und dunkel.
 
 Die neu gestalteten Reiter *Allgemein*, *Eigenschaften*, *Inventar*, *Ausrüstung* und *Kampfwerte* samt Dialogen gibt es nur in den modernen Designs; im
@@ -213,7 +215,7 @@ Kompilieren. GitHub Actions baut jeden Push und hängt das JAR an veröffentlich
 | `AllgemeinLayout.java` | Allgemein als Steckbrief mit AP-Übersicht, Vor-/Nachteilen und SF |
 | `EigenschaftenLayout.java` | Eigenschaften, Energien und Basiswerte mit Rechenweg |
 | `KampfwerteLayout.java` | Kampfwerte mit Rechenweg und Verteilungsregeln |
-| `TalenteSortierung.java` | Sortierbare Tabellen |
+| `TalenteSortierung.java` | Sortierbare und durchsuchbare Talent-/Zaubertabellen, Talentgruppen-Filter |
 | `ErschaffungsLayout.java`, `DebugBaum.java` | Erschaffungsdialog, Debug-Ausgabe |
 | `print/`, `update/` | Heldenbogen und PDF, automatische Aktualisierung |
 | `src/main/resources/.../tooltips.tsv` | Kurzbeschreibungen (eigene Formulierungen) |

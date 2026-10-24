@@ -122,7 +122,7 @@ final class HinzufuegenLayout {
             InventarLayout.primaer(los, true);
             los.addActionListener(ev -> hinzufuegen());
             kaufen.addActionListener(ev -> kaufen());
-            kaufen.setToolTipText("Hinzufügen und den Preis gleich aus der Geldbörse bezahlen");
+            TooltipHook.infoTip(kaufen, "Hinzufügen und den Preis gleich aus der Geldbörse bezahlen");
             anzahl.addChangeListener(ev -> kaufText());
             aktion = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
             aktion.setOpaque(false);

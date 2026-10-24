@@ -148,7 +148,6 @@ public final class Theme {
         java.util.Set<Component> erledigt =
                 java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
         javax.swing.table.TableColumnModel cm = t.getColumnModel();
-        int zeilen = t.getRowCount();
         for (int ci = 0; ci < cm.getColumnCount(); ci++) {
             javax.swing.table.TableColumn col = cm.getColumn(ci);
             Object r = col.getCellRenderer(), e = col.getCellEditor();
@@ -172,10 +171,15 @@ public final class Theme {
             if (r == null || r instanceof Component) continue;
             javax.swing.table.TableCellRenderer tr = (javax.swing.table.TableCellRenderer) r;
             boolean auchEditor = e == r;   // gleicher Cache für Anzeige und Bearbeitung
-            for (int row = 0; row < zeilen; row++) {
+            // über alle Zeilen des Modells – auch die, die gerade ausgefiltert sind (Suche, Talentgruppen);
+            // deren zwischengespeicherte Knöpfe behielten sonst das alte Design
+            javax.swing.table.TableModel m = t.getModel();
+            int mc = t.convertColumnIndexToModel(ci);
+            for (int mr = 0; mr < m.getRowCount(); mr++) {
                 Component k;
                 try {
-                    k = tr.getTableCellRendererComponent(t, t.getValueAt(row, ci), false, false, row, ci);
+                    int vr = t.getRowSorter() == null ? mr : t.convertRowIndexToView(mr);
+                    k = tr.getTableCellRendererComponent(t, m.getValueAt(mr, mc), false, false, Math.max(vr, 0), ci);
                 } catch (RuntimeException ex) { continue; }
                 if (k != null && erledigt.add(k)) SwingUtilities.updateComponentTreeUI(k);
             }

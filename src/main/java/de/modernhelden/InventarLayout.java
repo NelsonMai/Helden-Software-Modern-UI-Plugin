@@ -238,6 +238,7 @@ final class InventarLayout {
         final List<Component> origKinder = new ArrayList<>();
         final List<Object> origConstraints = new ArrayList<>();
         Border origRand;
+        boolean origVpOpak;
         String origHinzuText;
         boolean origOpaque;
         final Map<AbstractButton, ActionListener[]> origListener = new LinkedHashMap<>();
@@ -383,10 +384,21 @@ final class InventarLayout {
                 ex.add(export);
                 sued.add(ex, BorderLayout.EAST);
 
-                for (JComponent c : new JComponent[]{links, rechts, kopf, filter, f2, nord, sued, aktionen, ex, tipp, t}) eigen(c);
-                panel.add(nord, BorderLayout.NORTH);
-                panel.add(scroll, BorderLayout.CENTER);
-                panel.add(sued, BorderLayout.SOUTH);
+                // eigene, deckende Fläche (weiß bzw. grau je nach Design) über dem Hintergrundbild der Helden-Software
+                JPanel flaeche = new JPanel(new BorderLayout(0, 8));
+                flaeche.setOpaque(true);
+                flaeche.setBackground(UIManager.getColor("Panel.background"));
+                flaeche.setBorder(new EmptyBorder(10, 12, 8, 12));
+                panel.setBorder(null);
+                panel.setLayout(new BorderLayout());
+                for (JComponent c : new JComponent[]{links, rechts, kopf, filter, f2, nord, sued, aktionen, ex, tipp, t, flaeche}) eigen(c);
+                flaeche.add(nord, BorderLayout.NORTH);
+                flaeche.add(scroll, BorderLayout.CENTER);
+                flaeche.add(sued, BorderLayout.SOUTH);
+                panel.add(flaeche, BorderLayout.CENTER);
+                origVpOpak = scroll.getViewport().isOpaque();
+                scroll.getViewport().setOpaque(true);
+                scroll.getViewport().setBackground(UIManager.getColor("Table.background"));
 
                 // eigene Felder waren im Design „Original“ nicht eingehängt – an das aktuelle Design anpassen
                 for (JComponent c : new JComponent[]{suchfeld, artWahl, gruppieren, info}) SwingUtilities.updateComponentTreeUI(c);
@@ -409,6 +421,7 @@ final class InventarLayout {
             for (int i = 0; i < origKinder.size(); i++) panel.add(origKinder.get(i), origConstraints.get(i));
             panel.setBorder(origRand);
             panel.setOpaque(origOpaque);
+            scroll.getViewport().setOpaque(origVpOpak);
             hinzu.setText(origHinzuText);
             primaer(hinzu, false);
             for (Map.Entry<AbstractButton, ActionListener[]> e : origListener.entrySet()) {
@@ -610,7 +623,7 @@ final class InventarLayout {
             int sichtbar = tabelle.getRowCount();
             if (sichtbar != eintraege) t.add(sichtbar + " angezeigt");
             info.setText(String.join("  ·  ", t));
-            info.setToolTipText(String.join("  ·  ", t));   // vollständig, falls das Fenster schmal ist
+            TooltipHook.infoTip(info, String.join("  ·  ", t));   // vollständig, falls das Fenster schmal ist
         }
     }
 }

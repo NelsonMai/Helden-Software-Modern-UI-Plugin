@@ -455,7 +455,7 @@ final class AllgemeinLayout {
         name.setFont(name.getFont().deriveFont(Font.BOLD, name.getFont().getSize2D() + 5f));
         name.setBorder(new EmptyBorder(0, 0, 0, 0));
         name.setOpaque(false);
-        name.setToolTipText("Name des Helden – ändern und mit Enter übernehmen");
+        TooltipHook.infoTip(name, "Name des Helden – ändern und mit Enter übernehmen");
         name.setAlignmentX(0);
         name.setMaximumSize(new Dimension(Integer.MAX_VALUE, name.getPreferredSize().height));
         InventarLayout.eigen(name);
@@ -495,7 +495,7 @@ final class AllgemeinLayout {
         };
         g.setHorizontalAlignment(SwingConstants.RIGHT);
         g.setFont(g.getFont().deriveFont(Font.BOLD));
-        g.setToolTipText("<html>Gesamte AP – neue Zahl oder z. B. <b>+350</b> eingeben und mit Enter übernehmen.</html>");
+        TooltipHook.infoTip(g, "<html>Gesamte AP – neue Zahl oder z. B. <b>+350</b> eingeben und mit Enter übernehmen.</html>");
         InventarLayout.eigen(g);
         if (orig != null) uebernehmen(g, orig); else g.setEditable(false);
         zeile(t, c, "AP gesamt", g);
@@ -537,7 +537,7 @@ final class AllgemeinLayout {
         JButton b = new JButton(text);
         b.setFocusable(false);
         b.putClientProperty("JButton.buttonType", "roundRect");
-        b.setToolTipText(tip);
+        TooltipHook.infoTip(b, tip);
         InventarLayout.eigen(b);
         b.addActionListener(e -> {
             JMenuItem m = menuepunkt(SwingUtilities.getWindowAncestor(b), menueAnfang);
@@ -726,7 +726,7 @@ final class AllgemeinLayout {
         JButton b = new JButton(text);
         b.setFocusable(false);
         b.putClientProperty("JButton.buttonType", "roundRect");
-        b.setToolTipText(tip);
+        TooltipHook.infoTip(b, tip);
         InventarLayout.eigen(b);
         if (orig == null) b.setVisible(false);
         else {

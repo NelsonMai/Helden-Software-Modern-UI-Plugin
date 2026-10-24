@@ -187,6 +187,9 @@ public final class PrintPreviewPanel extends JPanel {
     public void setOriginal(JComponent comp) {
         if (originalComp != null) center.remove(originalComp);
         originalComp = comp;
+        // Druckeinstellungen (Zahnrad) mittig öffnen – auch in der Original-Vorschau
+        AbstractButton zr = comp == null ? null : findeZahnrad(comp);
+        if (zr != null) mittigOeffnen(zr);
         if (comp != null) center.add(comp, "original");
         original.setEnabled(comp != null);
         showMode(modern.isSelected() || comp == null);
@@ -240,6 +243,7 @@ public final class PrintPreviewPanel extends JPanel {
             showMode(false);
             return;
         }
+        mittigOeffnen(zahnrad);
         java.util.Set<Window> vorher = new java.util.HashSet<>();
         for (Window w : Window.getWindows()) if (w.isShowing()) vorher.add(w);
         zahnrad.doClick();
@@ -255,6 +259,41 @@ public final class PrintPreviewPanel extends JPanel {
                 @Override public void windowClosed(java.awt.event.WindowEvent e) { markDirty(); }
             });
         }
+    }
+
+    /**
+     * Fenster, die dieser Knopf öffnet, mittig über dem Hauptfenster zeigen und ganz auf den Bildschirm holen
+     * (die Helden-Software öffnet die Druckeinstellungen sonst teils außerhalb des Bildschirms).
+     */
+    static void mittigOeffnen(AbstractButton b) {
+        if (Boolean.TRUE.equals(b.getClientProperty("modernhelden.mittig"))) return;
+        b.putClientProperty("modernhelden.mittig", true);
+        // eigene Listener laufen vor denen der Helden-Software: hier merken, was schon offen ist
+        b.addActionListener(e -> {
+            java.util.Set<Window> vorher = new java.util.HashSet<>();
+            for (Window w : Window.getWindows()) if (w.isShowing()) vorher.add(w);
+            Window haupt = SwingUtilities.getWindowAncestor(b);
+            SwingUtilities.invokeLater(() -> {
+                for (Window w : Window.getWindows())
+                    if (w.isShowing() && !vorher.contains(w) && w != haupt) mittig(w, haupt);
+            });
+        });
+    }
+
+    static void mittig(Window w, Window bezug) {
+        GraphicsConfiguration gc = (bezug != null ? bezug : w).getGraphicsConfiguration();
+        Rectangle s = gc.getBounds();
+        Insets i = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+        Rectangle frei = new Rectangle(s.x + i.left, s.y + i.top, s.width - i.left - i.right, s.height - i.top - i.bottom);
+        Dimension d = w.getSize();
+        // größer als der Bildschirm: verkleinern
+        if (d.width > frei.width || d.height > frei.height)
+            w.setSize(Math.min(d.width, frei.width), Math.min(d.height, frei.height));
+        w.setLocationRelativeTo(bezug);
+        Rectangle r = w.getBounds();
+        int x = Math.max(frei.x, Math.min(r.x, frei.x + frei.width - r.width));
+        int y = Math.max(frei.y, Math.min(r.y, frei.y + frei.height - r.height));
+        w.setLocation(x, y);
     }
 
     /** Erste Schaltfläche ohne Text, aber mit Symbol – in der Original-Vorschau das Zahnrad. */

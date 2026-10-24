@@ -377,7 +377,7 @@ final class EigenschaftenLayout {
         if (z.se == null) { b.setVisible(false); return b; }
         b.setSelected(z.se.isSelected());
         b.setEnabled(z.se.isEnabled());
-        b.setToolTipText(z.se.isSelected()
+        TooltipHook.infoTip(b, z.se.isSelected()
                 ? "Spezielle Erfahrung für " + name + " eingetragen – der nächste Steigerungsschritt ist günstiger. Klicken zum Entfernen."
                 : "Spezielle Erfahrung (SE) für " + name + " eintragen – macht den nächsten Steigerungsschritt günstiger.");
         // die Helden-Software ändert das Häkchen selbst und rechnet die Kosten neu
@@ -399,11 +399,11 @@ final class EigenschaftenLayout {
         String kosten = z.kosten == null ? "" : String.valueOf(z.kosten.getText()).trim();
         if (!z.knopf.isEnabled() && (grund == null || grund.isEmpty()) && "Astralenergie".equals(name))
             // die Helden-Software sperrt den Zukauf, solange AE dauerhaft verloren ist
-            b.setToolTipText("Erst die dauerhaft verlorene Astralenergie zurückkaufen, dann kann wieder zugekauft werden.");
+            TooltipHook.infoTip(b, "Erst die dauerhaft verlorene Astralenergie zurückkaufen, dann kann wieder zugekauft werden.");
         else if (!z.knopf.isEnabled())
-            b.setToolTipText(grund != null && !grund.isEmpty() ? name + ": " + grund : name + " kann nicht gesteigert werden.");
+            TooltipHook.infoTip(b, grund != null && !grund.isEmpty() ? name + ": " + grund : name + " kann nicht gesteigert werden.");
         else
-            b.setToolTipText(name + (wert == null ? "" : " von " + wert + " auf " + (wert + 1)) + " steigern"
+            TooltipHook.infoTip(b, name + (wert == null ? "" : " von " + wert + " auf " + (wert + 1)) + " steigern"
                     + (kosten.isEmpty() ? "" : " (" + kosten + ")"));
         b.addActionListener(e -> z.knopf.doClick(0));
         return b;
@@ -469,7 +469,7 @@ final class EigenschaftenLayout {
         c.anchor = GridBagConstraints.WEST;
         String tip = "Dauerhaft verlorene Astralenergie (z. B. durch bestimmte Rituale) kann mit AP zurückgekauft werden.";
         JLabel n = KampfwerteLayout.klein("dauerhaft verloren");
-        n.setToolTipText(tip);
+        TooltipHook.infoTip(n, tip);
         InventarLayout.eigen(n);
         c.gridwidth = 2;
         t.add(n, c);
@@ -486,7 +486,7 @@ final class EigenschaftenLayout {
         if (z.knopf == null) b.setVisible(false);
         else {
             b.setEnabled(z.knopf.isEnabled());
-            b.setToolTipText(z.knopf.isEnabled() ? "Einen Punkt dauerhaft verlorener AE zurückkaufen" : "Keine dauerhaft verlorene AE.");
+            TooltipHook.infoTip(b, z.knopf.isEnabled() ? "Einen Punkt dauerhaft verlorener AE zurückkaufen" : "Keine dauerhaft verlorene AE.");
             b.addActionListener(e -> z.knopf.doClick(0));
         }
         t.add(b, c);
@@ -606,7 +606,7 @@ final class EigenschaftenLayout {
             @Override public Dimension getMinimumSize() { return getPreferredSize(); }
         };
         f.setHorizontalAlignment(SwingConstants.RIGHT);
-        f.setToolTipText("Sozialstatus eingeben und mit Enter übernehmen");
+        TooltipHook.infoTip(f, "Sozialstatus eingeben und mit Enter übernehmen");
         InventarLayout.eigen(f);
         Runnable uebernehmen = () -> {
             String neu = f.getText().trim();

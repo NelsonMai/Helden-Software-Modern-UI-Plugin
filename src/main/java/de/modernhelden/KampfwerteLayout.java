@@ -356,6 +356,8 @@ final class KampfwerteLayout {
      */
     static final class Kacheln extends JPanel {
         final int abstand;
+        private java.awt.event.ComponentListener vpHoerer;
+        private JViewport vp;
         Kacheln(int abstand) { super(null); this.abstand = abstand; setOpaque(false); }
 
         private int breiteste() {
@@ -377,18 +379,51 @@ final class KampfwerteLayout {
                 if (sp >= 1 && sp * b + (sp - 1) * abstand <= breite) return sp;
             return 1;
         }
+
+        /**
+         * Im Fenster sichtbare Breite: Ist die Seite breiter als das Fenster (z. B. wegen einer breiten Tabelle
+         * darunter), sollen die Kacheln trotzdem ganz im sichtbaren Bereich liegen – und mit dem Fenster wachsen.
+         */
+        private int verfuegbar() {
+            Insets i = getInsets();
+            int eigen = getWidth() - i.left - i.right;
+            JViewport v = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, this);
+            if (v == null || v.getView() == null) return eigen;
+            Point p = SwingUtilities.convertPoint(this, 0, 0, v.getView());
+            // rechts dieselbe Luft wie links (Abstand der Karte zum Seitenrand)
+            int sichtbar = v.getExtentSize().width - 2 * Math.max(p.x, 0) - i.left - i.right;
+            return eigen <= 0 ? sichtbar : Math.max(1, Math.min(eigen, sichtbar));
+        }
+
+        @Override public void addNotify() {
+            super.addNotify();
+            vp = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, this);
+            if (vp != null) {
+                // Fenstergröße ändert sich, die (breitere) Seite aber nicht – trotzdem neu anordnen
+                vpHoerer = new java.awt.event.ComponentAdapter() {
+                    @Override public void componentResized(java.awt.event.ComponentEvent e) { revalidate(); repaint(); }
+                };
+                vp.addComponentListener(vpHoerer);
+            }
+        }
+        @Override public void removeNotify() {
+            if (vp != null && vpHoerer != null) vp.removeComponentListener(vpHoerer);
+            vp = null;
+            super.removeNotify();
+        }
+
         @Override public Dimension getPreferredSize() {
             int n = getComponentCount();
             // noch nicht angeordnet: Breite aus dem Scrollbereich schätzen, damit die Kacheln nicht erst
             // einreihig erscheinen und dann umspringen
-            int breite = getWidth();
+            int breite = verfuegbar();
             if (breite <= 0) {
-                JViewport vp = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, this);
-                breite = vp != null && vp.getWidth() > 0 ? vp.getWidth() - 2 * 12 - 2 * 13 - 2 : n * breiteste() + (n - 1) * abstand;
+                JViewport v = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, this);
+                breite = v != null && v.getWidth() > 0 ? v.getWidth() - 2 * 12 - 2 * 13 - 2 : n * breiteste() + (n - 1) * abstand;
             }
             int sp = spalten(breite), zeilen = (n + sp - 1) / sp;
             Insets i = getInsets();
-            return new Dimension(n * breiteste() + (n - 1) * abstand + i.left + i.right,
+            return new Dimension(breiteste() + i.left + i.right,
                     zeilen * hoechste() + (zeilen - 1) * abstand + i.top + i.bottom);
         }
         @Override public Dimension getMinimumSize() {
@@ -400,7 +435,7 @@ final class KampfwerteLayout {
             int n = getComponentCount();
             if (n == 0) return;
             Insets i = getInsets();
-            int breite = getWidth() - i.left - i.right;
+            int breite = verfuegbar();
             int sp = spalten(breite);
             int zw = (breite - (sp - 1) * abstand) / sp, zh = hoechste();
             for (int k = 0; k < n; k++) {
@@ -427,12 +462,18 @@ final class KampfwerteLayout {
         JLabel tl = new JLabel(titel);
         tl.setFont(tl.getFont().deriveFont(Font.BOLD));
         text.add(tl);
-        JLabel fl = klein(formel(eig, h, wert));
-        fl.setBorder(new EmptyBorder(0, 0, 0, 6));
+        // Formel in zwei Zeilen („(MU 13 + GE 11 + KK 11)“ / „/ 5 = 7“) – so passen die Kacheln auch im kleinen Fenster
+        String f = formel(eig, h, wert);
+        int teil = f.indexOf(") / ");
+        String[] zeilen = teil > 0 ? new String[]{f.substring(0, teil + 1), f.substring(teil + 2)} : new String[]{f};
         tl.setBorder(new EmptyBorder(0, 0, 0, 6));
-        text.add(fl);
+        for (String z : zeilen) {
+            JLabel fl = klein(z);
+            fl.setBorder(new EmptyBorder(0, 0, 0, 6));
+            text.add(fl);
+        }
         t.add(text, BorderLayout.CENTER);
-        t.setToolTipText("<html><b>" + titel + "</b><br>" + zweck + ".<br>Formel: (" + String.join(" + ", eig)
+        TooltipHook.infoTip(t, "<html><b>" + titel + "</b><br>" + zweck + ".<br>Formel: (" + String.join(" + ", eig)
                 + ") / 5, kaufmännisch gerundet.</html>");
         InventarLayout.eigen(t);
         return t;
@@ -513,7 +554,7 @@ final class KampfwerteLayout {
         c.gridx = 0;
         JLabel name = new JLabel(n.name);
         name.setFont(name.getFont().deriveFont(Font.BOLD));
-        name.setToolTipText(rechenweg);
+        TooltipHook.infoTip(name, rechenweg);
         InventarLayout.eigen(name);
         t.add(name, c);
 
@@ -536,19 +577,19 @@ final class KampfwerteLayout {
 
         c.gridx = 6;
         Balken b = new Balken(stimmig ? atA : 0, stimmig ? paA : 0, stimmig ? frei : 0);
-        b.setToolTipText(rechenweg);
+        TooltipHook.infoTip(b, rechenweg);
         t.add(b, c);
 
         c.gridx = 7;
         JLabel anteile = klein(stimmig ? "+" + atA + " | +" + paA + (frei > 0 ? " | " + frei + " frei" : "") : "");
-        anteile.setToolTipText(rechenweg);
+        TooltipHook.infoTip(anteile, rechenweg);
         InventarLayout.eigen(anteile);
         t.add(anteile, c);
 
         c.gridx = 8;
         JLabel hinweis = new JLabel(hinweis(frei, atA, paA, stimmig));
         if (frei != null && frei > 0) hinweis.setForeground(Theme.accent()); else hinweis.setForeground(Theme.muted());
-        hinweis.setToolTipText(rechenweg);
+        TooltipHook.infoTip(hinweis, rechenweg);
         InventarLayout.eigen(hinweis);
         t.add(hinweis, c);
 
@@ -558,7 +599,7 @@ final class KampfwerteLayout {
         boolean verteilt = stimmig && (atA > 0 || paA > 0);
         if (!verteilt || n.atMinus == null || n.paMinus == null) {
             reset.setEnabled(false);
-            reset.setToolTipText(stimmig ? "Keine TaP verteilt." : "Zurücksetzen nicht möglich: die Werte enthalten weitere Modifikatoren.");
+            TooltipHook.infoTip(reset, stimmig ? "Keine TaP verteilt." : "Zurücksetzen nicht möglich: die Werte enthalten weitere Modifikatoren.");
         } else {
             final int fa = atA, fp = paA;
             reset.addActionListener(e -> zuruecksetzen(reset, n, d, fa, fp));
@@ -674,7 +715,7 @@ final class KampfwerteLayout {
         // etwas Luft rechts, damit Ziffern mit Überhang (z. B. Segoe UI) nicht angeschnitten wirken
         l.setBorder(new EmptyBorder(0, 2, 0, 4));
         if (gross) l.setFont(l.getFont().deriveFont(Font.BOLD, l.getFont().getSize2D() + 2f));
-        l.setToolTipText(tip);
+        TooltipHook.infoTip(l, tip);
         InventarLayout.eigen(l);
         return l;
     }
@@ -688,11 +729,11 @@ final class KampfwerteLayout {
         JButton minus = knopf(Symbol.MINUS, "Einen in dieser Sitzung auf " + was + " verteilten TaP zurücknehmen");
         if (plusOrig == null || plusGesperrt != null) {
             plus.setEnabled(false);
-            if (plusGesperrt != null) plus.setToolTipText(plusGesperrt);
+            if (plusGesperrt != null) TooltipHook.infoTip(plus, plusGesperrt);
         } else plus.addActionListener(e -> plusOrig.doClick());
         if (minusOrig == null || !minusOrig.isEnabled()) {
             minus.setEnabled(false);
-            minus.setToolTipText("Zurücknehmen geht nur für Punkte, die seit dem Laden des Helden auf " + was + " verteilt wurden.");
+            TooltipHook.infoTip(minus, "Zurücknehmen geht nur für Punkte, die seit dem Laden des Helden auf " + was + " verteilt wurden.");
         } else minus.addActionListener(e -> minusOrig.doClick());
         p.add(plus);
         p.add(minus);
@@ -749,7 +790,7 @@ final class KampfwerteLayout {
             @Override public Dimension getMinimumSize() { return getPreferredSize(); }
             @Override public Dimension getMaximumSize() { return getPreferredSize(); }
         };
-        b.setToolTipText(tip);
+        TooltipHook.infoTip(b, tip);
         b.setMargin(new Insets(0, 0, 0, 0));
         b.setHorizontalAlignment(SwingConstants.CENTER);
         b.setVerticalAlignment(SwingConstants.CENTER);
@@ -879,7 +920,7 @@ final class KampfwerteLayout {
             c.weightx = 0;
             JLabel name = new JLabel(f.name);
             name.setFont(name.getFont().deriveFont(Font.BOLD));
-            name.setToolTipText(tip);
+            TooltipHook.infoTip(name, tip);
             InventarLayout.eigen(name);
             t.add(name, c);
             c.gridx = 1;
@@ -893,7 +934,7 @@ final class KampfwerteLayout {
             c.gridx = 3;
             c.weightx = 1;
             JLabel w = klein(weg);
-            w.setToolTipText(tip);
+            TooltipHook.infoTip(w, tip);
             InventarLayout.eigen(w);
             t.add(w, c);
         }
