@@ -116,7 +116,11 @@ und Inventar.
 
 Neu gestalteter A4-Bogen in der Druckvorschau, mit Drucken und PDF: Werte, Kampf mit Trefferzonen, Talente nach
 Gruppen, Magie-Seite, Inventar und Notizen mit Portrait. *Optionen ▾* blendet Teile ein und aus; *Original*
-zeigt die bisherige Druckvorschau.
+zeigt die bisherige Druckvorschau. Das Portrait-Feld passt sich dem Bild an oder bekommt ein festes Format
+(3:4, 2:3, 4:5, 9:16, 1:1, 4:3, 3:2, 16:9) – unter *Optionen ▾ → Portrait-Format*, je Held gespeichert.
+Über *Optionen ▾ → Charakterbeschreibung öffnen …* lässt sich eine Textdatei (TXT, MD) hinterlegen, über
+*Charakterbeschreibung schreiben/bearbeiten …* der Text direkt eingeben oder ändern (je Held gespeichert, auf Wunsch auch als Datei); er
+steht dann im Feld „Charakterbeschreibung“ (längere Texte gehen auf Linien darunter weiter).
 
 ![Druckvorschau mit dem modernen Heldenbogen](docs/bilder/druckvorschau.png)
 

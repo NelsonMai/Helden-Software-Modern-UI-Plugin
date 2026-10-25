@@ -34,7 +34,9 @@ public final class PrintPreviewPanel extends JPanel {
     private final JScrollPane scroll = new JScrollPane(pages);
     private final JToggleButton modern = new JToggleButton("Modern"), original = new JToggleButton("Original");
     private final JComboBox<String> zoom = new JComboBox<>(ZOOMS);
-    private final JCheckBox desc = new JCheckBox("Beschreibungen & eigene Notizen zu SF, Vor-/Nachteilen und Zaubern"), notes = new JCheckBox("Notizfelder und Linienseite (auch bei Zaubern)"),
+    private final JCheckBox desc = new JCheckBox("Beschreibungen zu SF und Vor-/Nachteilen"),
+            eigene = new JCheckBox("Eigene Notizen zu SF, Vor-/Nachteilen und Zaubern (ersetzen die Beschreibung)"),
+            notes = new JCheckBox("Notizfelder und Linienseite"),
             meta = new JCheckBox("Meta-Talente zeigen (z. B. Wache halten, Kräuter suchen)"),
             portrait = new JCheckBox("Portrait neben der Charakterbeschreibung");
     private final JLabel info = new JLabel();
@@ -54,6 +56,9 @@ public final class PrintPreviewPanel extends JPanel {
         putClientProperty("modernhelden.own", true);
 
         desc.setSelected(!"false".equals(props.get("druck.beschreibungen")));
+        // bisher eine gemeinsame Option – ohne eigene Einstellung gilt deren Wert
+        String ei = props.get("druck.eigeneNotizen");
+        eigene.setSelected(ei != null ? !"false".equals(ei) : !"false".equals(props.get("druck.beschreibungen")));
         notes.setSelected(!"false".equals(props.get("druck.notizen")));
         // Meta-Talente sind zunächst aus; einschalten nur, wenn sie für den Helden in der Helden-Software aktiv sind
         meta.setSelected("true".equals(props.get("druck.meta")));
@@ -74,6 +79,7 @@ public final class PrintPreviewPanel extends JPanel {
         original.addActionListener(e -> showMode(false));
 
         desc.addActionListener(e -> { save.accept("druck.beschreibungen", String.valueOf(desc.isSelected())); rebuild(); });
+        eigene.addActionListener(e -> { save.accept("druck.eigeneNotizen", String.valueOf(eigene.isSelected())); rebuild(); });
         notes.addActionListener(e -> { save.accept("druck.notizen", String.valueOf(notes.isSelected())); rebuild(); });
         portrait.addActionListener(e -> { save.accept("druck.portrait", String.valueOf(portrait.isSelected())); rebuild(); });
         // Meta-Talente liefert die Helden-Software nur auf Anfrage – daher Daten neu holen
@@ -121,7 +127,7 @@ public final class PrintPreviewPanel extends JPanel {
         modernTools.add(zoom);
         modernTools.add(Box.createHorizontalStrut(6));
         final JPopupMenu optMenu = new JPopupMenu();
-        for (JCheckBox cb : new JCheckBox[]{desc, meta, notes, portrait}) {
+        for (JCheckBox cb : new JCheckBox[]{desc, eigene, meta, notes, portrait}) {
             final JCheckBox src = cb;
             final JCheckBoxMenuItem mi = new JCheckBoxMenuItem(cb.getText(), cb.isSelected());
             mi.addActionListener(e -> {
@@ -141,6 +147,46 @@ public final class PrintPreviewPanel extends JPanel {
         bildWeg.addActionListener(e -> { save.accept(portraitKey(), ""); props.put(portraitKey(), ""); portraitCache = null; rebuild(); });
         optMenu.add(bildWeg);
         optMenu.addSeparator();
+        JMenuItem textOeffnen = new JMenuItem("Charakterbeschreibung öffnen …");
+        textOeffnen.setToolTipText("<html>Textdatei (TXT, MD) für den aktuellen Helden hinterlegen – der Text steht dann im Feld<br>"
+                + "„Charakterbeschreibung“. Änderungen an der Datei übernimmt „Aktualisieren“.</html>");
+        textOeffnen.addActionListener(e -> charakterTextWaehlen());
+        optMenu.add(textOeffnen);
+        JMenuItem textSchreiben = new JMenuItem("Charakterbeschreibung schreiben/bearbeiten …");
+        textSchreiben.setToolTipText("Text direkt eingeben oder den geöffneten Text bearbeiten (im Plugin gespeichert, je Held)");
+        textSchreiben.addActionListener(e -> charakterTextSchreiben());
+        optMenu.add(textSchreiben);
+        JMenuItem textWeg = new JMenuItem("Charakterbeschreibung entfernen (leere Linien)");
+        textWeg.addActionListener(e -> {
+            for (String k : new String[]{textKey(), eigenKey()}) { save.accept(k, ""); props.put(k, ""); }
+            rebuild();
+        });
+        optMenu.add(textWeg);
+        optMenu.addSeparator();
+        // Seitenverhältnis des Portrait-Felds (je Held gespeichert, wie das Bild)
+        final JMenu format = new JMenu("Portrait-Format");
+        final ButtonGroup formatGruppe = new ButtonGroup();
+        final java.util.List<JRadioButtonMenuItem> formatItems = new java.util.ArrayList<>();
+        for (String[] f : FORMATE) {
+            JRadioButtonMenuItem mi = new JRadioButtonMenuItem(f[1]);
+            mi.putClientProperty("modernhelden.format", f[0]);
+            mi.addActionListener(e -> {
+                save.accept(formatKey(), f[0]);
+                props.put(formatKey(), f[0]);
+                rebuild();
+            });
+            formatGruppe.add(mi);
+            formatItems.add(mi);
+            format.add(mi);
+            if (f[0].equals("auto")) format.addSeparator();
+            if (f[0].equals("1:1")) format.addSeparator();
+        }
+        optMenu.add(format);
+        formatAuswahl = () -> {
+            String jetzt = formatWahl();
+            for (JRadioButtonMenuItem mi : formatItems) mi.setSelected(jetzt.equals(mi.getClientProperty("modernhelden.format")));
+        };
+        optMenu.addSeparator();
         JMenuItem metaEin = new JMenuItem("Meta-Talente in der Helden-Software einschalten …");
         metaEin.setToolTipText("<html>Die Helden-Software berechnet Meta-Talente nur, wenn in ihren Druckeinstellungen<br>"
                 + "„Metatalente“ aktiv ist. Öffnet diese Einstellungen.</html>");
@@ -148,6 +194,7 @@ public final class PrintPreviewPanel extends JPanel {
         optMenu.add(metaEin);
         final JButton optBtn = new JButton("Optionen ▾");
         optBtn.addActionListener(e -> {
+            formatAuswahl.run();   // Format des aktuellen Helden anzeigen
             // Menü liegt außerhalb des Komponentenbaums: aktuelles Design vor dem Anzeigen übernehmen
             SwingUtilities.updateComponentTreeUI(optMenu);
             optMenu.show(optBtn, 0, optBtn.getHeight());
@@ -360,6 +407,7 @@ public final class PrintPreviewPanel extends JPanel {
         if (sheetData == null) return;
         ModernSheet.Options o = new ModernSheet.Options();
         o.beschreibungen = desc.isSelected();
+        o.eigeneNotizen = eigene.isSelected();
         o.notizseite = notes.isSelected();
         // ohne Aktivierung in der Helden-Software liefert sie keine Meta-Talente – Option dann aus
         // (nur angezeigt; die gespeicherte Wahl des Helden bleibt, bis man sie selbst ändert)
@@ -370,6 +418,8 @@ public final class PrintPreviewPanel extends JPanel {
         o.metatalente = meta.isSelected();
         o.portrait = portrait.isSelected();
         o.portraitBild = o.portrait ? portraitBild() : null;
+        o.portraitVerhaeltnis = formatVerhaeltnis();
+        o.charakterText = charakterText();
         sheet = new ModernSheet(sheetData, db, o);
         info.setText(sheet.getNumberOfPages() + (sheet.getNumberOfPages() == 1 ? " Seite" : " Seiten"));
         boolean hatMeta = false;
@@ -392,6 +442,179 @@ public final class PrintPreviewPanel extends JPanel {
     private String metaKey() {
         String n = sheetData == null || sheetData.name.isEmpty() ? "held" : sheetData.name;
         return "druck.meta." + n.replaceAll("[^A-Za-z0-9ÄÖÜäöüß]+", "_");
+    }
+
+    /** Wählbare Seitenverhältnisse (Breite:Höhe) für das Portrait-Feld. */
+    private static final String[][] FORMATE = {
+            {"auto", "Automatisch (wie das Bild)"},
+            {"3:4", "3:4 – Hochformat (Standard)"}, {"2:3", "2:3 – Hochformat (Foto)"}, {"4:5", "4:5 – Hochformat"},
+            {"9:16", "9:16 – Hochformat (Smartphone)"}, {"1:1", "1:1 – Quadrat"},
+            {"4:3", "4:3 – Querformat"}, {"3:2", "3:2 – Querformat (Foto)"}, {"16:9", "16:9 – Querformat (breit)"}};
+
+    private Runnable formatAuswahl = () -> { };
+
+    /** Format des Portrait-Felds je Held, Schlüssel wie beim Portrait. */
+    private String formatKey() {
+        return portraitKey().replace("druck.portrait.bild.", "druck.portrait.format.");
+    }
+
+    private String formatWahl() {
+        String f = props.get(formatKey());
+        return f == null || f.isEmpty() ? "auto" : f;
+    }
+
+    /** Breite/Höhe zum gewählten Format; 0 = automatisch. */
+    private double formatVerhaeltnis() {
+        String f = formatWahl();
+        int i = f.indexOf(':');
+        if (i <= 0) return 0;
+        try {
+            double b = Double.parseDouble(f.substring(0, i)), h = Double.parseDouble(f.substring(i + 1));
+            return h > 0 ? b / h : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** Textdatei für die Charakterbeschreibung je Held, Schlüssel wie beim Portrait. */
+    private String textKey() {
+        return portraitKey().replace("druck.portrait.bild.", "druck.charakter.text.");
+    }
+
+    /** Inhalt der hinterlegten Textdatei (UTF-8, sonst Windows-Zeichensatz); null ohne Datei. */
+    /** Selbst geschriebener Text je Held (in den Plugin-Einstellungen; Zeilenumbrüche maskiert). */
+    private String eigenKey() {
+        return portraitKey().replace("druck.portrait.bild.", "druck.charakter.eigen.");
+    }
+
+    private static String maskieren(String t) { return t.replace("\\", "\\\\").replace("\r\n", "\n").replace("\n", "\\n"); }
+
+    private static String demaskieren(String t) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < t.length(); i++) {
+            char c = t.charAt(i);
+            if (c == '\\' && i + 1 < t.length()) {
+                char n = t.charAt(++i);
+                sb.append(n == 'n' ? '\n' : n);
+            } else sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    /** Selbst geschriebener Text, sonst der Inhalt der geöffneten Datei; null ohne beides. */
+    private String charakterText() {
+        String eigen = props.get(eigenKey());
+        if (eigen != null && !eigen.isEmpty()) return demaskieren(eigen);
+        String pfad = props.get(textKey());
+        if (pfad == null || pfad.trim().isEmpty()) return null;
+        String t = textLesen(new File(pfad));
+        return t != null && pfad.toLowerCase(java.util.Locale.ROOT).endsWith(".md") ? ohneMarkdown(t) : t;
+    }
+
+    /** Markdown-Auszeichnung (Überschriften-#, **fett**, __fett__, `Code`) entfernen; Listenpunkte als „–“. */
+    static String ohneMarkdown(String t) {
+        StringBuilder sb = new StringBuilder();
+        for (String z : t.replace("\r\n", "\n").split("\n", -1)) {
+            String l = z.replaceFirst("^\\s{0,3}#{1,6}\\s+", "")
+                    .replace("**", "").replace("__", "").replace("`", "")
+                    .replaceFirst("^(\\s*)[*+-]\\s+", "$1– ");
+            sb.append(l).append('\n');
+        }
+        return sb.toString();
+    }
+
+    /** Fenster zum Schreiben der Charakterbeschreibung. */
+    private void charakterTextSchreiben() {
+        if (sheetData == null) return;
+        String jetzt = charakterText();
+        JTextArea feld = new JTextArea(jetzt == null ? "" : jetzt, 18, 60);
+        feld.setLineWrap(true);
+        feld.setWrapStyleWord(true);
+        feld.setFont(UIManager.getFont("Label.font"));
+        feld.setBorder(new EmptyBorder(6, 8, 6, 8));
+        JScrollPane sp = new JScrollPane(feld);
+        JLabel hinweis = new JLabel("<html>Persönlichkeit, Ziele &amp; Motive, Ängste, Eigenheiten, Beziehungen … "
+                + "Leerzeilen trennen Absätze.<br>Der Text wird im Plugin gespeichert (je Held); eine geöffnete Datei bleibt unverändert.</html>");
+        hinweis.setForeground(UIManager.getColor("Label.disabledForeground"));
+        JPanel p = new JPanel(new BorderLayout(0, 8));
+        p.add(hinweis, BorderLayout.NORTH);
+        p.add(sp, BorderLayout.CENTER);
+        Object[] knoepfe = {"Übernehmen", "Als Datei speichern …", "Abbrechen"};
+        SwingUtilities.invokeLater(feld::requestFocusInWindow);
+        int r = JOptionPane.showOptionDialog(this, p, "Charakterbeschreibung – " + heroName, JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE, null, knoepfe, knoepfe[0]);
+        if (r == 2 || r == JOptionPane.CLOSED_OPTION) return;
+        String text = feld.getText();
+        if (r == 1) {
+            // zusätzlich als Textdatei speichern (UTF-8) und diese Datei für den Helden hinterlegen
+            JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Charakterbeschreibung speichern");
+            fc.setFileFilter(new FileNameExtensionFilter("Textdatei (TXT)", "txt"));
+            String alt = props.get(textKey());
+            fc.setSelectedFile(alt != null && !alt.isEmpty() ? new File(alt)
+                    : new File("Charakterbeschreibung " + heroName.replaceAll("[\\\\/:*?\"<>|]", "_") + ".txt"));
+            if (fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+            File f = fc.getSelectedFile();
+            if (!f.getName().contains(".")) f = new File(f.getParentFile(), f.getName() + ".txt");
+            if (f.exists() && JOptionPane.showConfirmDialog(this, "„" + f.getName() + "“ gibt es schon. Überschreiben?",
+                    "Charakterbeschreibung", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
+            try {
+                java.nio.file.Files.write(f.toPath(), text.replace("\n", System.lineSeparator()).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Speichern fehlgeschlagen: " + ex.getMessage(), "Charakterbeschreibung", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            props.put(textKey(), f.getAbsolutePath());
+            save.accept(textKey(), f.getAbsolutePath());
+            props.put(eigenKey(), "");
+            save.accept(eigenKey(), "");
+        } else {
+            String m = text.trim().isEmpty() ? "" : maskieren(text);
+            props.put(eigenKey(), m);
+            save.accept(eigenKey(), m);
+        }
+        rebuild();
+    }
+
+    private static String textLesen(File f) {
+        if (!f.isFile()) return null;
+        try {
+            byte[] b = java.nio.file.Files.readAllBytes(f.toPath());
+            String t;
+            try {
+                t = java.nio.charset.StandardCharsets.UTF_8.newDecoder()
+                        .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                        .decode(java.nio.ByteBuffer.wrap(b)).toString();
+            } catch (java.nio.charset.CharacterCodingException e) {
+                t = new String(b, java.nio.charset.Charset.forName("windows-1252"));
+            }
+            if (t.startsWith("\uFEFF")) t = t.substring(1);
+            return t;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private void charakterTextWaehlen() {
+        if (sheetData == null) return;
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Charakterbeschreibung für " + heroName + " öffnen");
+        fc.setFileFilter(new FileNameExtensionFilter("Textdateien (TXT, MD)", "txt", "text", "md"));
+        String alt = props.get(textKey());
+        if (alt != null && !alt.isEmpty()) fc.setSelectedFile(new File(alt));
+        if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+        File f = fc.getSelectedFile();
+        String t = textLesen(f);
+        if (t == null) {
+            JOptionPane.showMessageDialog(this, "Die Datei konnte nicht gelesen werden.", "Charakterbeschreibung", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        props.put(textKey(), f.getAbsolutePath());
+        save.accept(textKey(), f.getAbsolutePath());
+        // eine geöffnete Datei ersetzt einen zuvor selbst geschriebenen Text
+        props.put(eigenKey(), "");
+        save.accept(eigenKey(), "");
+        rebuild();
     }
 
     private String portraitKey() {

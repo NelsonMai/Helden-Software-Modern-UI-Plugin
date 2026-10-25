@@ -30,12 +30,28 @@ public final class ModernSheet implements Pageable, Printable {
             FILL = new Color(0xf6f2ee), ACCENT = new Color(0xa4552a), ACCENT_SOFT = new Color(0xf4e6dc), WHITE = Color.WHITE;
 
     public static final class Options {
+        /** mitgelieferte Kurzbeschreibungen zu SF und Vor-/Nachteilen (für Zauber gibt es keine) */
         public boolean beschreibungen = true;
+        /** eigene Notizen; wo noch keine steht, eine leere Linie zum Schreiben */
+        public boolean eigeneNotizen = true;
         public boolean metatalente = true;
         public boolean notizseite = true;
         /** Portrait-Feld neben der Charakterbeschreibung (mit Bild oder leer zum Zeichnen/Einkleben) */
         public boolean portrait = true;
         public java.awt.image.BufferedImage portraitBild;
+        /** Text für das Feld „Charakterbeschreibung“ (aus einer Textdatei); leer = Linien zum Schreiben */
+        public String charakterText;
+        /** Seitenverhältnis Breite/Höhe des Portrait-Felds; 0 = wie das Bild (ohne Bild 3:4) */
+        public double portraitVerhaeltnis = 0;
+    }
+
+    /** Breite des Portrait-Felds zur Höhe: gewähltes Format, sonst das des Bildes (begrenzt auf sinnvolle Werte). */
+    private double portraitVerhaeltnis() {
+        double v = opt.portraitVerhaeltnis;
+        if (v <= 0 && opt.portraitBild != null && opt.portraitBild.getHeight() > 0)
+            v = (double) opt.portraitBild.getWidth() / opt.portraitBild.getHeight();
+        if (v <= 0) v = 0.75;
+        return Math.max(0.5, Math.min(16.0 / 9.0, v));
     }
 
     private interface Painter { void paint(Graphics2D g, float x, float y, float w, float h); }
@@ -695,14 +711,29 @@ public final class ModernSheet implements Pageable, Printable {
     }
 
     /** Eigener Text oder Kurzbeschreibung zu einem Namen, sonst "". */
-    private String beschreibung(String name) {
+    /** Eigene Notiz zum Eintrag (Tooltip-Text bearbeiten …); leer, wenn keine. */
+    private String eigeneNotiz(String name) {
         if (db == null) return "";
         TooltipDB.Match m = db.find(name);
         if (m == null) return "";
         String own = db.getUserText(m.key);
         if (own == null && m.entry != null) own = db.getUserText(m.entry.name);
-        String t = own != null ? own : (m.entry != null ? m.entry.text : "");
+        return own == null ? "" : own.trim();
+    }
+
+    /** Mitgelieferte Kurzbeschreibung zum Eintrag; leer, wenn keine. */
+    private String grundBeschreibung(String name) {
+        if (db == null) return "";
+        TooltipDB.Match m = db.find(name);
+        String t = m != null && m.entry != null ? m.entry.text : "";
         return t == null ? "" : t.trim();
+    }
+
+    /** Text zu einem Eintrag nach den Optionen: der eigene Text ersetzt die Kurzbeschreibung. */
+    private String[] eintragText(String name) {
+        String own = opt.eigeneNotizen ? eigeneNotiz(name) : "";
+        String desc = opt.beschreibungen ? grundBeschreibung(name) : "";
+        return new String[]{own.isEmpty() ? desc : own, opt.eigeneNotizen && own.isEmpty() ? "ja" : ""};
     }
 
     /** So viele Beschreibungszeilen passen in einen Block; längere Texte werden in Folgeblöcke geteilt. */
@@ -713,7 +744,8 @@ public final class ModernSheet implements Pageable, Printable {
      * Blöcke geteilt, damit sie über Spalten und Seiten weiterlaufen statt über den Rand hinaus.
      */
     private List<ColItem> entryItems(final String name, float colW) {
-        String desc = opt.beschreibungen ? beschreibung(name) : "";
+        String[] et = eintragText(name);
+        String desc = et[0];
         List<String> alle = desc.isEmpty() ? Collections.<String>emptyList() : wrap(desc, F.reg(7), colW - 10);
         List<ColItem> out = new ArrayList<>();
         out.add(entryItem(name, colW, alle.subList(0, Math.min(BLOCK_ZEILEN, alle.size()))));
@@ -728,6 +760,7 @@ public final class ModernSheet implements Pageable, Printable {
                 for (String l : teil) { g.drawString(l, x + 7, ly); ly += 8.6f; }
             }));
         }
+        // keine Schreiblinien unter Sonderfertigkeiten und Vor-/Nachteilen (nur bei Zaubern)
         return out;
     }
 
@@ -1110,21 +1143,29 @@ public final class ModernSheet implements Pageable, Printable {
             if (!z.wirkungsdauer.isEmpty()) eck.add("Wirkungsdauer " + z.wirkungsdauer);
             final List<String> eckLines = wrap(String.join("  ·  ", eck), F.reg(7), fullW - 16);
             // Notizen: Anmerkung der Helden-Software + eigener Text
+            // eigene Notizen (Anmerkung in der Helden-Software, eigener Tooltip-Text) vor der Kurzbeschreibung
             List<String> n = new ArrayList<>();
-            if (!z.anmerkung.isEmpty()) n.add(z.anmerkung);
-            String own = opt.beschreibungen ? beschreibung(z.name) : "";
-            if (!own.isEmpty() && !own.equals(z.anmerkung)) n.add(own);
+            if (opt.eigeneNotizen) {
+                if (!z.anmerkung.isEmpty()) n.add(z.anmerkung);
+                String own = eigeneNotiz(z.name);
+                if (!own.isEmpty() && !own.equals(z.anmerkung)) n.add(own);
+            }
+            final boolean eigeneLeer = n.isEmpty();
+            if (n.isEmpty() && opt.beschreibungen) {
+                String desc = grundBeschreibung(z.name);
+                if (!desc.isEmpty()) n.add(desc);
+            }
             final List<String> alleNotiz = n.isEmpty() ? new ArrayList<String>() : wrap(String.join(" – ", n), F.reg(7.4f), fullW - 22);
             final List<String> noteLines = alleNotiz.subList(0, Math.min(20, alleNotiz.size()));
             final boolean leerNotiz = noteLines.isEmpty();
-            // leere Schreiblinie nur, wenn Notizen in den Optionen eingeschaltet sind
-            final boolean schreiblinie = leerNotiz && opt.notizseite;
+            // leere Schreiblinie, wenn eigene Notizen eingeschaltet sind, aber noch keine dasteht
+            final boolean schreiblinie = eigeneLeer && opt.eigeneNotizen;
             // lange Kostenangaben umbrechen; das Feld wächst mit
             final List<String> kostLines = z.kosten.isEmpty() ? new ArrayList<String>() : wrap(z.kosten, F.reg(7.6f), kostW - 10);
             final float kostH = 14 + Math.max(0, kostLines.size() - 1) * 9;
             final float topH = Math.max(Math.max(20, 6 + (nameLines.size() + (plUnten ? 1 : 0)) * 11 + 2), 4 + kostH + 4);
             final float h = topH + eckLines.size() * 9
-                    + (leerNotiz ? (schreiblinie ? 15 : 2) : noteLines.size() * 9.5f + 4) + 4;
+                    + (leerNotiz ? (schreiblinie ? 15 : 2) : noteLines.size() * 9.5f + 4 + (schreiblinie ? 13 : 0)) + 4;
             float anhang = idx == d.zauber.size() && alleNotiz.size() <= 20 ? legH : 0;
             if (y + h + anhang > BOTTOM) {
                 newPage();
@@ -1185,6 +1226,14 @@ public final class ModernSheet implements Pageable, Printable {
                     g.setFont(F.reg(7.4f));
                     g.setColor(new Color(0x444444));
                     for (String l : noteLines) { g.drawString(l, x + 14, ly + 1); ly += 9.5f; }
+                    // Beschreibung steht da, eigene Notiz fehlt noch: Linie dafür
+                    if (schreiblinie) {
+                        g.setFont(F.reg(6.4f));
+                        g.setColor(MUTED);
+                        g.drawString("Notiz", x + 6, ly + 6);
+                        g.setColor(LINE);
+                        g.draw(new Line2D.Float(x + 28, ly + 7, x + w - 6, ly + 7));
+                    }
                 }
             });
             // sehr lange Notizen: Rest in Folgeblöcken, die über Seiten weiterlaufen
@@ -1371,38 +1420,158 @@ public final class ModernSheet implements Pageable, Printable {
         }
     }
 
-    /** Umrandetes Schreibfeld für Persönlichkeit, Ziele, Eigenheiten usw. */
+    /**
+     * Umrandetes Schreibfeld für Persönlichkeit, Ziele, Eigenheiten usw. Mit hinterlegtem Text (Optionen →
+     * Charakterbeschreibung öffnen/schreiben) steht dieser auf den Linien. Längerer Text bleibt im Rahmen: unter dem
+     * Portrait wird das Feld so breit wie die Seite, und was nicht auf die Seite passt, steht auf der Folgeseite in
+     * einem Rahmen „Charakterbeschreibung (Fortsetzung)“.
+     */
     private void charakterbeschreibung() {
-        final int zeilen = 8;
+        final int grundZeilen = 8;
         final float lineH = 17;
-        final float h = 26 + zeilen * lineH + 6;
-        if (y + h > BOTTOM) newPage();
+        final float grundH = 26 + grundZeilen * lineH + 6;
         final boolean mitPortrait = opt.portrait;
-        final float portraitW = mitPortrait ? Math.round(h * 0.75f) : 0;   // Hochformat 3:4
-        atomic(h, (g, x, yy, wAll, hh) -> {
-            float w = mitPortrait ? wAll - portraitW - 10 : wAll;
-            g.setColor(WHITE);
-            g.fill(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
-            g.setColor(LINE);
-            g.draw(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
-            g.setColor(ACCENT);
-            g.fill(new Rectangle2D.Float(x + 10, yy + 7, 2.5f, 10));
-            g.setFont(F.bold(9));
-            g.setColor(INK);
-            g.drawString("Charakterbeschreibung", x + 18, yy + 15.5f);
-            g.setFont(F.reg(7));
-            g.setColor(MUTED);
-            String stich = "Persönlichkeit · Ziele & Motive · Ängste · Eigenheiten · Beziehungen";
-            float titelEnde = x + 18 + 110;
-            if (g.getFontMetrics().stringWidth(stich) > x + w - 10 - titelEnde) stich = "Persönlichkeit · Ziele · Ängste · Eigenheiten";
-            right(g, stich, x + w - 10, yy + 15.5f);
-            g.setColor(LINE);
-            for (int i = 1; i <= zeilen; i++) {
-                float ly = yy + 24 + i * lineH;
-                g.draw(new Line2D.Float(x + 12, ly, x + w - 12, ly));
+        // Breite aus dem Seitenverhältnis (3:4, 9:16, 16:9 …); höchstens gut die Hälfte, damit Platz zum Schreiben bleibt
+        final double verhaeltnis = portraitVerhaeltnis();
+        final float wAll0 = W - 2 * M;
+        final float portraitW0 = mitPortrait ? (float) Math.round(Math.min(grundH * verhaeltnis, wAll0 * 0.57f)) : 0;
+        final Font textFont = F.reg(9);
+        // Text aufbereiten: Tabulatoren zu Leerzeichen, Zeichen ohne Glyphe (z. B. Emoji) weglassen, höchstens eine
+        // Leerzeile zwischen Absätzen
+        List<String> absaetze = new ArrayList<>();
+        if (opt.charakterText != null && !opt.charakterText.trim().isEmpty()) {
+            String roh = opt.charakterText.replace("\r\n", "\n").replace('\r', '\n').replace('\t', ' ');
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < roh.length(); ) {
+                int cp = roh.codePointAt(i);
+                i += Character.charCount(cp);
+                if (cp == '\n' || (!Character.isISOControl(cp) && textFont.canDisplay(cp)
+                        && Character.getType(cp) != Character.FORMAT)) sb.appendCodePoint(cp);
             }
-            if (mitPortrait) portrait(g, x + wAll - portraitW, yy, portraitW, hh);
+            boolean leer = false;
+            for (String z : sb.toString().trim().split("\n", -1)) {
+                String t = z.trim().replaceAll(" {2,}", " ");
+                if (t.isEmpty()) { if (!leer && !absaetze.isEmpty()) absaetze.add(""); leer = true; }
+                else { absaetze.add(t); leer = false; }
+            }
+        }
+        // Breite im Feld: neben dem Portrait schmaler; darunter bzw. auf Folgeseiten die volle Breite
+        final float breitFeld = (mitPortrait ? wAll0 - portraitW0 - 10 : wAll0) - 24, breitVoll = wAll0 - 24;
+        List<String> text = new ArrayList<>();
+        List<int[]> herkunft = new ArrayList<>();   // {Absatz, Zeichenposition im Absatz}
+        for (int ai = 0; ai < absaetze.size(); ai++) {
+            String abs = absaetze.get(ai);
+            if (abs.isEmpty()) { text.add(""); herkunft.add(new int[]{ai, 0}); continue; }
+            int pos = 0;
+            for (String z : wrap(abs, textFont, breitFeld)) {
+                text.add(z);
+                herkunft.add(new int[]{ai, pos});
+                // Position im Absatz weiterzählen; hart getrennte Wörter enden auf „-“, das im Text nicht vorkommt
+                if (abs.startsWith(z, pos)) pos += z.length();
+                else if (z.endsWith("-") && abs.startsWith(z.substring(0, z.length() - 1), pos)) pos += z.length() - 1;
+                while (pos < abs.length() && abs.charAt(pos) == ' ') pos++;
+            }
+        }
+        // Neben dem Portrait stehen die ersten Zeilen schmal; alles danach wird über die volle Breite neu umbrochen
+        // und bleibt im selben Rahmen (das Feld wird unter dem Portrait breiter).
+        final int schmal = mitPortrait ? Math.min(grundZeilen, text.size()) : 0;
+        final List<String> voll = new ArrayList<>();
+        if (!mitPortrait) voll.addAll(text);
+        else if (text.size() > grundZeilen) {
+            int[] start = herkunft.get(grundZeilen);
+            for (int ai = start[0]; ai < absaetze.size(); ai++) {
+                String abs = absaetze.get(ai);
+                if (abs.isEmpty()) { voll.add(""); continue; }
+                String teil = ai == start[0] ? abs.substring(Math.min(start[1], abs.length())) : abs;
+                if (!teil.isEmpty()) voll.addAll(wrap(teil, textFont, breitVoll));
+            }
+            if (!voll.isEmpty() && voll.get(0).isEmpty()) voll.remove(0);
+        }
+        final float abstand = 10;   // Luft zwischen Portrait-Unterkante und den breiten Zeilen
+        // erste Seite: so viele Zeilen, wie Platz ist; so bleibt die Überschrift „Notizen“ beim Feld
+        float frei = BOTTOM - y - 32;
+        if (frei < grundZeilen * lineH) { newPage(); frei = BOTTOM - y - 32; }
+        int platz = (int) Math.floor((frei - (mitPortrait && !voll.isEmpty() ? abstand : 0)) / lineH);
+        final int breitHier = Math.max(0, Math.min(voll.size(), platz - (mitPortrait ? grundZeilen : 0)));
+        final int zeilenSchmal = mitPortrait ? grundZeilen : 0;
+        final int zeilenBreit = mitPortrait ? breitHier : Math.max(grundZeilen, breitHier);
+        final List<String> schmalText = new ArrayList<>(text.subList(0, schmal));
+        final List<String> breitText = new ArrayList<>(voll.subList(0, breitHier));
+        final float zusatz = mitPortrait && zeilenBreit > 0 ? abstand : 0;
+        final float h = 26 + (zeilenSchmal + zeilenBreit) * lineH + zusatz + 6;
+        final boolean leer = text.isEmpty();
+        atomic(h, (g, x, yy, wAll, hh) -> {
+            float portraitW = mitPortrait ? (float) Math.round(Math.min(grundH * verhaeltnis, wAll * 0.57f)) : 0;
+            float w = mitPortrait ? wAll - portraitW - 10 : wAll;
+            // Rahmen: neben dem Portrait schmal, darunter (bei langem Text) über die volle Breite
+            java.awt.geom.Area form = new java.awt.geom.Area(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
+            if (mitPortrait && zeilenBreit > 0) {
+                float unten = yy + grundH + 4;
+                form.add(new java.awt.geom.Area(new RoundRectangle2D.Float(x, unten, wAll, yy + hh - unten, 8, 8)));
+                form.add(new java.awt.geom.Area(new Rectangle2D.Float(x, unten, w, yy + hh - unten - 8)));
+            }
+            g.setColor(WHITE);
+            g.fill(form);
+            g.setColor(LINE);
+            g.draw(form);
+            kopf(g, x, yy, w, "Charakterbeschreibung", leer);
+            float ly = yy + 24;
+            for (int i = 0; i < zeilenSchmal + zeilenBreit; i++) {
+                boolean breit = i >= zeilenSchmal;
+                if (breit && i == zeilenSchmal) ly += zusatz;
+                ly += lineH;
+                String z = breit ? (i - zeilenSchmal < breitText.size() ? breitText.get(i - zeilenSchmal) : "")
+                                 : (i < schmalText.size() ? schmalText.get(i) : "");
+                schreibzeile(g, x, breit ? wAll : w, ly, z, textFont);
+            }
+            if (mitPortrait) portrait(g, x + wAll - portraitW, yy, portraitW, grundH);
         });
+        // was nicht mehr auf die Seite passt: auf den Folgeseiten in einem eigenen Rahmen weiter
+        int i = breitHier;
+        while (i < voll.size()) {
+            int passt = (int) Math.floor((BOTTOM - y - 32) / lineH);
+            if (passt < 3) { newPage(); continue; }
+            final List<String> teil = new ArrayList<>(voll.subList(i, Math.min(voll.size(), i + passt)));
+            i += teil.size();
+            atomic(26 + teil.size() * lineH + 6, (g, x, yy, w, hh) -> {
+                g.setColor(WHITE);
+                g.fill(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
+                g.setColor(LINE);
+                g.draw(new RoundRectangle2D.Float(x, yy, w, hh, 8, 8));
+                kopf(g, x, yy, w, "Charakterbeschreibung (Fortsetzung)", false);
+                float ly = yy + 24;
+                for (String z : teil) { ly += lineH; schreibzeile(g, x, w, ly, z, textFont); }
+            });
+        }
+    }
+
+    /** Titel des Charakterfelds; leer mit Stichworten rechts (gekürzt oder weggelassen, wenn es eng wird). */
+    private void kopf(Graphics2D g, float x, float yy, float w, String titel, boolean stichworte) {
+        g.setColor(ACCENT);
+        g.fill(new Rectangle2D.Float(x + 10, yy + 7, 2.5f, 10));
+        g.setFont(F.bold(9));
+        g.setColor(INK);
+        g.drawString(titel, x + 18, yy + 15.5f);
+        float titelEnde = x + 18 + g.getFontMetrics().stringWidth(titel) + 12;
+        if (!stichworte) return;
+        g.setFont(F.reg(7));
+        g.setColor(MUTED);
+        String[] stufen = {"Persönlichkeit · Ziele & Motive · Ängste · Eigenheiten · Beziehungen",
+                "Persönlichkeit · Ziele · Ängste · Eigenheiten", "Persönlichkeit · Ziele · Ängste", ""};
+        String stich = "";
+        for (String s2 : stufen) { stich = s2; if (g.getFontMetrics().stringWidth(stich) <= x + w - 10 - titelEnde) break; }
+        if (!stich.isEmpty()) right(g, stich, x + w - 10, yy + 15.5f);
+    }
+
+    /** Eine Linie im Charakterfeld, ggf. mit Text darauf. */
+    private void schreibzeile(Graphics2D g, float x, float w, float ly, String z, Font f) {
+        g.setColor(LINE);
+        g.draw(new Line2D.Float(x + 12, ly, x + w - 12, ly));
+        if (z != null && !z.isEmpty()) {
+            g.setFont(f);
+            g.setColor(INK);
+            g.drawString(z, x + 12, ly - 3.5f);
+        }
     }
 
     /** Portrait-Rahmen: hinterlegtes Bild (zugeschnitten, mittig) oder leeres Feld zum Zeichnen/Einkleben. */
