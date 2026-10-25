@@ -149,105 +149,105 @@ T	Geister*	Gabe		Schamanistische Gabe im Umgang mit Geistern (rufen, binden, ban
 T	Geräuschhexerei	Gabe		Unbewusste Fähigkeit, Geräusche und Poltern zu erzeugen.
 T	Prospektorensinn	Gabe		Gespür für Erz- und Edelsteinvorkommen.
 T	Schwarze Gabe*	Gabe		Dämonische Gabe aus einem Pakt. Mächtig, aber mit hohem Preis für die Seele.
-S	Aufmerksamkeit	Kampf		Erhöht die Wachsamkeit: Überraschungen und Hinterhalte treffen den Helden schwerer; Grundlage für Kampfgespür.
-S	Ausfall	Kampf		Offensive Serie von Attacken, die den Gegner zurückdrängt; der Angreifer verzichtet dabei auf Verteidigung.
-S	Ausweichen I	Kampf		Verbessert den Ausweichen-Wert, um Angriffen ohne Parade zu entgehen.
-S	Ausweichen II	Kampf		Weitere Verbesserung des Ausweichens (setzt Ausweichen I voraus).
-S	Ausweichen III	Kampf		Höchste Stufe des Ausweichens (setzt Ausweichen II voraus).
-S	Befreiungsschlag	Kampf		Ein weit ausholender Schlag gegen mehrere Gegner gleichzeitig, um sich Luft zu verschaffen.
-S	Beidhändiger Kampf I	Kampf		Ermöglicht den Einsatz von zwei Waffen mit geringeren Abzügen; Zweitwaffe kann zusätzlich angreifen oder parieren.
-S	Beidhändiger Kampf II	Kampf		Volle Ausnutzung zweier Waffen: noch weniger Einschränkungen beim Kampf mit beiden Händen.
-S	Berittener Schütze	Kampf		Fernkampf vom Pferderücken aus mit geringeren Erschwernissen.
-S	Betäubungsschlag	Kampf		Schlag, der den Gegner bewusstlos machen soll statt ihn zu töten.
-S	Binden	Kampf		Die gegnerische Waffe nach einer Parade binden, um den eigenen nächsten Angriff zu erleichtern.
-S	Blindkampf	Kampf		Kämpfen ohne Sicht, gestützt auf Gehör und Gespür.
-S	Defensiver Kampfstil	Kampf		Kampfweise, die auf sichere Verteidigung ausgelegt ist.
-S	Doppelangriff	Kampf		Mit zwei Waffen gleichzeitig angreifen (benötigt Beidhändigen Kampf).
-S	Eisenhagel	Kampf		Schnelles Werfen mehrerer Wurfwaffen kurz hintereinander.
-S	Entwaffnen	Kampf		Dem Gegner per Manöver die Waffe aus der Hand schlagen.
-S	Festnageln	Kampf		Einen Gegner mit Stangenwaffe oder Speer auf Distanz halten.
-S	Finte	Kampf		Täuschungsangriff: Die eigene Attacke wird erschwert, die Parade des Gegners noch stärker.
-S	Formation	Kampf		Kämpfen in geschlossener Reihe mit Verbündeten (Schildwall, Speerreihe).
-S	Gegenhalten	Kampf		Einem Angriff mit eigener Attacke begegnen statt zu parieren.
-S	Geschützmeister	Kampf		Geschütze schneller und präziser einsetzen.
-S	Gezielter Stich	Kampf		Präziser Stich in eine Lücke der Rüstung; ignoriert Rüstungsschutz teilweise.
-S	Halbschwert	Kampf		Das Schwert an der Klinge greifen für kraftvolle Stiche gegen Gerüstete.
-S	Hammerschlag	Kampf		Ein einziger, alles vernichtender Schlag mit voller Wucht – kostet aber die ganze Kampfrunde.
-S	Improvisierte Waffen	Kampf		Mit Stühlen, Flaschen und anderen Alltagsgegenständen ohne die üblichen Abzüge kämpfen.
-S	Kampf im Wasser	Kampf		Geringere Abzüge beim Kämpfen in hüfthohem oder tiefem Wasser.
-S	Kampfgespür	Kampf		Die Lage im Kampf instinktiv erfassen; verbessert Initiative und Reaktion auf Überraschungen.
-S	Kampfreflexe	Kampf		Erhöht die Initiative deutlich – der Held reagiert im Kampf schneller.
-S	Klingensturm	Kampf		Wirbelnde Serie schneller Klingenangriffe.
-S	Klingentänzer	Kampf		Meisterliche Beweglichkeit im Klingenkampf: fließende, schnelle Bewegungen und hohe Initiative.
-S	Klingenwand	Kampf		Mehrere Paraden pro Runde mit der Klinge.
-S	Kreuzblock	Kampf		Parade mit zwei gekreuzten Waffen, besonders stabil gegen schwere Schläge.
-S	Kriegsreiterei	Kampf		Berittener Nahkampf ohne die normalen Einschränkungen.
-S	Linkhand	Kampf		Eine Parierwaffe oder zweite Waffe in der linken Hand nutzen; Grundlage für Parierwaffen und Beidhändigen Kampf.
-S	Meisterparade	Kampf		Eine besonders gute Parade, die einen Vorteil für den Gegenschlag verschafft.
-S	Meisterschütze	Kampf		Höchste Präzision im Fernkampf; schnelles und genaues Zielen.
-S	Niederwerfen	Kampf		Den Gegner mit Wucht zu Boden schicken.
-S	Parierwaffen I	Kampf		Parieren mit einer Zweitwaffe (Linkhanddolch u. Ä.) mit geringeren Abzügen.
-S	Parierwaffen II	Kampf		Parierwaffe nahezu ohne Abzüge einsetzen.
-S	Reiterkampf	Kampf		Grundlegender Nahkampf vom Pferd aus.
-S	Rüstungsgewöhnung I	Kampf		Der Held hat sich an eine bestimmte Rüstung gewöhnt; deren Behinderung wirkt sich weniger aus.
-S	Rüstungsgewöhnung II	Kampf		Gewöhnung an alle Rüstungen: Behinderung durch Rüstung allgemein geringer.
-S	Rüstungsgewöhnung III	Kampf		Höchste Rüstungsgewöhnung: Behinderung durch Rüstung stark reduziert.
-S	Scharfschütze	Kampf		Gezielte Schüsse auf bestimmte Körperstellen und bessere Präzision mit einer Fernkampfwaffe.
-S	Schildkampf I	Kampf		Verbessert die Parade mit dem Schild und schaltet Schild-Manöver frei.
-S	Schildkampf II	Kampf		Weitere Verbesserung des Schildkampfes (setzt Schildkampf I voraus).
-S	Schildspalter	Kampf		Angriff, der gezielt den gegnerischen Schild zerstören soll.
-S	Schnellladen*	Kampf		Eine Fernkampfwaffe (Bogen/Armbrust) schneller nachladen.
-S	Schnellziehen	Kampf		Waffe ziehen oder wechseln, ohne Zeit zu verlieren.
-S	Sturmangriff	Kampf		Angriff aus vollem Lauf mit zusätzlichem Schaden.
-S	Tod von Links	Kampf		Überraschender Angriff mit der Waffe in der linken Hand.
-S	Todesstoß	Kampf		Präziser, tödlicher Stoß auf einen wehrlosen oder geschwächten Gegner.
-S	Umreißen	Kampf		Den Gegner von den Beinen holen.
-S	Unterwasserkampf	Kampf		Kämpfen unter Wasser mit geringeren Abzügen.
-S	Waffe zerbrechen	Kampf		Angriff auf die Waffe des Gegners, um sie zu zerstören.
-S	Waffenmeister*	Kampf		Meisterliche Beherrschung einer bestimmten Waffe mit individuellen Vorteilen.
-S	Waffenspezialisierung*	Kampf		Spezialisierung auf eine Waffenart: kleine Boni auf Attacke und Parade mit dieser Waffe.
-S	Wuchtschlag	Kampf		Mehr Kraft in den Schlag legen: Attacke wird erschwert, dafür steigt der Schaden.
-S	Windmühle	Kampf		Abwehr, die die Wucht des gegnerischen Schlags gegen ihn selbst lenkt.
+S	Aufmerksamkeit	Kampf		IN-Proben gegen Überraschung +4; Passierschläge gegen den Helden +4 erschwert; Orientierung im Kampf in 1 Aktion.
+S	Ausfall	Kampf		Parade ohne Malus in Attacke umwandeln und den Gegner zurückdrängen; er muss zweimal parieren. Erste AT +4.
+S	Ausweichen I	Kampf		Ausweichen-Proben (auch gegen Fernkampf und Sturmangriffe) um 3 Punkte erleichtert.
+S	Ausweichen II	Kampf		Ausweichen-Proben um 6 Punkte erleichtert (statt 3). Setzt Ausweichen I und Aufmerksamkeit voraus.
+S	Ausweichen III	Kampf		Ausweichen-Proben um 9 Punkte erleichtert (statt 6). Setzt Ausweichen II und Kampfreflexe voraus.
+S	Befreiungsschlag	Kampf		Ein Hieb gegen bis zu drei Gegner (AT +4 je Gegner), kostet die Abwehraktion; Ansage auf TP oder als Finte.
+S	Beidhändiger Kampf I	Kampf		Abzüge mit der „falschen“ Hand nur noch AT/PA –3/–3; KK-Bonus auch links; erlaubt weitere Manöver.
+S	Beidhändiger Kampf II	Kampf		Keine Abzüge mehr mit der „falschen“ Hand; eine zusätzliche Aktion pro KR mit der Zweitwaffe.
+S	Berittener Schütze	Kampf		Nur halbe Zuschläge für Schüsse vom bewegten Reittier; Nachladen im Sattel wie am Boden.
+S	Betäubungsschlag	Kampf		Gezielter Schlag mit der stumpfen Seite (TP(A)), kann sofort betäuben; Zuschlag des Stumpfen Schlags halbiert.
+S	Binden	Kampf		Parade +4, die die gegnerische Waffe bindet: Dessen nächste PA wird erschwert, die eigene AT erleichtert.
+S	Blindkampf	Kampf		Abzüge durch schlechte Sicht oder Unsichtbare höchstens AT/PA –2/–2; IN-Proben gegen Überraschung +2.
+S	Defensiver Kampfstil	Kampf		Attacke ohne den Malus von 4 in eine Parade umwandeln: zwei reguläre Abwehraktionen pro KR.
+S	Doppelangriff	Kampf		Mit zwei Einhandwaffen gleichzeitig angreifen (je AT +2); der Gegner braucht zwei Abwehraktionen.
+S	Eisenhagel	Kampf		Bis zu 5 Wurfsterne/-scheiben auf einmal werfen; Probe +2 je Geschoss, +5 je weiterem Ziel.
+S	Entwaffnen	Kampf		Gegner entwaffnen: AT +8 (mit Meisterparade auch PA +8); er hält die Waffe mit KK-Probe +8. Nicht gegen Zweihänder.
+S	Festnageln	Kampf		Mit geeignetem Spieß einen getroffenen Gegner zu Boden reißen und festhalten; AT +4, kostet die Abwehraktion.
+S	Finte	Kampf		Eigene AT um eine Ansage erschweren; die gegnerische Parade wird um denselben Betrag erschwert (ohne SF nur halb).
+S	Formation	Kampf		In einer Formation aus mindestens drei Kämpfern Angriff und Abwehr abstimmen (z. B. Schildwall).
+S	Gegenhalten	Kampf		In den Angriff hineinschlagen statt zu parieren (AT +4); bei zwei Treffern macht die schlechtere AT halben Schaden.
+S	Geschützmeister	Kampf		Fortgeschrittener Umgang mit Belagerungsgeschützen (Talent Belagerungswaffen).
+S	Gezielter Stich	Kampf		AT +4 plus halber RS: Treffer ignoriert die Rüstung, Wundschwelle –2 und automatisch eine Wunde.
+S	Halbschwert	Kampf		Waffen (v. a. Zweihandschwerter) in kürzerer Distanzklasse mit geringen Abzügen führen; etwas weniger Schaden.
+S	Hammerschlag	Kampf		AT +8, kostet alle Aktionen der KR; trifft er ungepariert, werden TP und Ansage verdreifacht.
+S	Improvisierte Waffen	Kampf		Fast alles als Waffe nutzen, auch für Tricks; keine erhöhte Patzerchance wie sonst bei improvisierten Waffen.
+S	Kampf im Wasser	Kampf		In knie-, hüft- oder schultertiefem Wasser nur halbe Abzüge auf die Kampfwerte.
+S	Kampfgespür	Kampf		INI-Basis +2; Umwandeln jederzeit ohne Ansage; IN gegen Überraschung weitere +4, Passierschläge weitere +2.
+S	Kampfreflexe	Kampf		INI +4, solange die Rüstung höchstens BE 4 hat (Rüstungsgewöhnung zählt).
+S	Klingensturm	Kampf		Die Attacke aufteilen und zwei Gegner in einer Aktion angreifen (mit Kampfgespür beliebig aufteilbar).
+S	Klingentänzer	Kampf		INI mit 2W6; nach misslungener Ansage nur halber Zuschlag; Klingensturm/-wand gegen drei Gegner. Bis BE 2.
+S	Klingenwand	Kampf		Die Parade aufteilen und so zwei Angriffe abwehren (mit Kampfgespür beliebig aufteilbar).
+S	Kreuzblock	Kampf		Waffenlose Meisterparade: Ansage erschwert die gegnerische PA und erleichtert die eigene Raufen-AT.
+S	Kriegsreiterei	Kampf		Zuschläge im berittenen Kampf geviertelt; Pferdemanöver wie Niederreiten möglich; das Pferd erhält PA +3.
+S	Linkhand	Kampf		Grundlage für Schilde, Parierwaffen und Zweitwaffen: Schild-PA +1; Abzüge mit der „falschen“ Hand sinken auf AT/PA –6/–6.
+S	Meisterparade	Kampf		Parade um eine Ansage erschweren; gelingt sie, ist die nächste eigene Aktion um diesen Betrag erleichtert.
+S	Meisterschütze	Kampf		Kein Zuschlag für Schnellschüsse; Ansage bis zum FK-Wert, voll auf die TP; halbe Zuschläge für gezielte Schüsse.
+S	Niederwerfen	Kampf		Wuchtschlag-Variante (AT +4): Der Getroffene muss eine KK-Probe bestehen; die Ansage erschwert sie.
+S	Parierwaffen I	Kampf		Mit der Parierwaffe gilt die PA der Hauptwaffe –1 plus PA-WM der Parierwaffe; erlaubt bestimmte Manöver mit der Parierwaffe.
+S	Parierwaffen II	Kampf		Parierwaffe nutzt die PA der Hauptwaffe +2 plus ihren WM; eine zusätzliche Parade pro KR.
+S	Reiterkampf	Kampf		Halbe Zuschläge auf Reiten-Proben im Kampf; gegen Fußkämpfer AT +3 und mit bestimmten Waffen +2 TP.
+S	Rüstungsgewöhnung I	Kampf		Eine bestimmte, gewählte Rüstung behindert um 1 Punkt weniger (gilt für alle BE-Grenzen, INI und GS).
+S	Rüstungsgewöhnung II	Kampf		Jede Rüstung behindert um 1 Punkt weniger (nicht zusätzlich zu Stufe I).
+S	Rüstungsgewöhnung III	Kampf		Jede Rüstung behindert um 2 Punkte weniger, und der INI-Abzug durch Rüstung wird halbiert.
+S	Scharfschütze	Kampf		Schnellschüsse nur +1; volle Ansage auf die TP; kürzeres Zielen. Je Fernkampftalent einzeln.
+S	Schildkampf I	Kampf		Schild-PA +2 (zusammen mit Linkhand +3 auf PA-Basis plus Schild-WM); Angriffe mit dem Schild über Raufen möglich.
+S	Schildkampf II	Kampf		Schild-PA weitere +2 (insgesamt +5); zwei Schildparaden pro KR zusätzlich zur Attacke; Meisterparade auch mit dem Schild.
+S	Schildspalter	Kampf		Gezielter Angriff auf den gegnerischen Schild (AT +8, erleichtert um dessen PA-WM), um ihn mit einem Schlag zu zerstören.
+S	Schnellladen*	Kampf		Bogen: Ladezeit 1 Aktion kürzer (mind. 1); Armbrust: nur drei Viertel der Ladezeit. Nur bis BE 4; für Bogen und Armbrust getrennt.
+S	Schnellziehen	Kampf		Waffe aus der Gürtelscheide als Freie Aktion, vom Rücken in 1 Aktion ziehen; nur bis BE 4.
+S	Sturmangriff	Kampf		Angriff aus vollem Lauf (mind. 4 Schritt Anlauf): AT +4, TP + (GS/2 + 4); kostet auch die Abwehraktion.
+S	Tod von Links	Kampf		Ein zusätzlicher Angriff pro KR mit der Parierwaffe. Setzt Beidhändigen Kampf I und Parierwaffen II voraus.
+S	Todesstoß	Kampf		AT +8 plus halber RS, kostet die Abwehraktion: Treffer ignoriert Rüstung, Wundschwelle –2, zwei extra Wunden.
+S	Umreißen	Kampf		Den Gegner ohne Schaden zu Fall bringen (AT +8, mit Finte kombinierbar); nur beidhändig ohne Schild.
+S	Unterwasserkampf	Kampf		Keine Abzüge von AT/PA –6/–6 beim Kampf unter Wasser; nur mit Dolchen, Fechtwaffen, Raufen, Ringen und Speeren.
+S	Waffe zerbrechen	Kampf		Mit Hakendolch, Linkhand oder Drachenklaue die gegnerische Klinge fangen (PA +8) und per KK-Probe brechen.
+S	Waffenmeister*	Kampf		Meister einer Waffenart mit individuell gewählten Vorteilen; u. a. TaW 18 und 2.500 AP in Kampf-SF.
+S	Waffenspezialisierung*	Kampf		Auf eine Waffenart spezialisiert: AT und PA damit je +1 (Fernkampf: FK +2). Weitere Spezialisierung im selben Talent ab TaW 14, 21, 28.
+S	Wuchtschlag	Kampf		AT um eine Ansage erschweren und diese Punkte auf die TP addieren (ohne SF nur die Hälfte). Mit Hieb- und Schlagwaffen.
+S	Windmühle	Kampf		Einen Wucht-, Sturm-, Hammer- oder Befreiungsschlag mit erschwerter Parade auffangen und zurücklenken.
 S	Rundumschlag	Kampf		Weit ausholender Schlag gegen alle Gegner im Umkreis.
-S	Sprungtritt	Kampf		Waffenloses Manöver: Tritt aus dem Sprung.
-S	Hoher Tritt	Kampf		Waffenloses Manöver: hoher Tritt gegen Kopf oder Oberkörper.
-S	Fußfeger	Kampf		Waffenloses Manöver: Gegner mit einem Tritt gegen die Beine zu Fall bringen.
-S	Handkante	Kampf		Waffenloses Manöver: harter Schlag mit der Handkante.
-S	Kopfstoß	Kampf		Waffenloses Manöver: Stoß mit dem Kopf.
-S	Knie	Kampf		Waffenloses Manöver: Kniestoß im Nahkampf.
-S	Gerade	Kampf		Waffenloses Manöver: gerader, schneller Fausthieb.
-S	Griff	Kampf		Ringer-Manöver: den Gegner packen.
-S	Klammer	Kampf		Ringer-Manöver: den Gegner umklammern und festhalten.
-S	Halten	Kampf		Ringer-Manöver: einen gepackten Gegner am Boden halten.
-S	Biss	Kampf		Waffenloses Manöver: zubeißen.
-S	Auspendeln	Kampf		Waffenloses Manöver: Ausweichen durch Oberkörperbewegung.
-S	Block	Kampf		Waffenloses Manöver: Abwehr mit Armen.
-S	Beinarbeit	Kampf		Geschickte Schritte, um Position und Abstand zu kontrollieren.
-S	Eisenarm	Kampf		Abwehr von Waffen mit gepanzertem oder abgehärtetem Arm.
-S	Knaufschlag	Kampf		Kurzer Schlag mit dem Knauf der Waffe.
-S	Kampfstil*	Kampf		Waffenloser oder bewaffneter Kampfstil (z. B. Bornländisch, Hruruzat, Mercenario) mit eigenen Manövern und Boni.
-S	Akklimatisierung*	Allgemein		Gewöhnung an extremes Klima (Hitze oder Kälte); weniger Erschwernisse durch Temperatur.
-S	Berufsgeheimnis*	Allgemein		Spezielles Fachwissen eines Handwerks oder einer Zunft, das sonst kaum jemand kennt.
-S	Geländekunde*	Allgemein		Vertrautheit mit einem Geländetyp: Erleichterungen bei Natur-Talenten (Orientierung, Wildnisleben u. Ä.) in diesem Gelände.
-S	Dschungelkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Dschungel.
-S	Eiskundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im ewigen Eis.
-S	Gebirgskundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Gebirge.
-S	Höhlenkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten in Höhlen.
-S	Maraskankundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten auf Maraskan.
-S	Meereskundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten auf See und an Küsten.
-S	Steppenkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten in der Steppe.
-S	Sumpfkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Sumpf.
-S	Waldkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten im Wald.
-S	Wüstenkundig	Allgemein		Geländekunde: Erleichterungen bei Natur-Talenten in der Wüste.
+S	Sprungtritt	Kampf		Raufen-AT +4, +2 TP(A); nur mit Ausweichen, Kreuzblock oder Schild normal abwehrbar.
+S	Hoher Tritt	Kampf		Waffenlos (Raufen-AT): hoher Tritt, Ansage erhöht die TP; ohne Auspendeln oder Kreuzblock ist die Parade +4 erschwert.
+S	Fußfeger	Kampf		Raufen-AT gegen die Beine; der Gegner muss eine GE-Probe bestehen, sonst stürzt er (INI –2W6).
+S	Handkante	Kampf		Waffenlos (Raufen-AT): Ansage erhöht die TP; schon ab mehr SP als halbe KO entsteht eine Wunde (keine erhöhte Wundschwelle).
+S	Kopfstoß	Kampf		Raufen-AT, 1W6 TP(A) (mit Metallhelm +2). Pariert ein Bewaffneter, trifft dessen Waffe den Angreifer.
+S	Knie	Kampf		Raufen-AT; Parade ohne Beinarbeit/Kreuzblock +4. Über der Wundschwelle 1W3 KR kampfunfähig.
+S	Gerade	Kampf		Waffenlos (Raufen-AT): Ansage erhöht die TP; ohne Auspendeln ist die Parade +4 erschwert.
+S	Griff	Kampf		Ringen-AT mit Ansage: Der Gegriffene ist bei allen Aktionen um die halbe Ansage erschwert.
+S	Klammer	Kampf		Ringen-AT mit Ansage; Befreien nur per Ringen-PA oder KK-Probe. Beide können nur noch wenige Manöver nutzen.
+S	Halten	Kampf		Ringen-AT oder -PA mit Ansage, die die nächste gegnerische Aktion erschwert; Voraussetzung für einen Wurf.
+S	Biss	Kampf		Raufen-AT, Ansage auf die TP(A). Pariert ein Bewaffneter, erleidet der Beißende den Waffenschaden.
+S	Auspendeln	Kampf		Waffenlose Parade-Variante: Ohne sie sind Paraden gegen Gerade, Hoher Tritt, Schmetterschlag und Schwinger um 4 erschwert.
+S	Block	Kampf		Waffenloses „Binden“ (Raufen-PA mit Ansage): Die gewonnenen Punkte erschweren die nächste gegnerische PA.
+S	Beinarbeit	Kampf		Waffenlose Parade-Variante: Ohne sie sind Paraden gegen Fußfeger, Knie, Tritt und Schwanzfeger um 4 erschwert.
+S	Eisenarm	Kampf		Waffenlos bewaffnete Angriffe parieren und dabei nur TP(A) erleiden; kein INI-Abzug gegen Bewaffnete.
+S	Knaufschlag	Kampf		Raufen-AT mit dem Waffenknauf für 1W6+2 TP(A), auch im Handgemenge; Ansage auf TP(A) oder Parade.
+S	Kampfstil*	Kampf		Waffenlose Kampftechnik (z. B. Hruruzat, Mercenario): AT/PA +1 im Talent, enthält ihre Manöver.
+S	Akklimatisierung*	Allgemein		Gewöhnung an Hitze bzw. Kälte: wirkt wie Hitze- bzw. Kälteresistenz.
+S	Berufsgeheimnis*	Allgemein		Geheimes Zunftverfahren (z. B. Zwergenspan, Spinnenseide); erst damit sind diese Arbeiten möglich.
+S	Geländekunde*	Allgemein		Vertrautheit mit einem Geländetyp: Orientierung, Wildnisleben, Tier-/Pflanzenkunde u. Ä. dort +3.
+S	Dschungelkundig	Allgemein		Geländekunde Dschungel: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Eiskundig	Allgemein		Geländekunde Eis: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Gebirgskundig	Allgemein		Geländekunde Gebirge: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Höhlenkundig	Allgemein		Geländekunde Höhlen: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Maraskankundig	Allgemein		Geländekunde Maraskan: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Meereskundig	Allgemein		Geländekunde Meer und Küste: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Steppenkundig	Allgemein		Geländekunde Steppe: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Sumpfkundig	Allgemein		Geländekunde Sumpf: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Waldkundig	Allgemein		Geländekunde Wald: passende Natur- und Wissensproben dort +3 erleichtert.
+S	Wüstenkundig	Allgemein		Geländekunde Wüste: passende Natur- und Wissensproben dort +3 erleichtert.
 S	Eiserner Wille I	Allgemein		Erhöhte Willenskraft gegen Beeinflussung und Furcht.
 S	Eiserner Wille II	Allgemein		Noch stärkere Willenskraft (setzt Eisernen Willen I voraus).
-S	Fälscher	Allgemein		Dokumente, Siegel und Handschriften fälschen.
-S	Kulturkunde*	Allgemein		Vertrautheit mit einer fremden Kultur: keine Abzüge bei gesellschaftlichen Proben in dieser Kultur.
-S	Nandusgefälliges Wissen	Allgemein		Erleichtert den Zugriff auf Wissen und gelehrte Recherche.
-S	Ortskenntnis*	Allgemein		Gute Kenntnis eines bestimmten Ortes (Stadt, Region); Erleichterungen bei Orientierung, Gassenwissen u. Ä. dort.
-S	Rosstäuscher	Allgemein		Pferde aufhübschen und ihren Wert verschleiern – oder solche Tricks erkennen.
-S	Talentspezialisierung*	Allgemein		Spezialisierung innerhalb eines Talents: Proben im Spezialgebiet sind erleichtert.
-S	Standfest	Allgemein		Schwer umzuwerfen; Vorteile gegen Niederwerfen und auf schwankendem Untergrund.
+S	Fälscher	Allgemein		Fälschungen herstellen: passende Proben +3; Fälschungen erkennen +5; die eigenen sind +5 schwerer zu entlarven.
+S	Kulturkunde*	Allgemein		Vertrautheit mit einer Kultur: Die Zuschläge auf Gesellschafts- und Wissensproben dort entfallen.
+S	Nandusgefälliges Wissen	Allgemein		Beim Ableiten fehlender Wissenstalente nur halbe Erschwernis; Recherche in halber Zeit.
+S	Ortskenntnis*	Allgemein		Kenntnis eines Gebiets oder Stadtteils: dort bis zu 7 Punkte Zuschlag auf Orientierung u. Ä. ignorieren.
+S	Rosstäuscher	Allgemein		Tiere (meist Pferde) optisch aufwerten: bei allen dazugehörigen Talenten TaW +5 – auch zum Erkennen solcher Tricks.
+S	Talentspezialisierung*	Allgemein		Spezialisierung auf ein Teilgebiet eines Talents: TaW dort +2 (ab TaW 7; weitere ab 14, 21, 28).
+S	Standfest	Allgemein		Balance-Proben (Körperbeherrschung, Athletik, Akrobatik) +2, GE-Proben +1; hilft gegen Umreißen und Stürze.
 S	Wache halten*	Allgemein		Bleibt bei der Nachtwache länger aufmerksam.
 S	Schnelles Umziehen	Allgemein		Kleidung oder Rüstung besonders schnell wechseln.
 S	Runenkunde	Allgemein		Wissen um die Bedeutung und Kraft von Runen.
@@ -425,10 +425,10 @@ T	Tierfallen aufstellen	Meta		Fallen für Wild auslegen und kontrollieren. Berec
 T	Speerfischen	Meta		Fische mit dem Speer im flachen Wasser erbeuten. Berechnet aus dem besseren von Speere bzw. Wurfspeere, Tierkunde, Selbstbeherrschung und Wildnisleben (Durchschnitt; höchstens das Doppelte des schwächsten Talents). Der Wert wird von der Helden-Software berechnet und nicht gesteigert.
 T	Wache halten	Meta		Aufmerksam bleiben, während die anderen schlafen. Berechnet aus Selbstbeherrschung und zweimal Sinnenschärfe (Durchschnitt; höchstens das Doppelte des schwächsten Talents). Der Wert wird von der Helden-Software berechnet und nicht gesteigert.
 # --- Ergänzungen: Vorteile
-V	Affinität zu*	Vorteil		Besondere Nähe zu einer Art von Wesen (z. B. Elementaren, Geistern, Dämonen); Zauber auf diese Wesen und der Umgang mit ihnen fallen leichter.
+V	Affinität zu*	Vorteil		Besondere Nähe zu einer Art Wesen (z. B. Elementare, Geister, Dämonen); Zauber auf sie fallen leichter.
 V	Ausdauernder Zauberer	Vorteil		Zaubern erschöpft den Helden weniger als andere Zauberkundige.
 V	Ausrüstungsvorteil	Vorteil		Beginnt das Spiel mit zusätzlicher oder besonders guter Ausrüstung.
-V	Beseelte Knochenkeule	Vorteil		Besitzt eine beseelte Knochenkeule – den Ritualgegenstand orkischer bzw. Schamanen-Traditionen – mit bereits geweckter Kraft.
+V	Beseelte Knochenkeule	Vorteil		Besitzt eine beseelte Knochenkeule (Ritualgegenstand der Schamanen) mit bereits geweckter Kraft.
 V	Ererbte Knochenkeule	Vorteil		Hat eine Knochenkeule von einem Vorgänger übernommen, in der schon Keulenrituale wirken.
 V	Breitgefächerte Bildung	Vorteil		Erlaubt eine zweite Profession bei der Erschaffung und damit Talente und Fertigkeiten aus beiden Ausbildungen.
 V	Eigeboren	Vorteil		Hexen-Vorteil: Tochter einer Hexe, von Geburt an mit der Hexenkraft vertraut.
@@ -533,7 +533,7 @@ S	Zauberzeichen	Magie		Magisches Zeichen bzw. Bann- oder Schutzkreis, das gezeic
 S	Zibilja-Ritual	Magie		Ritual der Zibilja (norbardische Zauberinnen), oft mit Bienen und Wachs verbunden.
 S	Trommelzauber	Magie		Zauber der novadischen Derwische, gewirkt durch rhythmisches Trommeln.
 S	Schuppenbeutel	Magie		Ritual mit dem Schuppenbeutel, dem Ritualgegenstand der Achaz-Schamanen.
-S	Waffenloser Kampfstil	Kampf		Erlernter waffenloser Kampfstil mit eigenen Manövern und Vergünstigungen.
+S	Waffenloser Kampfstil	Kampf		Waffenlose Kampftechnik: AT/PA im zugehörigen Talent +1 (höchstens +2), enthält ihre Manöver.
 S	Spätweihe*	Karma		Weihe zum Geweihten einer Gottheit erst im Erwachsenenalter, nach der Erschaffung.
 S	Matrixregeneration*	Magie		Artefaktmagie: erschöpfte oder beschädigte Zaubermatrizen von Artefakten wieder aufladen bzw. herstellen.
 S	Regeneration*	Magie		Die Astralenergie regeneriert schneller (Stufe I bzw. II).
@@ -546,7 +546,7 @@ S	Aurapanzer	Magie		Schützt die eigene Aura gegen fremde Beherrschungs- und Ein
 S	Bannschwert	Magie		Eine Waffe als Bannschwert binden: damit Bannkreise ziehen und magische Wesen wirksamer treffen.
 S	Chimärenmeister	Magie		Fortgeschrittene Kunst, Chimären zu erschaffen.
 S	Die Gestalt aus Rauch	Magie		Magische Verwandlung in eine Gestalt aus Rauch.
-S	Doppelschlag	Kampf		Zwei Angriffe kurz hintereinander in einer Kampfrunde.
+S	Doppelschlag	Kampf		Raufen-AT +4 mit beiden Fäusten zugleich; der Gegner braucht zwei Paraden. Jeder Hieb macht eigene TP(A).
 S	Druidenrache	Magie		Druiden: Wer den Druiden verletzt, wird von dessen Magie getroffen.
 S	Elementarharmonisierte Aura	Magie		Die Aura steht im Einklang mit den Elementen; Elementarzauber fallen leichter.
 S	Form der Formlosigkeit	Magie		Hohe Verwandlungskunst: die eigene Gestalt frei verändern.
@@ -562,32 +562,32 @@ S	Kristallkraft bündeln	Magie		Kristallomanten: die Kraft mehrerer Kristalle f�
 S	Lockeres Zaubern	Magie		Zaubern mit weniger Konzentration; Zauber lassen sich leichter nebenher wirken.
 S	Matrixkontrolle	Magie		Bessere Kontrolle über die Zaubermatrix; Patzer lassen sich abfangen.
 S	Matrixverständnis	Magie		Versteht den Aufbau von Zaubermatrizen; erleichtert Analyse und Abwandlung von Zaubern.
-S	Meister der Improvisation	Kampf		Improvisierte Waffen (Stuhl, Flasche, Werkzeug …) ohne die üblichen Abzüge nutzen.
+S	Meister der Improvisation	Kampf		Fehlendes Werkzeug durch Behelfsmittel ersetzen: Zuschläge dafür und beim Ausweichen auf andere Handwerke halbiert.
 S	Meisterliche Regeneration	Magie		Die Astralenergie regeneriert deutlich besser.
-S	Meisterliches Entwaffnen	Kampf		Verbessertes Entwaffnen: Gegner leichter und mit mehr Waffen entwaffnen.
+S	Meisterliches Entwaffnen	Kampf		Auch Kämpfer mit Zweihandwaffen entwaffnen; Einhandkämpfer brauchen eine KK-Probe +10 statt +8, um ihre Waffe zu halten.
 S	Nekromant	Magie		Kenntnis der Totenbeschwörung: Untote erheben und Geister von Toten rufen.
-S	Niederringen	Kampf		Waffenlos: den Gegner zu Boden ringen.
+S	Niederringen	Kampf		Ringen-AT: Gegner zu Boden ringen, der Angreifer geht mit (INI –1W6 für ihn, –2W6 für den Gegner).
 S	Ottagaldr	Magie		Thorwalsche Magie: Galdr-Gesang, der auf die Mannschaft einer Otta wirkt.
 S	Salasandra	Magie		Elfisches Gemeinschaftsritual, in dem mehrere Elfen ihre Kräfte verbinden.
-S	Schmetterschlag	Kampf		Wuchtiger Hieb, der den Gegner zurückwirft oder umwirft.
-S	Schmutzige Tricks	Kampf		Kämpfen mit unfairen Mitteln (Sand in die Augen, Tritte) und so den Gegner überraschen.
-S	Schwanzfeger	Kampf		Für Wesen mit Schwanz (z. B. Achaz): den Gegner mit dem Schwanz von den Beinen fegen.
-S	Schwanzschlag	Kampf		Für Wesen mit Schwanz (z. B. Achaz): Angriff mit dem Schwanz.
-S	Schwinger	Kampf		Waffenlos: weit ausholender Faustschlag mit hohem Schaden.
-S	Schwitzkasten	Kampf		Waffenlos: den Gegner im Schwitzkasten festhalten.
+S	Schmetterschlag	Kampf		Verstärkte Gerade: Über der Wundschwelle droht Bewusstlosigkeit (KO-Probe), über der KO sofort.
+S	Schmutzige Tricks	Kampf		Die Umgebung nutzen (Sand in die Augen …): meist 1W6 AU- oder INI-Verlust, Rüstung schützt nicht.
+S	Schwanzfeger	Kampf		Achaz: mit dem Schwanz nach den Beinen fegen; der Gegner muss eine GE-Probe bestehen.
+S	Schwanzschlag	Kampf		Achaz (Raufen-AT): Die Hälfte der Punkte, um die die AT gelang, erschwert die gegnerische Parade.
+S	Schwinger	Kampf		Raufen-AT, eine Art Finte: Ansage erschwert die gegnerische Parade; ohne Auspendeln dort +4.
+S	Schwitzkasten	Kampf		Ringen-AT: Gegner im Schwitzkasten; jede weitere AT leichter und mit steigendem AU-Verlust.
 S	Signaturkenntnis	Magie		Magische Signaturen (die „Handschrift“ eines Zauberers) erkennen und setzen.
 S	Simultanzaubern	Magie		Zwei Zauber gleichzeitig wirken.
-S	Spießgespann	Kampf		Kampf mit Speer bzw. Spieß im Verbund mit einem Gefährten.
-S	Sprung	Kampf		Waffenlos: Angriff aus dem Sprung.
+S	Spießgespann	Kampf		Zwei Kämpfer führen gemeinsam einen überlangen Spieß: bei Erfolg doppelte TP und addierte KK.
+S	Sprung	Kampf		Waffenlose Ausweich-Parade „nach oben“ (+2 bis +4, INI –1W6); Ansage als Bonus für den nächsten Sprungtritt.
 S	Stapeleffekt	Magie		Artefaktmagie: mehrere gleichartige Wirkungen übereinander legen.
 S	Tanz der Mada	Magie		Zaubertänzer: ein der Mada geweihter Tanz mit magischer Wirkung.
 S	Tierischer Begleiter	Allgemein		Ein Tier begleitet den Helden treu (kein magischer Vertrauter).
 S	Trank des ungehinderten Weges	Magie		Alchimistisches Wissen um einen Trank, der Bewegungshindernisse überwinden hilft.
 S	Traumgänger	Magie		Kann in die Träume anderer eintreten und darin handeln.
-S	Tritt	Kampf		Waffenlos: kräftiger Fußtritt.
-S	Turnierreiterei	Kampf		Lanzenreiten und Tjosten nach Turnierregeln.
+S	Tritt	Kampf		Waffenlos (Raufen-AT): Ansage erhöht die TP; ohne Beinarbeit ist die Parade +4 erschwert.
+S	Turnierreiterei	Kampf		Lanzenreiten-Proben +5; Reiten-Probe, um im Sattel zu bleiben, um die Hälfte erleichtert.
 S	Verbotene Pforten	Magie		Zaubern mit Lebensenergie statt Astralenergie – gefährlich und kräftezehrend.
-S	Versteckte Klinge	Kampf		Eine verborgene Waffe ziehen und überraschend angreifen.
+S	Versteckte Klinge	Kampf		Handgemengewaffe mit den Raufen-Werten führen, aber mit deren TP; mit Gerade und Schwinger kombinierbar.
 S	Vertrautenbindung	Magie		Bindung an ein Vertrautentier.
 S	Vielfache Ladungen	Magie		Artefaktmagie: Artefakte mit mehreren Ladungen herstellen.
 S	Wahrer Name: Dämon	Magie		Kennt wahre Namen von Dämonen; erleichtert deren Beschwörung und Beherrschung.
@@ -598,8 +598,8 @@ S	Wahrer Name: Golem	Magie		Kennt wahre Namen von Golems; erleichtert deren Ersc
 S	Wahrer Name: Elementargeist	Magie		Kennt wahre Namen von Elementargeistern; erleichtert deren Beschwörung und Beherrschung.
 S	Wahrer Name: Dschinn	Magie		Kennt wahre Namen von Dschinnen; erleichtert deren Beschwörung und Beherrschung.
 S	Wahrer Name: Elementarer Meister	Magie		Kennt wahre Namen elementarer Meister; erleichtert deren Beschwörung.
-S	Wurf	Kampf		Waffenlos: den Gegner werfen.
-S	Würgegriff	Kampf		Waffenlos: den Gegner würgen.
+S	Wurf	Kampf		Waffenlos (Ringen-AT +4): Gegner zu Boden werfen (1W6 TP(A), INI –2W6); vorher muss ein Halten oder Griff gelungen sein.
+S	Würgegriff	Kampf		Waffenlos (Ringen-AT): Hält der Griff, entstehen in jeder folgenden KR automatisch 1W6+2 TP(A).
 S	Zauber bereithalten	Magie		Einen Zauber vorbereiten und erst später auslösen.
 S	Zauber unterbrechen	Magie		Einen begonnenen Zauber abbrechen, ohne die volle Astralenergie zu verlieren.
 S	Zauber vereinigen	Magie		Mehrere Zauberer bündeln ihre Kraft in einem gemeinsamen Zauber.
