@@ -116,6 +116,10 @@ final class ErschaffungsRahmen {
             java.awt.event.ContainerEvent ce = (java.awt.event.ContainerEvent) ev;
             Container p = ce.getContainer();
             if (p instanceof CellRendererPane || p instanceof JTable || p instanceof JTree) return;
+            // Zellen werden beim Zeichnen umgehängt – das ist keine neue Seite (sonst Endlosschleife aus Zeichnen
+            // und Aktualisieren, die Oberfläche friert ein)
+            if (SwingUtilities.getAncestorOfClass(CellRendererPane.class, p) != null) return;
+            if (p instanceof JComponent && Boolean.TRUE.equals(((JComponent) p).getClientProperty("modernhelden.own"))) return;
             Component c = ce.getChild();
             if (c instanceof JComponent && Boolean.TRUE.equals(((JComponent) c).getClientProperty("modernhelden.own"))) return;
             if (!Theme.isModern() || SwingUtilities.getWindowAncestor(p) != dialog) return;
@@ -207,6 +211,8 @@ final class ErschaffungsRahmen {
             // verborgen (fertig oder abgebrochen): nichts mehr tun; wird es wieder gezeigt, startet IconSwap neu
             if (!dialog.isShowing()) { if (timer != null) timer.stop(); horchen(false); return; }
             schritte();
+            // bereits gewählte Vor-/Nachteile nicht ein zweites Mal anbieten (siehe ErschaffungsVorteile)
+            ErschaffungsVorteile.doppelteAusblenden(dialog);
             ErschaffungsSchritte.anwenden(reiter);
             for (JButton b : knoepfe()) knopf(b);
             Daten d = Daten.lesen(this);
@@ -473,15 +479,22 @@ final class ErschaffungsRahmen {
                 l.setLayout(new BoxLayout(l, BoxLayout.Y_AXIS));
                 l.setOpaque(false);
                 InventarLayout.eigen(l);
-                JLabel n = new JLabel(d.auswahl);
-                n.setFont(n.getFont().deriveFont(Font.BOLD));
+                // lange Namen (z. B. „Freie Kämpferschule der Trutzburg zu Prem …“) umbrechen statt abschneiden
+                Umbruchtext n = new Umbruchtext(d.auswahl);
+                Font lf = UIManager.getFont("Label.font") != null ? UIManager.getFont("Label.font") : n.getFont();
+                n.setFont(lf.deriveFont(Font.BOLD));
+                n.setAlignmentX(0);
                 InventarLayout.eigen(n);
-                l.add(KampfwerteLayout.links(n));
+                l.add(n);
                 if (d.variantVon != null) {
-                    JLabel v = KampfwerteLayout.klein("Variante – Grundwerte von " + d.variantVon + ":");
+                    Umbruchtext v = new Umbruchtext("Variante – Grundwerte von " + d.variantVon
+                            + (d.auswahlDetails.isEmpty() && d.auswahlInfo == null ? "" : ":"));
+                    v.setForeground(Theme.muted());
+                    v.setFont(lf.deriveFont(lf.getSize2D() - 1f));
+                    v.setAlignmentX(0);
                     InventarLayout.eigen(v);
                     l.add(Box.createVerticalStrut(2));
-                    l.add(KampfwerteLayout.links(v));
+                    l.add(v);
                 }
                 for (String[] det : d.auswahlDetails) {
                     l.add(Box.createVerticalStrut(6));

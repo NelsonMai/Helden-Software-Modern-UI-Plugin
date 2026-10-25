@@ -328,7 +328,7 @@ final class ErschaffungsSchritte {
 
         void anzahl() {
             int alle = 0, sichtbar = 0;
-            for (JTable t : tabellen()) { alle += t.getModel().getRowCount(); sichtbar += t.getRowCount(); }
+            for (JTable t : tabellen()) { alle += ErschaffungsTabellen.grundAnzahl(t); sichtbar += t.getRowCount(); }
             String s = sichtbar == alle ? alle + " Einträge" : sichtbar + " von " + alle;
             if (!s.equals(zahl.getText())) zahl.setText(s);
         }
@@ -762,6 +762,9 @@ final class ErschaffungsSchritte {
             final String alt = t;
             rueck(huelle, () -> { l.setFont(f); l.setBorder(b); l.setText(alt); l.putClientProperty(GESTYLT, null); });
         }
+        // Vor- und Nachteile: die gewählten unten nach Vorteilen und Nachteilen getrennt
+        ErschaffungsVorteile.teilen(huelle, mitte);
+        ErschaffungsVorteile.spaltenOben(huelle, mitte);
         boolean tabellen = false;
         for (JTable t : alle(mitte, JTable.class)) {
             if (!ErschaffungsTabellen.ist(t)) continue;

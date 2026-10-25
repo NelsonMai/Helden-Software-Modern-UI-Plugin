@@ -64,9 +64,15 @@ final class TabellenStil {
             TableCellRenderer r = original != null ? original : t.getDefaultRenderer(t.getColumnClass(col));
             Component c = r.getTableCellRendererComponent(t, v, sel, focus, row, col);
             gruppe(t, c, row, col);
-            if (c == null || sel) return c;
+            if (c == null && ErschaffungsTabellen.ist(t)) c = leer(t);
+            if (c != null && sel) return markiert(t, c);
+            if (c == null) return c;
             // Knöpfe in Zellen (z. B. „+1“, „i“) nicht umfärben
             if (c instanceof AbstractButton && !(c instanceof JCheckBox)) {
+                if (Boolean.TRUE.equals(((JComponent) c).getClientProperty("modernhelden.warDeckend"))) {
+                    ((JComponent) c).setOpaque(true);
+                    ((JComponent) c).putClientProperty("modernhelden.warDeckend", null);
+                }
                 // ausgegrautes „−“/„✕“ im Inventar: erklären, warum
                 if (InventarLayout.istInventarTabelle(t)) ((AbstractButton) c).setToolTipText(InventarLayout.sperrHinweis(t, row, col));
                 return c;
@@ -83,6 +89,52 @@ final class TabellenStil {
             c.setBackground(neu instanceof javax.swing.plaf.UIResource ? neu : new javax.swing.plaf.ColorUIResource(neu));
             if (c instanceof JComponent) ((JComponent) c).setOpaque(true);
             return c;
+        }
+
+        /**
+         * Erschaffung: Spinner, Auswahllisten, Knöpfe und leere Zellen der Helden-Software färben die gewählte Zeile
+         * nicht ein – die Zeile leuchtete nur teilweise. Sie liegen deshalb auf einer Fläche in der Auswahlfarbe
+         * (das Bedienelement selbst bleibt, wie es ist).
+         */
+        /** Zelle ohne Inhalt (die Helden-Software liefert dann gar nichts): leere Fläche, die Zebra und Auswahl färben. */
+        private static Component leer(JTable t) {
+            Object o = t.getClientProperty("modernhelden.leereZelle");
+            if (o instanceof JPanel) return (JPanel) o;
+            JPanel p = new JPanel();
+            p.setOpaque(true);
+            t.putClientProperty("modernhelden.leereZelle", p);
+            return p;
+        }
+
+        private static Component markiert(JTable t, Component c) {
+            if (!ErschaffungsTabellen.ist(t) || c instanceof javax.swing.table.DefaultTableCellRenderer || !(c instanceof JComponent)) return c;
+            // dasselbe Element dient der Helden-Software auch als Editor – während der Bearbeitung nicht anfassen
+            if (c.getParent() == t || c == t.getEditorComponent()) return c;
+            Object o = t.getClientProperty("modernhelden.auswahlFlaeche");
+            JPanel f;
+            if (o instanceof JPanel) f = (JPanel) o;
+            else {
+                f = new JPanel(new BorderLayout());
+                f.setOpaque(true);
+                f.putClientProperty("modernhelden.own", Boolean.TRUE);
+                t.putClientProperty("modernhelden.auswahlFlaeche", f);
+            }
+            // nur umhängen, wenn nötig (jedes Hinzufügen löst Container-Ereignisse aus)
+            if (f.getComponentCount() != 1 || f.getComponent(0) != c) {
+                f.removeAll();
+                f.add(c, BorderLayout.CENTER);
+            }
+            f.setBackground(t.getSelectionBackground());
+            // leere Zellen (Fläche ohne Bedienelement) durchscheinen lassen; ohne Auswahl macht die Zebra-Färbung
+            // sie wieder deckend
+            if ((c instanceof JPanel || c instanceof JLabel) && ((JComponent) c).getComponentCount() == 0) ((JComponent) c).setOpaque(false);
+            // Knöpfe („+“, „-“) füllen sonst ihre ganze Zelle weiß – für die markierte Zeile durchscheinend
+            if (c instanceof AbstractButton && !(c instanceof JCheckBox) && c.isOpaque()) {
+                ((JComponent) c).setOpaque(false);
+                ((JComponent) c).putClientProperty("modernhelden.warDeckend", Boolean.TRUE);
+            }
+            f.add(c, BorderLayout.CENTER);
+            return f;
         }
 
         /**

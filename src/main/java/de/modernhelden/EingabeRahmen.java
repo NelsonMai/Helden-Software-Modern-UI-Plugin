@@ -175,6 +175,9 @@ final class EingabeRahmen {
             java.awt.event.ContainerEvent ce = (java.awt.event.ContainerEvent) ev;
             Container p = ce.getContainer();
             if (p instanceof CellRendererPane || p instanceof JTable || p instanceof JTree || p instanceof JList) return;
+            // Zellen werden beim Zeichnen umgehängt – das ist keine neue Seite (sonst Endlosschleife aus Zeichnen
+            // und Aktualisieren, die Oberfläche friert ein)
+            if (SwingUtilities.getAncestorOfClass(CellRendererPane.class, p) != null) return;
             Component c = ce.getChild();
             if (c instanceof JComponent && Boolean.TRUE.equals(((JComponent) c).getClientProperty("modernhelden.own"))) return;
             if (!Theme.isModern() || SwingUtilities.getWindowAncestor(p) != dialog) return;

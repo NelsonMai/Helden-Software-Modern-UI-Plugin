@@ -35,6 +35,8 @@ Regelbasis, Einstellungen und Aussehen sind als Karten aufgebaut, Rassen, Kultur
 GP-Kosten als Plakette. Die Tabellen (Eigenschaften, Vor-/Nachteile, Sonderfertigkeiten, Talente, Zauber, Kosten)
 sind per Spaltenkopf sortierbar, z. B. nach Kosten oder Wert; Vor-/Nachteile, Sonderfertigkeiten, Talente und Zauber
 haben eine Suche, Talente zusätzlich Schalter je Kategorie, Unterreiter zeigen die Trefferzahl.
+Bei den Vor- und Nachteilen stehen die gewählten getrennt nach Vorteilen und Nachteilen nebeneinander, und
+bereits gewählte werden auch nach dem Wechsel auf „Auch ungeeignete Vor- und Nachteile“ nicht erneut angeboten.
 Gerechnet und geprüft wird weiter von der Helden-Software.
 „Einen Helden eingeben“ und „Einen Helden editieren“ haben denselben Rahmen (Schrittleiste, Kopf, Info-Spalte,
 Karten für Geschlecht/Setting und Person) und eine Suche bei Rasse, Kultur, Profession und Talenten.

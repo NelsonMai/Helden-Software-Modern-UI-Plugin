@@ -35,9 +35,33 @@ final class ErschaffungsTabellen {
     static boolean ist(Component c) { return c instanceof JTable && KLASSE.equals(c.getClass().getName()); }
 
     /** Sortierung, korrigierte Auswahl und Tooltips einrichten; die Rücknahme wird über {@code rueck} gemerkt. */
+    /**
+     * Die Zellen-Editoren der Helden-Software melden das Ende der Bearbeitung nie, und für leere Zellen ist der
+     * Editor ein leeres Label. Die Tabelle bleibt dann im Bearbeitungsmodus, und dieser Editor verbietet jede neue
+     * Zeilenauswahl – nur noch die Knöpfe reagieren. Deshalb: Klick in eine andere Zelle beendet eine laufende
+     * Bearbeitung zuerst (Werte übernimmt die Helden-Software ohnehin sofort beim Ändern).
+     */
+    private static boolean bearbeitenBeenden;
+
+    private static void bearbeitenBeendenEinrichten() {
+        if (bearbeitenBeenden) return;
+        bearbeitenBeenden = true;
+        Toolkit.getDefaultToolkit().addAWTEventListener(ev -> {
+            if (ev.getID() != java.awt.event.MouseEvent.MOUSE_PRESSED) return;
+            java.awt.event.MouseEvent e = (java.awt.event.MouseEvent) ev;
+            if (!(e.getComponent() instanceof JTable)) return;
+            JTable t = (JTable) e.getComponent();
+            if (t.getClientProperty(MARKE) == null || !t.isEditing()) return;
+            int r = t.rowAtPoint(e.getPoint()), c = t.columnAtPoint(e.getPoint());
+            if (r == t.getEditingRow() && c == t.getEditingColumn()) return;
+            try { t.removeEditor(); } catch (RuntimeException ignore) { }
+        }, AWTEvent.MOUSE_EVENT_MASK);
+    }
+
     static void einrichten(JTable t, Consumer<Runnable> rueck) {
         if (t.getClientProperty(MARKE) != null) return;
         t.putClientProperty(MARKE, Boolean.TRUE);
+        bearbeitenBeendenEinrichten();
         Object tabDef = ErschaffungsRahmen.rufe(t.getModel(), "getTabDef");
 
         RowSorter<? extends TableModel> alterSortierer = t.getRowSorter();
@@ -64,6 +88,8 @@ final class ErschaffungsTabellen {
             t.getColumnModel().getSelectionModel().removeListSelectionListener(l);
         }
         if (!fremd.isEmpty()) t.getSelectionModel().addListSelectionListener(eigen);
+
+        if (t.getClientProperty(GRUND) != null) filtern(t, (String) t.getClientProperty(LETZTE_SUCHE), (String) t.getClientProperty(LETZTE_KATEGORIE));
 
         // Tooltips je Zeile aus dem Modell statt aus der Ansicht
         t.putClientProperty(TooltipHook.TABELLEN_TIP, (java.util.function.Function<Point, String>) p -> tip(t, tabDef, p));
@@ -236,15 +262,44 @@ final class ErschaffungsTabellen {
         return -1;
     }
 
-    /** Filter für Suchtext (in allen Textspalten) und gewählte Kategorie. */
+    /** Fester Zeilenfilter einer Tabelle ({@code IntPredicate} über die Zeile im Modell), z. B. „nur Nachteile“. */
+    static final String GRUND = "modernhelden.grundfilter";
+    private static final String LETZTE_SUCHE = "modernhelden.letzteSuche", LETZTE_KATEGORIE = "modernhelden.letzteKategorie";
+
+    /** Festen Zeilenfilter setzen (null entfernt ihn); Suche und Kategorie bleiben. */
+    static void grundfilter(JTable t, java.util.function.IntPredicate p) {
+        t.putClientProperty(GRUND, p);
+        filtern(t, (String) t.getClientProperty(LETZTE_SUCHE), (String) t.getClientProperty(LETZTE_KATEGORIE));
+    }
+
+    /** Zeilen im Modell, die der feste Zeilenfilter zulässt (für die Anzeige „x von y“). */
+    static int grundAnzahl(JTable t) {
+        Object g = t.getClientProperty(GRUND);
+        int n = t.getModel().getRowCount();
+        if (!(g instanceof java.util.function.IntPredicate)) return n;
+        int z = 0;
+        for (int r = 0; r < n; r++) {
+            try { if (((java.util.function.IntPredicate) g).test(r)) z++; } catch (RuntimeException ignore) { z++; }
+        }
+        return z;
+    }
+
+    /** Filter für Suchtext (in allen Textspalten) und gewählte Kategorie, zusammen mit dem festen Zeilenfilter. */
     static void filtern(JTable t, String suche, String kategorie) {
+        t.putClientProperty(LETZTE_SUCHE, suche);
+        t.putClientProperty(LETZTE_KATEGORIE, kategorie);
         if (!(t.getRowSorter() instanceof Sortierer)) return;
         Sortierer s = (Sortierer) t.getRowSorter();
         String q = suche == null ? "" : suche.trim().toLowerCase(Locale.GERMAN);
         int kat = kategorieSpalte(t);
-        if (q.isEmpty() && (kategorie == null || kat < 0)) { s.setRowFilter(null); return; }
+        Object g = t.getClientProperty(GRUND);
+        java.util.function.IntPredicate grund = g instanceof java.util.function.IntPredicate ? (java.util.function.IntPredicate) g : null;
+        if (q.isEmpty() && (kategorie == null || kat < 0) && grund == null) { s.setRowFilter(null); return; }
         s.setRowFilter(new RowFilter<TableModel, Integer>() {
             @Override public boolean include(Entry<? extends TableModel, ? extends Integer> e) {
+                if (grund != null) {
+                    try { if (!grund.test(e.getIdentifier())) return false; } catch (RuntimeException ignore) { }
+                }
                 if (kategorie != null && kat >= 0 && !kategorie.equals(String.valueOf(e.getValue(kat)).trim())) return false;
                 if (q.isEmpty()) return true;
                 for (int c = 0; c < e.getValueCount(); c++) {
