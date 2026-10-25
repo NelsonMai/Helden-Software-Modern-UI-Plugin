@@ -239,8 +239,8 @@ S	Steppenkundig	Allgemein		Geländekunde Steppe: passende Natur- und Wissensprob
 S	Sumpfkundig	Allgemein		Geländekunde Sumpf: passende Natur- und Wissensproben dort +3 erleichtert.
 S	Waldkundig	Allgemein		Geländekunde Wald: passende Natur- und Wissensproben dort +3 erleichtert.
 S	Wüstenkundig	Allgemein		Geländekunde Wüste: passende Natur- und Wissensproben dort +3 erleichtert.
-S	Eiserner Wille I	Allgemein		Erhöhte Willenskraft gegen Beeinflussung und Furcht.
-S	Eiserner Wille II	Allgemein		Noch stärkere Willenskraft (setzt Eisernen Willen I voraus).
+S	Eiserner Wille I	Allgemein		Nach kurzer Konzentration (1 Erschöpfung) für MU/2 SR MR +3 gegen Beherrschungs-, Einfluss- und Hellsichtmagie.
+S	Eiserner Wille II	Allgemein		Wie Eiserner Wille I, aber MR +7 gegen geistbeeinflussende Magie für MU/2 SR.
 S	Fälscher	Allgemein		Fälschungen herstellen: passende Proben +3; Fälschungen erkennen +5; die eigenen sind +5 schwerer zu entlarven.
 S	Kulturkunde*	Allgemein		Vertrautheit mit einer Kultur: Die Zuschläge auf Gesellschafts- und Wissensproben dort entfallen.
 S	Nandusgefälliges Wissen	Allgemein		Beim Ableiten fehlender Wissenstalente nur halbe Erschwernis; Recherche in halber Zeit.
@@ -250,166 +250,166 @@ S	Talentspezialisierung*	Allgemein		Spezialisierung auf ein Teilgebiet eines Tal
 S	Standfest	Allgemein		Balance-Proben (Körperbeherrschung, Athletik, Akrobatik) +2, GE-Proben +1; hilft gegen Umreißen und Stürze.
 S	Wache halten*	Allgemein		Bleibt bei der Nachtwache länger aufmerksam.
 S	Schnelles Umziehen	Allgemein		Kleidung oder Rüstung besonders schnell wechseln.
-S	Runenkunde	Allgemein		Wissen um die Bedeutung und Kraft von Runen.
+S	Runenkunde	Allgemein		Zauberrunen per Handwerkstalent auf Objekte oder Lebewesen bringen; aktiviert die Ritualkenntnis Runenzauberei.
 S	Zweihändiger Kampf	Kampf		Kampf mit zwei Waffen.
-S	Repräsentation*	Magie		Magische Tradition (z. B. Gildenmagie, Hexe, Elf), in der der Held Zauber beherrscht.
+S	Repräsentation*	Magie		Zaubertradition (z. B. Gildenmagie, Hexe, Elf), deren Strukturen und Gewohnheiten der Held beherrscht.
 S	Merkmalskenntnis*	Magie		Vertiefte Kenntnis eines Zaubermerkmals: Zauber mit diesem Merkmal lernt man leichter.
-S	Astrale Meditation	Magie		LE in AsP umwandeln.
-S	Große Meditation	Magie		Ritual, das die maximale Astralenergie dauerhaft erhöht.
-S	Konzentrationsstärke	Magie		Auch unter Störungen und Ablenkung zaubern.
-S	Gedankenschutz	Magie		Schutz gegen Gedankenlesen und Beherrschungsmagie.
-S	Kraftkontrolle	Magie		Zauber mit geringerem AsP-Verbrauch wirken.
-S	Kraftlinienmagie I	Magie		Kraftlinien zum Zaubern nutzen.
-S	Kraftlinienmagie II	Magie		Kraftlinien noch besser nutzen.
-S	Kraftspeicher	Magie		AsP in einem Artefakt speichern.
+S	Astrale Meditation	Magie		Eigene LeP im Verhältnis 1:1 in AsP umwandeln (1 SR je Punkt, Probe auf IN/CH/KO); kostet zusätzlich W3–1 LeP.
+S	Große Meditation	Magie		Ritual, das den AE-Grundwert dauerhaft um KL/3 bzw. IN/3 (plus Ritualbonus) erhöht.
+S	Konzentrationsstärke	Magie		Selbstbeherrschungs-Proben, um bei Störungen weiterzuzaubern, um 7 erleichtert; gilt auch für Rituale.
+S	Gedankenschutz	Magie		Dauerhaft MR +3 gegen Herrschafts-, Einfluss-, Hellsicht- und Verständigungsmagie.
+S	Kraftkontrolle	Magie		Jeder Zauber kostet 1 AsP weniger (mind. 1), dafür 1 Aktion länger und 1 Punkt Erschöpfung.
+S	Kraftlinienmagie I	Magie		Kraftlinien zum Zaubern nutzen; Proben zum Erkennen von Kraftlinien +5 erleichtert.
+S	Kraftlinienmagie II	Magie		Zauber und Rituale auf und mit Kraftlinien erleichtert wirken. Setzt Kraftlinienmagie I voraus.
+S	Kraftspeicher	Magie		Geeignete Objekte per ARCANOVI und permanenten AsP zu Kraftspeichern machen, die Astralenergie aufnehmen und abgeben.
 S	Fernzauberei	Magie		Größere Reichweite für Zauber.
-S	Aura verhüllen	Magie		Die eigene magische Aura vor Entdeckung verbergen.
-S	Blutmagie	Magie		Lebenskraft (eigene oder fremde) für Zauber nutzen – meist verboten.
-S	Matrixgeber	Magie		Verbesserte Fähigkeit, Artefakte zu erschaffen.
-S	Ritualkenntnis*	Magie		Kenntnis der Rituale einer Tradition.
+S	Aura verhüllen	Magie		Per MU-Probe mit Aufschlag die eigene Aura verbergen: Erkenntnismagie um das Dreifache erschwert.
+S	Blutmagie	Magie		Zauber und Rituale mit fremder Lebenskraft speisen (Opferung); fast überall verpönt oder verboten.
+S	Matrixgeber	Magie		Die besondere Artefaktform Matrixgeber herstellen (aktiviert ARCANOVI (Matrixgeber)).
+S	Ritualkenntnis*	Magie		Ritualkenntnis einer Tradition: Grundlage ihrer Rituale und Objektrituale; Startwert 3, Steigerung meist Spalte E.
 S	Liturgie:*	Liturgie		Liturgie eines Geweihten: ein göttliches Wunder, das mit Karmaenergie gewirkt wird.
-S	Akoluth*	Karma		Laienanhänger einer Kirche, der kleine Segnungen sprechen kann.
+S	Akoluth*	Karma		Dienendes Laienmitglied einer Kirche (Ordensmitglied, Altarhelfer), dem Moralkodex verpflichtet.
 S	Karmalqueste	Karma		Queste, die die Karmaenergie eines Geweihten dauerhaft erhöht.
-S	Hexenfluch:*	Magie		Hexenfluch: eine typische Schadensmagie der Hexen.
-S	Elfenlied:*	Magie		Elfenlied: magischer Gesang der Elfen mit besonderer Wirkung.
-S	Druidisches Dolchritual:*	Magie		Ritual zur Weihe und Stärkung des Druidendolches.
-S	Druidisches Herrschaftsritual:*	Magie		Druidenritual zur Beherrschung anderer Wesen.
-S	Keulenritual:*	Magie		Ritual der Waldmenschen-Schamanen zur Stärkung der Keule.
-S	Kugelzauber:*	Magie		Ritual zur Kristallkugel eines Magiers.
-S	Stabzauber:*	Magie		Ritual zum Magierstab (z. B. Bindung, Fackel, Seil).
-S	Schalenzauber:*	Magie		Ritual zur Alchimistenschale.
-S	Schlangenring-Zauber:*	Magie		Ritual zum Schlangenring der Geoden.
-S	Kristallomantisches Ritual:*	Magie		Ritual der Kristallomanten.
+S	Hexenfluch:*	Magie		Fluch der Hexen; umgeht die Magieresistenz und ist oft schwer aufzuheben.
+S	Elfenlied:*	Magie		Elfisches Zauberlied, gewirkt über Singen und Musizieren; setzt Zweistimmigen Gesang voraus.
+S	Druidisches Dolchritual:*	Magie		Objektritual für den Vulkanglasdolch der Druiden (bzw. die Goldsichel der Geoden).
+S	Druidisches Herrschaftsritual:*	Magie		Druidenritual, um ein Opfer über große Entfernung zu beeinflussen, auch außer Sicht.
+S	Keulenritual:*	Magie		Objektritual des Schamanen für seine Knochenkeule.
+S	Kugelzauber:*	Magie		Objektritual für die Kristallkugel (Gildenmagier, Kristallomanten, Scharlatane).
+S	Stabzauber:*	Magie		Objektritual der Gildenmagier für den Zauberstab (z. B. Bindung, Ewige Flamme, Seil des Adepten).
+S	Schalenzauber:*	Magie		Objektritual für die Alchimistenschale.
+S	Schlangenring-Zauber:*	Magie		Objektritual der Geoden für ihren Schlangenhalsring.
+S	Kristallomantisches Ritual:*	Magie		Ritual der Achaz-Kristallomanten, um Edelsteinen besondere Wirkungen zu geben.
 S	Gabe des Odûn:*	Magie		Gabe der Durro-Dûn-Tradition.
-S	Runen:*	Magie		Runenritual der Thorwaler- oder Zwergentradition.
-S	Dämonenbindung I	Magie		Dämonen beschwören und binden.
+S	Runen:*	Magie		Zauberrune, die mit Runenkunde auf Objekte oder Lebewesen gebracht wird.
+S	Dämonenbindung I	Magie		Einen niederen Dämon dauerhaft binden oder manifestiert halten; kostet täglich AsP und LeP.
 S	Dämonenbindung II	Magie		Mächtigere Dämonen beschwören und binden.
-S	Exorzist	Karma		Fachwissen im Austreiben von Dämonen und Geistern.
-V	Akademische Ausbildung*	Vorteil		Ausbildung an einer Akademie: verbilligt bestimmte Steigerungen (Kampf, Wissen oder Magie je nach Art).
-V	Adlige Abstammung	Vorteil		Der Held stammt aus einem Adelshaus; gesellschaftliche Vorteile, ggf. Erbe.
-V	Adliges Erbe	Vorteil		Der Held erbt Adelstitel und Besitz.
-V	Altersresistenz	Vorteil		Der Held altert langsamer.
+S	Exorzist	Karma		Bei Austreibungen und Bannkreisen Magiekunde-Probe; halbe TaP* erleichtern die eigentliche Probe.
+V	Akademische Ausbildung*	Vorteil		Bei der Erschaffung billigere Steigerung bestimmter Talente bzw. Zauber (Gelehrter: Wissen, Sprachen; je nach Art).
+V	Adlige Abstammung	Vorteil		Spross eines Adelshauses: Anspruch auf Titel und Adelsgerichtsbarkeit, aber kein Erbe des Lehens.
+V	Adliges Erbe	Vorteil		Erbe eines Titels und Lehens; dazu ein Besonderer Besitz und SO +1. Setzt Adlige Abstammung voraus.
+V	Altersresistenz	Vorteil		Der Held ist gegen die Folgen hohen Alters gefeit: altert langsamer oder ohne Altersgebrechen.
 V	Amtsadel	Vorteil		Adelsrang durch ein Amt.
-V	Astrale Regeneration	Vorteil		Regeneriert Astralenergie schneller.
-V	Astralmacht	Vorteil		Mehr Astralenergie.
-V	Ausdauernd	Vorteil		Mehr Ausdauer, ermüdet langsamer.
-V	Balance	Vorteil		Hervorragender Gleichgewichtssinn; Vorteile beim Balancieren und gegen Stürze.
-V	Besonderer Besitz*	Vorteil		Ein außergewöhnlicher, wertvoller oder magischer Gegenstand im Besitz des Helden.
-V	Begabung für*	Vorteil		Begabung: das Steigern des Talents/Zaubers/der Gruppe ist billiger; Proben-Patzer werden abgemildert.
-V	Beidhändig	Vorteil		Beide Hände sind gleich geschickt; keine Abzüge mit der falschen Hand.
-V	Dämmerungssicht	Vorteil		Bessere Sicht bei schwachem Licht.
-V	Eidetisches Gedächtnis	Vorteil		Fotografisches Gedächtnis.
-V	Eisern	Vorteil		Höhere Wundschwelle: Der Held steckt Wunden besser weg.
-V	Entfernungssinn	Vorteil		Entfernungen sehr genau abschätzen; hilfreich im Fernkampf.
-V	Flink	Vorteil		Schneller zu Fuß (höhere Geschwindigkeit).
-V	Gefahreninstinkt	Vorteil		Spürt drohende Gefahr.
-V	Glück	Vorteil		Der Held kann ab und zu Würfe wiederholen.
-V	Glück im Spiel	Vorteil		Erleichterungen bei Glücksspielen.
-V	Gutaussehend	Vorteil		Attraktiv; Vorteile bei sozialen Proben.
-V	Guter Ruf	Vorteil		Ruhm und Ansehen in der Welt.
-V	Gutes Gedächtnis	Vorteil		Merkt sich Dinge leicht.
-V	Herausragende Eigenschaft*	Vorteil		Eine Eigenschaft darf über das übliche Maximum hinaus steigen.
-V	Herausragender Sinn*	Vorteil		Ein Sinn (Sicht, Gehör, Geruch, Tastsinn) ist außergewöhnlich scharf.
-V	Herausragendes Aussehen	Vorteil		Außergewöhnlich schön.
-V	Hitzeresistenz	Vorteil		Verträgt Hitze besser.
-V	Hohe Lebenskraft	Vorteil		Mehr Lebensenergie.
-V	Hohe Magieresistenz	Vorteil		Höhere Magieresistenz.
-V	Innerer Kompass	Vorteil		Findet immer die Himmelsrichtung.
-V	Kälteresistenz	Vorteil		Verträgt Kälte besser.
-V	Kampfrausch	Vorteil		Im Kampf verfällt der Held in Raserei: stärker, aber unkontrolliert.
-V	Linkshänder	Vorteil		Kämpft links – manche Gegner sind darauf schlechter vorbereitet.
-V	Magiegespür	Vorteil		Spürt Magie.
-V	Nachtsicht	Vorteil		Sieht bei Nacht fast so gut wie bei Tag.
-V	Natürlicher Rüstungsschutz	Vorteil		Dicke Haut oder Schuppen bieten Schutz.
-V	Resistenz gegen*	Vorteil		Widerstandsfähiger gegen Gifte bzw. Krankheiten.
-V	Immunität gegen*	Vorteil		Völlig unempfindlich gegen bestimmte Gifte/Krankheiten.
-V	Richtungssinn	Vorteil		Verirrt sich praktisch nie.
-V	Schlangenmensch	Vorteil		Außergewöhnlich gelenkig.
-V	Schnelle Heilung	Vorteil		Regeneriert Lebensenergie schneller.
-V	Schwer zu verzaubern	Vorteil		Magie wirkt schlechter auf den Helden.
-V	Soziale Anpassungsfähigkeit	Vorteil		Fühlt sich in jeder sozialen Schicht schnell zu Hause.
+V	Astrale Regeneration	Vorteil		Pro Ruhephase 1/2/3 AsP zusätzlich; Proben zum Rückgewinnen von AsP entsprechend erleichtert.
+V	Astralmacht	Vorteil		Je GP 1 AsP mehr (höchstens 6).
+V	Ausdauernd	Vorteil		Je GP 2 AuP mehr (höchstens 6); ab 2 GP steigt die Erschöpfungsschwelle.
+V	Balance	Vorteil		Balance-Proben (Körperbeherrschung, Akrobatik u. a.) +3, GE-Proben +2; weniger Sturzschaden.
+V	Besonderer Besitz*	Vorteil		Ein zur Herkunft passender, sonst unerschwinglicher Gegenstand (z. B. Pferd, Persönliche Waffe, Artefakt).
+V	Begabung für*	Vorteil		Talent, Talentgruppe, Zauber oder Merkmal eine Spalte billiger steigern; Höchstwert 2 Punkte höher.
+V	Beidhändig	Vorteil		Keine Abzüge mit der „falschen“ Hand; Linkhand- und Beidhand-SF deutlich billiger.
+V	Dämmerungssicht	Vorteil		Bei schlechter Beleuchtung nur halbe Abzüge auf AT, PA, Fernkampf und Sinnenschärfe.
+V	Eidetisches Gedächtnis	Vorteil		KL-Proben zum Erinnern +7; Wissenstalente, Sprachen, Zauber und manche SF billiger steigern.
+V	Eisern	Vorteil		Wundschwellen um 2 erhöht; mit 1–5 LeP noch handlungsfähig.
+V	Entfernungssinn	Vorteil		IN-Proben zum Schätzen von Entfernungen +3; Fernkampf und Zauber mit Reichweite Horizont +2.
+V	Flink	Vorteil		Basis-GS +1, Ausweichen +1, mehr GS aus Athletik; gilt nicht ab BE 5 (Rüstung und Last).
+V	Gefahreninstinkt	Vorteil		Gabe: warnt vor unmittelbar drohender Gefahr; hilft gegen Hinterhalte und Überraschung.
+V	Glück	Vorteil		Bis zu zweimal am Tag einen eigenen Wurf wiederholen oder einen offenen Wurf des Meisters wiederholen lassen.
+V	Glück im Spiel	Vorteil		IN-Proben bei Glücksspielen +7; am Tisch gelegentlich eine Karte bzw. einen Wurf neu.
+V	Gutaussehend	Vorteil		Gesellschaftliche Proben und CH-Proben, bei denen es um Sympathie geht, +1.
+V	Guter Ruf	Vorteil		Je 2 GP gesellschaftliche Proben +1 in der eigenen Kultur; kann teils fehlenden SO ersetzen.
+V	Gutes Gedächtnis	Vorteil		Zusätzliche KL-Proben zum Erinnern; Sprachen, Zauber und manche Wissens-SF billiger steigern.
+V	Herausragende Eigenschaft*	Vorteil		Bei der Erschaffung mehr als 14 GP in eine Eigenschaft stecken (auch über 100 GP gesamt).
+V	Herausragender Sinn*	Vorteil		Sinnenschärfe-Proben für einen Sinn (Sicht, Gehör, Geruch/Geschmack, Tastsinn) +5.
+V	Herausragendes Aussehen	Vorteil		Gesellschaftliche Proben und CH-Proben, bei denen es um Sympathie geht, +3.
+V	Hitzeresistenz	Vorteil		Kein Schaden durch Hitze bis etwa 50 °C; schützt nicht vor Feuer oder Feuerzaubern.
+V	Hohe Lebenskraft	Vorteil		Je 2 GP 1 LeP mehr (höchstens 6); hebt auch die spätere Obergrenze.
+V	Hohe Magieresistenz	Vorteil		Je 2 GP MR +1 (höchstens 3).
+V	Innerer Kompass	Vorteil		Weiß immer, wo Norden ist: Orientierung +7 (auf See und in der Wüste bis +14).
+V	Kälteresistenz	Vorteil		Kein Schaden durch Kälte bis etwa –20 °C (Wasser 0 °C), darunter weniger; nicht gegen Kältezauber.
+V	Kampfrausch	Vorteil		Per Selbstbeherrschung +10 bewusst in Rausch fallen: keine Abzüge durch Wunden oder niedrige LE.
+V	Linkshänder	Vorteil		Gegner in den ersten 5 KR PA –1; Linkhand und Beidhändiger Kampf billiger.
+V	Magiegespür	Vorteil		Gabe: spürt Quellen astraler Kraft in der Nähe; willentlich erst ab TaW 7.
+V	Nachtsicht	Vorteil		Bei schwachem Licht höchstens AT/PA –2 und FK –5 (nicht in völliger Dunkelheit); enthält Dämmerungssicht.
+V	Natürlicher Rüstungsschutz	Vorteil		Zähe Haut, Fell oder Schuppen wirken als RS (höchstens 3; nur bestimmte Rassen).
+V	Resistenz gegen*	Vorteil		Bei Resistenzproben gegen ein Gift, eine Giftart oder Krankheiten gilt die KO als um 7 höher.
+V	Immunität gegen*	Vorteil		Bei Resistenzproben gegen ein Gift, eine Giftart oder Krankheiten gilt die KO als um 15 höher.
+V	Richtungssinn	Vorteil		Orientierung im heimischen Geländetyp +5.
+V	Schlangenmensch	Vorteil		Ringen, Akrobatik, Körperbeherrschung, Fesseln u. a. +1 und billiger; Befreien aus Griffen leichter.
+V	Schnelle Heilung	Vorteil		Pro Ruhephase 1/2/3 LeP zusätzlich; KO-Proben zur Regeneration entsprechend erleichtert.
+V	Schwer zu verzaubern	Vorteil		Herrschafts-, Einfluss-, Hellsicht-, Eigenschafts-, Form- und Heilzauber auf den Helden +3 erschwert – auch hilfreiche.
+V	Soziale Anpassungsfähigkeit	Vorteil		Geringere Abzüge in fremden Kulturen und Schichten; Kulturkunde und Verbindungen billiger.
 V	Sprachgefühl	Vorteil		Lernt Sprachen leicht.
-V	Talentschub	Vorteil		Startbonus auf ein Talent.
-V	Tierfreund	Vorteil		Tiere fassen schnell Vertrauen.
+V	Talentschub	Vorteil		Gabe: Gelingt die Probe, ist die nächste Talentprobe um die übrigen Punkte (mind. 1) erleichtert.
+V	Tierfreund	Vorteil		Proben im Umgang mit Tieren (Abrichten, Reiten, Beruhigen, Tierzauber) +3.
 V	Titularadel	Vorteil		Adelstitel ohne Land.
-V	Verbindungen	Vorteil		Nützliche Kontakte zu einflussreichen Personen.
-V	Veteran	Vorteil		Kampferfahrung; zusätzliche Kampf-SF zu Beginn.
-V	Vollzauberer	Vorteil		Der Held ist ein voller Zauberkundiger mit Astralenergie.
-V	Halbzauberer	Vorteil		Der Held hat begrenzte magische Fähigkeiten.
-V	Viertelzauberer	Vorteil		Kleine magische Begabung.
-V	Vom Schicksal begünstigt	Vorteil		Das Schicksal meint es gut mit dem Helden – mehr Glück.
-V	Wohlklang	Vorteil		Angenehme Stimme; Vorteile beim Singen und Überzeugen.
-V	Zäher Hund	Vorteil		Hält Schmerzen und Erschöpfung besser aus.
-V	Zeitgefühl	Vorteil		Weiß immer etwa, wie spät es ist.
-V	Aberglaube	Nachteil		Glaubt an Omen und Zeichen; reagiert auf schlechte Vorzeichen unruhig. Wert = Stärke.
-V	Angst vor*	Nachteil		Phobie vor etwas Bestimmtem; Konfrontation erfordert Selbstbeherrschung. Wert = Stärke.
-V	Arroganz	Nachteil		Überheblich gegenüber anderen; Proben gegen das Ausleben. Wert = Stärke.
-V	Autoritätsgläubig	Nachteil		Folgt Autoritäten fast blind.
-V	Behäbig	Nachteil		Langsamer als andere.
-V	Blutrausch	Nachteil		Gerät im Kampf in einen unkontrollierten Blutrausch.
-V	Dunkelangst	Nachteil		Angst in der Dunkelheit.
-V	Einäugig	Nachteil		Nur ein Auge; Abzüge beim Fernkampf und Sehen.
-V	Eitelkeit	Nachteil		Sehr auf das eigene Aussehen bedacht.
-V	Feind	Nachteil		Ein mächtiger Gegner verfolgt den Helden.
-V	Festgefügtes Denken	Nachteil		Schwer neue Ideen anzunehmen.
-V	Fettleibig	Nachteil		Übergewicht: weniger beweglich.
-V	Geiz	Nachteil		Gibt ungern Geld aus. Wert = Stärke.
-V	Gerechtigkeitswahn	Nachteil		Muss gegen jede wahrgenommene Ungerechtigkeit einschreiten. Wert = Stärke.
-V	Gesucht	Nachteil		Der Held wird von der Obrigkeit gesucht.
-V	Glasknochen	Nachteil		Knochen brechen leicht.
-V	Goldgier	Nachteil		Kann Reichtümern kaum widerstehen. Wert = Stärke.
-V	Größenwahn	Nachteil		Maßlose Selbstüberschätzung.
-V	Heimwehkrank	Nachteil		Leidet fern der Heimat.
-V	Hitzeempfindlichkeit	Nachteil		Verträgt Hitze schlecht; Abzüge in heißem Klima.
-V	Höhenangst	Nachteil		Angst in großer Höhe. Wert = Stärke.
-V	Impulsiv	Nachteil		Handelt, ohne nachzudenken.
-V	Jähzorn	Nachteil		Neigt zu plötzlichen Wutausbrüchen. Wert = Stärke.
-V	Kälteempfindlichkeit	Nachteil		Verträgt Kälte schlecht.
-V	Kleinwüchsig	Nachteil		Deutlich kleiner als üblich.
-V	Krankheitsanfällig	Nachteil		Erkrankt leichter.
-V	Kurzatmig	Nachteil		Weniger Ausdauer.
-V	Lahm	Nachteil		Ein Bein ist eingeschränkt; langsamer.
-V	Lichtempfindlich	Nachteil		Grelles Licht blendet stark.
-V	Medium	Nachteil		Zieht Geister und Wesenheiten an.
-V	Meeresangst	Nachteil		Angst vor dem offenen Meer.
-V	Miserable Eigenschaft*	Nachteil		Eine Eigenschaft ist schwer zu steigern.
-V	Moralkodex*	Nachteil		Bindender Verhaltenskodex (z. B. einer Kirche); Verstöße haben Folgen.
-V	Nachtblind	Nachteil		Sieht im Dunkeln schlecht.
-V	Neid	Nachteil		Missgönnt anderen ihren Besitz oder Erfolg.
-V	Neugier	Nachteil		Kann Geheimnissen kaum widerstehen. Wert = Stärke.
-V	Niedrige Lebenskraft	Nachteil		Weniger Lebensenergie.
-V	Niedrige Magieresistenz	Nachteil		Anfälliger für Magie.
-V	Pechmagnet	Nachteil		Unglück verfolgt den Helden.
-V	Platzangst	Nachteil		Angst in engen Räumen.
-V	Prinzipientreue	Nachteil		Hält eisern an bestimmten Grundsätzen fest. Wert = Stärke.
-V	Rachsucht	Nachteil		Vergisst keine Kränkung und sinnt auf Rache. Wert = Stärke.
-V	Randgruppe	Nachteil		Gehört einer gesellschaftlich ausgegrenzten Gruppe an.
-V	Raumangst	Nachteil		Angst vor weiten, offenen Flächen.
-V	Schlafwandler	Nachteil		Wandelt nachts im Schlaf umher.
-V	Schlechte Regeneration	Nachteil		Regeneriert Lebensenergie langsamer.
-V	Schlechter Ruf	Nachteil		Ist für schlechte Taten bekannt; soziale Nachteile. Wert = Stärke.
-V	Schulden	Nachteil		Der Held schuldet jemandem Geld.
-V	Selbstgespräche	Nachteil		Redet mit sich selbst.
-V	Sprachfehler	Nachteil		Stottert oder lispelt.
-V	Spielsucht	Nachteil		Kann Glücksspielen kaum widerstehen.
-V	Streitsucht	Nachteil		Sucht Streit.
-V	Sucht*	Nachteil		Abhängigkeit von einer Substanz.
-V	Tollpatsch	Nachteil		Ungeschickt; Patzer häufiger.
-V	Totenangst	Nachteil		Angst vor Toten und Untoten.
-V	Unansehnlich	Nachteil		Wenig attraktiv.
-V	Unfähigkeit für*	Nachteil		Ein Talent/eine Gruppe ist schwerer zu lernen und zu nutzen.
-V	Unfrei	Nachteil		Leibeigen oder Sklave.
-V	Ungebildet	Nachteil		Wissenstalente sind schwer zu lernen.
-V	Unstet	Nachteil		Hält es nirgends lange aus.
-V	Verpflichtungen	Nachteil		Gegenüber Orden, Herrn oder Familie verpflichtet.
-V	Verschwendungssucht	Nachteil		Gibt Geld mit vollen Händen aus.
-V	Verwöhnt	Nachteil		An Luxus gewöhnt.
-V	Vorurteile gegen*	Nachteil		Starke Vorurteile gegen eine Gruppe. Wert = Stärke.
-V	Weltfremd*	Nachteil		Kennt sich in einem Lebensbereich nicht aus.
-V	Widerwärtiges Aussehen	Nachteil		Abstoßendes Aussehen.
-V	Wilde Magie	Nachteil		Zauber geraten oft außer Kontrolle.
-V	Zwergenwuchs	Nachteil		Kleinwuchs.
-V	Übler Geruch	Nachteil		Riecht unangenehm.
+V	Verbindungen	Vorteil		Ein guter Bekannter, der helfen kann; kostet ein Drittel seines SO in GP.
+V	Veteran	Vorteil		Längere Ausbildung: 5 Jahre älter, nochmals die halben Professionsboni auf LE, AU, MR und INI.
+V	Vollzauberer	Vorteil		Volle magische Begabung: (MU+IN+CH)/2+12 AsP, Grundkenntnisse in 13 Zaubern.
+V	Halbzauberer	Vorteil		Eingeschränkte magische Begabung: (MU+IN+CH)/2+6 AsP, MR +1, wenige Zauber.
+V	Viertelzauberer	Vorteil		Schwache magische Begabung: (MU+IN+CH)/2–6 AsP; Grundlage für Meisterhandwerk, Schutzgeist u. Ä.
+V	Vom Schicksal begünstigt	Vorteil		Einmal pro Abenteuer eine lebensbedrohliche Lage durch glücklichen Zufall abwenden.
+V	Wohlklang	Vorteil		Singen +5; gesellschaftliche Proben, bei denen die Stimme zählt, +2.
+V	Zäher Hund	Vorteil		Bei LE unter 0 zählt 1,5 × KO statt KO für Koma und Tod; mit 1–5 LeP noch handlungsfähig.
+V	Zeitgefühl	Vorteil		Kennt die Tageszeit auf eine Viertelstunde genau, auch nach Schlaf oder in Dunkelheit.
+V	Aberglaube	Nachteil		Schlechte Eigenschaft: fürchtet Omen und Unglücksbringer; die Einzelheiten legt der Spieler fest.
+V	Angst vor*	Nachteil		Schlechte Eigenschaft: übertriebene Angst vor etwas (z. B. Insekten, Feuer), bis hin zur Panik.
+V	Arroganz	Nachteil		Schlechte Eigenschaft: hält sich für überlegen und traut anderen nichts zu; erschwert passende Gesellschaftsproben.
+V	Autoritätsgläubig	Nachteil		Schlechte Eigenschaft: zweifelt Obrigkeit und anerkannte Gelehrte nicht an.
+V	Behäbig	Nachteil		Basis-GS –1, Ausweichen –1, Sprungweiten geringer.
+V	Blutrausch	Nachteil		Bei Zorn, Wunden oder Rauschmitteln droht unkontrollierte Raserei gegen jeden in Reichweite.
+V	Dunkelangst	Nachteil		Schlechte Eigenschaft: Phobie vor Dunkelheit; zählt doppelt (2 GP je Punkt).
+V	Einäugig	Nachteil		Wurfwaffen und Schüsse unter 10 Schritt –4; Kontrollbereich halbiert; gezielte Zauber –4.
+V	Eitelkeit	Nachteil		Schlechte Eigenschaft: will stets gut aussehen und Eindruck machen; dadurch leicht zu manipulieren.
+V	Feind	Nachteil		Ein einzelner Feind will dem Helden schaden; bringt GP in Höhe des halben SO des Feindes.
+V	Festgefügtes Denken	Nachteil		Zauber- und Ritualproben mit IN um den Wert (max. 5) erschwert, mit zweimal IN doppelt.
+V	Fettleibig	Nachteil		AU halbiert; Höchstwerte von GE und FF –4; Proben, bei denen das Eigengewicht zählt, erschwert.
+V	Geiz	Nachteil		Schlechte Eigenschaft: kann sich selbst in Not kaum von Geld und Besitz trennen.
+V	Gerechtigkeitswahn	Nachteil		Schlechte Eigenschaft: verlangt für jedes Vergehen harte Strafe, mildernde Umstände gibt es nicht.
+V	Gesucht	Nachteil		Steckbrieflich gesucht (Stufe I–III); auf den Kopf des Helden ist ein Kopfgeld ausgesetzt.
+V	Glasknochen	Nachteil		Wundschwellen um 2 gesenkt.
+V	Goldgier	Nachteil		Schlechte Eigenschaft: Gier nach Gold, Schätzen und wertvollen Artefakten treibt zu Unvernunft.
+V	Größenwahn	Nachteil		Schlechte Eigenschaft: fühlt sich zu Großem berufen, strebt nach Macht oder maßloser Forschung.
+V	Heimwehkrank	Nachteil		Nur Elfen: fern der Sippe krankheitsanfällig und AsP-Regeneration –1.
+V	Hitzeempfindlichkeit	Nachteil		Ab etwa 25–30 °C Talent- und Zauberproben +3, Regeneration –1, schneller erschöpft.
+V	Höhenangst	Nachteil		Schlechte Eigenschaft: Panik bei Absturzgefahr (zählt 1,5 GP je Punkt).
+V	Impulsiv	Nachteil		Handelt sofort: KL-/IN-Proben, die das verhindern sollen, +5; Finten und Meisterparaden +2.
+V	Jähzorn	Nachteil		Schlechte Eigenschaft: überreagiert bei Kränkung oder Missgeschick; im Zorn Finten und Meisterparaden +2.
+V	Kälteempfindlichkeit	Nachteil		Unter etwa 10 °C Talent- und Zauberproben +3, Regeneration –1; Kälteschaden +2.
+V	Kleinwüchsig	Nachteil		GS –1; lange Waffen (außer Speere) AT/PA –3, TP –2; nicht angepasste Rüstung BE +1.
+V	Krankheitsanfällig	Nachteil		KO-Proben gegen Ansteckung und Krankheitsschaden um 5 erschwert.
+V	Kurzatmig	Nachteil		Je GP 2 AuP weniger (höchstens 6); ab 2 GP sinkt die Erschöpfungsschwelle.
+V	Lahm	Nachteil		GE –2, GS –1; Proben mit Beinarbeit +3. Lässt sich nicht heilen.
+V	Lichtempfindlich	Nachteil		Sonnenlicht schmerzt: Eigenschaftsproben +2, Talent- und Zauberproben +5.
+V	Medium	Nachteil		Zieht Geister an: MR gegen Beeinflussung und Besessenheit durch Geister um 5 gesenkt.
+V	Meeresangst	Nachteil		Schlechte Eigenschaft: Angst auf Booten und großen Wasserflächen, je weiter vom Ufer, desto stärker.
+V	Miserable Eigenschaft*	Nachteil		Eine Eigenschaft sinkt von 8 auf 7 und kann nur zu doppelten Kosten gesteigert werden.
+V	Moralkodex*	Nachteil		Geweihte/Akoluthen: Pflicht, den Glauben zu stärken, Frevel zu verhindern und die Kirche zu ehren.
+V	Nachtblind	Nachteil		Doppelte Abzüge durch schlechte Beleuchtung (höchstens wie völlige Finsternis).
+V	Neid	Nachteil		Schlechte Eigenschaft: missgönnt anderen Besitz und Erfolg und will beides selbst haben.
+V	Neugier	Nachteil		Schlechte Eigenschaft: muss alles Interessante untersuchen, ungeachtet der Risiken.
+V	Niedrige Lebenskraft	Nachteil		Je 2 GP 1 LeP weniger (höchstens 6).
+V	Niedrige Magieresistenz	Nachteil		Je 2 GP MR –1 (höchstens 3; nie unter 0).
+V	Pechmagnet	Nachteil		Der Meister benachteiligt den Helden bei Zufallswürfen und darf einmal pro Abend einen Wurf scheitern lassen.
+V	Platzangst	Nachteil		Schlechte Eigenschaft: Beklemmung auf großen offenen Flächen (Meer, Eis, Steppe).
+V	Prinzipientreue	Nachteil		Feste moralische Grundsätze; wer sie bricht, leidet eine Zeit lang an Gewissensbissen.
+V	Rachsucht	Nachteil		Schlechte Eigenschaft: will für jede Kränkung Rache, auch geplant und mit langem Atem.
+V	Randgruppe	Nachteil		Gehört einer beargwöhnten Gruppe an (z. B. Zahori, Hexen); meist höchstens SO 8.
+V	Raumangst	Nachteil		Schlechte Eigenschaft: Beklemmung in engen Räumen, niedrigen Gängen und Tunneln.
+V	Schlafwandler	Nachteil		Wandelt im Schlaf umher; geweckt verwirrt (KL und IN –3), danach schlechtere Regeneration.
+V	Schlechte Regeneration	Nachteil		Pro Ruhephase nur 1W6–1 LeP; KO-Proben zur Heilung um 2 erschwert.
+V	Schlechter Ruf	Nachteil		Je 2 GP gesellschaftliche Proben –1; wird mitunter als niedriger im Stand angesehen.
+V	Schulden	Nachteil		Hohe Schulden bei einem Gläubiger (1 GP je 100 Dukaten, 5–20 GP).
+V	Selbstgespräche	Nachteil		Murmelt beim Nachdenken vor sich hin und verrät so womöglich Geheimnisse.
+V	Sprachfehler	Nachteil		Redende Gesellschaftsproben und Zauber mit Sprechformel +3; im Kampf kein Rufen.
+V	Spielsucht	Nachteil		Schlechte Eigenschaft: kann Wetten und Spielen kaum widerstehen; Aufhören erfordert Selbstbeherrschung.
+V	Streitsucht	Nachteil		Schlechte Eigenschaft: sucht den Streit und vertritt gern bewusst die Gegenposition.
+V	Sucht*	Nachteil		Körperlich abhängig: ohne die Droge keine Regeneration, Erschöpfung und erschwerte Proben.
+V	Tollpatsch	Nachteil		Patzer schon bei zwei Würfen ab 19 bzw. bei 19–20 auf einen W20 (nicht bei Zauberei).
+V	Totenangst	Nachteil		Schlechte Eigenschaft: Angst vor allem, was mit dem Tod zu tun hat, besonders Untoten und Gräbern.
+V	Unansehnlich	Nachteil		Gesellschaftliche Proben und CH-Proben im Umgang mit Personen um 2 erschwert.
+V	Unfähigkeit für*	Nachteil		Talentgruppe, Talent oder Zaubermerkmal eine Spalte teurer; vor Spielbeginn nicht steigerbar.
+V	Unfrei	Nachteil		Leibeigen oder Sklave: nicht rechtsfähig, darf ohne Erlaubnis nicht reisen und keine Waffen führen.
+V	Ungebildet	Nachteil		Je 40 geopferte Start-AP 1 GP (höchstens 5).
+V	Unstet	Nachteil		Proben über mehr als 6 Stunden +3; Wissens- und Handwerkstalente nach Spalte C steigern.
+V	Verpflichtungen	Nachteil		Gebunden an Herrn, Orden, Kirche oder Familie, die Dienste und Gehorsam verlangen.
+V	Verschwendungssucht	Nachteil		Schlechte Eigenschaft: kauft, was gefällt, ohne auf den Preis zu achten.
+V	Verwöhnt	Nachteil		Schlechte Eigenschaft: ohne Bett und Dach Regenerationsprobe um den Wert erschwert; erträgt Strapazen schlecht.
+V	Vorurteile gegen*	Nachteil		Schlechte Eigenschaft: starke Vorurteile gegen eine Gruppe (z. B. eine Rasse, Kultur oder einen Stand).
+V	Weltfremd*	Nachteil		Schlechte Eigenschaft: naiv in einem Lebensbereich (z. B. Geld, Religion, Adel).
+V	Widerwärtiges Aussehen	Nachteil		Gesellschaftliche Proben und CH-Proben im Umgang mit Personen um 5 erschwert; sehr auffällig.
+V	Wilde Magie	Nachteil		Zauberpatzer schon bei zwei Würfen ab 19 (auch bei Ritualen).
+V	Zwergenwuchs	Nachteil		GS –2, geringere Sprungweite; dafür behindert getragene Last weniger.
+V	Übler Geruch	Nachteil		In Riechweite gesellschaftliche Proben und CH-Proben im Umgang mit Personen um 2 erschwert.
 
 # Meta-Talente (werden von der Helden-Software berechnet, nicht gesteigert)
 T	Ansitzjagd incl Waffe	Meta		Jagd aus dem Versteck: warten, bis das Wild kommt, und es mit der Jagdwaffe erlegen. Berechnet aus Wildnisleben, Tierkunde, Fährtensuchen, Sich verstecken und dem Kampftalent der Jagdwaffe (Durchschnitt; höchstens das Doppelte des schwächsten Talents). Der Wert wird von der Helden-Software berechnet und nicht gesteigert.
@@ -425,171 +425,171 @@ T	Tierfallen aufstellen	Meta		Fallen für Wild auslegen und kontrollieren. Berec
 T	Speerfischen	Meta		Fische mit dem Speer im flachen Wasser erbeuten. Berechnet aus dem besseren von Speere bzw. Wurfspeere, Tierkunde, Selbstbeherrschung und Wildnisleben (Durchschnitt; höchstens das Doppelte des schwächsten Talents). Der Wert wird von der Helden-Software berechnet und nicht gesteigert.
 T	Wache halten	Meta		Aufmerksam bleiben, während die anderen schlafen. Berechnet aus Selbstbeherrschung und zweimal Sinnenschärfe (Durchschnitt; höchstens das Doppelte des schwächsten Talents). Der Wert wird von der Helden-Software berechnet und nicht gesteigert.
 # --- Ergänzungen: Vorteile
-V	Affinität zu*	Vorteil		Besondere Nähe zu einer Art Wesen (z. B. Elementare, Geister, Dämonen); Zauber auf sie fallen leichter.
-V	Ausdauernder Zauberer	Vorteil		Zaubern erschöpft den Helden weniger als andere Zauberkundige.
-V	Ausrüstungsvorteil	Vorteil		Beginnt das Spiel mit zusätzlicher oder besonders guter Ausrüstung.
-V	Beseelte Knochenkeule	Vorteil		Besitzt eine beseelte Knochenkeule (Ritualgegenstand der Schamanen) mit bereits geweckter Kraft.
-V	Ererbte Knochenkeule	Vorteil		Hat eine Knochenkeule von einem Vorgänger übernommen, in der schon Keulenrituale wirken.
-V	Breitgefächerte Bildung	Vorteil		Erlaubt eine zweite Profession bei der Erschaffung und damit Talente und Fertigkeiten aus beiden Ausbildungen.
-V	Eigeboren	Vorteil		Hexen-Vorteil: Tochter einer Hexe, von Geburt an mit der Hexenkraft vertraut.
-V	Eisenaffine Aura	Vorteil		Metall am Körper (Rüstung, Waffen) stört das Zaubern nicht oder kaum.
-V	Feenfreund	Vorteil		Feenwesen begegnen dem Helden wohlwollend; der Umgang mit ihnen fällt leichter.
-V	Koboldfreund	Vorteil		Kobolde sind dem Helden gewogen und spielen ihm eher harmlose Streiche.
-V	Feste Matrix	Vorteil		Stabile Zaubermatrix: Patzer beim Zaubern haben weniger schlimme Folgen.
+V	Affinität zu*	Vorteil		Proben, um Geister, Elementare oder Dämonen zu einem Dienst zu bewegen, um 3 erleichtert.
+V	Ausdauernder Zauberer	Vorteil		Zaubern kostet nur halb so viel Ausdauer (Expertenregel aus Wege der Zauberei).
+V	Ausrüstungsvorteil	Vorteil		Je GP zusätzliche Dukaten in Höhe des doppelten SO für Ausrüstung (höchstens SO in GP).
+V	Beseelte Knochenkeule	Vorteil		Schamanen: In der Knochenkeule wohnt bereits ein Geist (Kosten je nach Art und Loyalität).
+V	Ererbte Knochenkeule	Vorteil		Schamanen: Keule eines verstorbenen Vorgängers, bereits gebunden und mit Ritualen belegt.
+V	Breitgefächerte Bildung	Vorteil		Eine zweite Profession: 6 Jahre älter, halbe Boni und zusätzliche AP aus der zweiten Ausbildung.
+V	Eigeboren	Vorteil		Nur Hexen: Altersresistenz und Gutaussehend inklusive; CH billiger, Flüche halbe AP; unter Schwestern +3.
+V	Eisenaffine Aura	Vorteil		Metall am Körper behindert das Zaubern nur leicht. Nicht für Druiden und Geoden.
+V	Feenfreund	Vorteil		Feen sind dem Helden wohlgesonnen; dort, wo es sie gibt, kann unerwartete Hilfe kommen.
+V	Koboldfreund	Vorteil		Kobolde mögen den Helden; er kann sie herbeirufen und um Hilfe bitten (meist nach Feilschen).
+V	Feste Matrix	Vorteil		Zauberpatzer nur, wenn zu den zwei 20ern noch eine 18–20 fällt (etwa zehnmal seltener).
 V	Früher Vertrauter	Vorteil		Hat schon in jungen Jahren ein Vertrautentier an sich gebunden.
-V	Machtvoller Vertrauter	Vorteil		Das Vertrautentier ist stärker und fähiger als üblich.
-V	Gebildet	Vorteil		Gute Allgemeinbildung: bessere Startmöglichkeiten bei Wissens- und Sprachtalenten.
-V	Geweiht*	Vorteil		Geweihter einer Gottheit bzw. Kirche: Zugang zu Liturgien und Karmaenergie, aber auch Pflichten gegenüber der Kirche.
+V	Machtvoller Vertrauter	Vorteil		Hexen: ein größeres oder gefährlicheres Vertrautentier als üblich.
+V	Gebildet	Vorteil		Je GP 40 AP für Wissens-, Sprach- und Handwerkstalente bei der Erschaffung (höchstens 200 AP).
+V	Geweiht*	Vorteil		Geweihter einer Gottheit: Karmaenergie, Liturgiekenntnis 3, MR +1; kann Mirakel und Liturgien wirken.
 V	Göttergeschenk	Vorteil		Besondere Gabe einer Gottheit an ihren Geweihten; die Wirkung hängt vom jeweiligen Geschenk ab.
-V	Herausragende Balance	Vorteil		Noch sichereres Gleichgewicht als bei Balance: Balanceakte gelingen fast immer, Stürze sind selten.
-V	Herausragender Sechster Sinn	Vorteil		Stärkere Form des Sechsten Sinns: Gefahren und Fallen werden sehr zuverlässig vorausgeahnt.
-V	Kräfteschub	Vorteil		Viertelzauberer: kann Astralenergie einsetzen, um kurzzeitig körperliche Leistungen zu steigern.
+V	Herausragende Balance	Vorteil		Balance-Proben (Körperbeherrschung, Akrobatik u. a.) +7, GE-Proben +5; viel weniger Sturzschaden.
+V	Herausragender Sechster Sinn	Vorteil		Magiegespür und Zauber/Liturgien zum Erkennen astraler Muster (z. B. ODEM, ANALYS) +3.
+V	Kräfteschub	Vorteil		Gabe: Gelingt die Probe, ist die nächste Probe auf GE, FF, KO oder KK um die halben übrigen Punkte leichter.
 V	Magiedilletant	Vorteil		Geringe magische Begabung: einzelne Zauber als übernatürliche Begabungen, keine volle Zauberausbildung.
-V	Meisterhandwerk*	Vorteil		Viertelzauberer: kann in einem Talent Astralenergie einsetzen, um Proben darauf zu verbessern.
-V	Natürliche Waffen	Vorteil		Krallen, Zähne, Hörner o. ä. dienen im Kampf als Waffen.
-V	Schutzgeist	Vorteil		Ein Schutzgeist wacht über den Helden und kann ihn warnen oder in der Not eingreifen.
+V	Meisterhandwerk*	Vorteil		Viertelzauberer: AsP in bis zu fünf Berufstalente stecken; je AsP TaW +2 für eine Probe.
+V	Natürliche Waffen	Vorteil		Krallen oder Raubtiergebiss als Waffe mit echtem Schaden (z. B. Orks, Goblins).
+V	Schutzgeist	Vorteil		In Bedrängnis mit der gesamten AsP einen Patzer abwenden oder eine Probe verbessern bzw. wiederholen.
 V	Paktgeschenk	Vorteil		Gabe aus einem Pakt mit einer Erzdämonin bzw. einem Erzdämon – übernatürliche Fähigkeit, die ihren Preis hat.
-V	Unbeschwertes Zaubern	Vorteil		Zauber lassen sich auch unter ungünstigen Umständen leichter wirken.
-V	Verhüllte Aura	Vorteil		Die magische Aura ist schwer zu erkennen; Hellsichtzauber nehmen den Helden kaum als magisch wahr.
-V	Wesen der Nacht	Vorteil		Nachts besonders leistungsfähig; Dunkelheit behindert den Helden weniger.
-V	Wolfskind	Vorteil		Kann die Gestalt eines Wolfes annehmen und versteht sich besonders auf Wölfe.
-V	Zauberhaar	Vorteil		Viertelzauberer: Die magische Kraft äußert sich im Haar des Helden.
-V	Zusätzliche Gliedmaßen	Vorteil		Besitzt zusätzliche Arme, Beine oder einen Schwanz.
-V	Zweistimmiger Gesang	Vorteil		Kann zwei Töne zugleich singen – Voraussetzung für elfische Zauberlieder.
-V	Übernatürliche Begabung*	Vorteil		Kann einen bestimmten Zauber als angeborene Fähigkeit wirken, auch ohne Zauberausbildung.
+V	Unbeschwertes Zaubern	Vorteil		Schelme: Schelmenzauber ignorieren eine MR bis 7.
+V	Verhüllte Aura	Vorteil		Die Aura erscheint schwächer: Hellsicht auf den Helden +5, magiespürende Artefakte und Tiere +7.
+V	Wesen der Nacht	Vorteil		Zauber- und Ritualproben bei Nacht um 1/2/3 erleichtert.
+V	Wolfskind	Vorteil		Nivesen: für 1W6 AsP ohne Probe in einen Rauwolf verwandeln; Wölfe sind freundlich.
+V	Zauberhaar	Vorteil		Langes Haar (ab 2,5 Spann) speichert 7 zusätzliche AsP; wird es geschnitten, gehen sie verloren.
+V	Zusätzliche Gliedmaßen	Vorteil		Anatomische Besonderheit wie Schwanz oder zweites Armpaar (z. B. Achaz).
+V	Zweistimmiger Gesang	Vorteil		Nur Elfen und Halbelfen: zweistimmig singen; Voraussetzung für Elfenlieder und perfektes Asdharia.
+V	Übernatürliche Begabung*	Vorteil		Viertelzauberer: je GP eine Zauberwirkung, die ohne Formel und Geste wie ein Talent gewirkt wird.
 V	Lizensierter Zauberer	Vorteil		Besitzt eine offizielle Erlaubnis zum Zaubern; schützt vor Ärger mit der Obrigkeit.
 # --- Ergänzungen: Nachteile
 V	Agrimothwahn	Nachteil		Dämonisch geprägter Zwang (Agrimoth), Natur und Elemente zu verderben. Wert = Stärke.
-V	Albino	Nachteil		Sehr helle Haut, Haare und Augen: empfindlich gegen Sonnenlicht und auffällig.
-V	Animalische Magie	Nachteil		Die eigene Magie ist an tierhafte Instinkte gebunden und schwer zu lenken.
-V	Arkanophobie	Nachteil		Angst vor Magie, Zauberern und magischen Wesen. Wert = Stärke.
-V	Artefaktgebunden	Nachteil		Die Zauberkraft ist an einen Gegenstand gebunden; ohne ihn kann der Held kaum zaubern.
-V	Astraler Block	Nachteil		Die Astralenergie regeneriert schlechter.
-V	Blutdurst	Nachteil		Gerät im Kampf in einen Blutrausch und hört schwer wieder auf. Wert = Stärke.
-V	Brünstigkeit	Nachteil		Regelmäßige, kaum zu beherrschende Brunftphasen. Wert = Stärke.
+V	Albino	Nachteil		Pigmentlos: Sonnenbrand im Sonnenlicht, oft misstrauisch beäugt; Einschüchtern +3.
+V	Animalische Magie	Nachteil		Zauber- und Ritualproben mit KL um den Wert (max. 5) erschwert, mit zweimal KL doppelt.
+V	Arkanophobie	Nachteil		Schlechte Eigenschaft: panische Angst vor Magie und Artefakten; senkt die MR, wenn er Zauber erwartet.
+V	Artefaktgebunden	Nachteil		Ohne Hautkontakt zum Traditionsartefakt gilt jeder Zauber als spontane Modifikation (7 ZfP nötig).
+V	Astraler Block	Nachteil		Pro Ruhephase nur 1W6–1 AsP; Regenerations- und Ritualproben um 2 erschwert.
+V	Blutdurst	Nachteil		Schlechte Eigenschaft: tötet gern langsam und grausam, quält Unterlegene.
+V	Brünstigkeit	Nachteil		Schlechte Eigenschaft: unersättliches Verlangen; vernachlässigt die Umgebung, Betören gegen ihn leichter.
 V	Charyptophilie	Nachteil		Dämonisch geprägte Sehnsucht nach dem Meer und seinen Tiefen (Charyptoroth). Wert = Stärke.
-V	Einarmig	Nachteil		Hat nur einen Arm; viele körperliche Tätigkeiten und Waffen sind eingeschränkt.
-V	Einbeinig	Nachteil		Hat nur ein Bein; Bewegung, Laufen und Körpertalente sind stark eingeschränkt.
-V	Einhändig	Nachteil		Hat nur eine benutzbare Hand; beidhändige Tätigkeiten und Waffen sind kaum möglich.
-V	Einbildungen	Nachteil		Sieht oder hört Dinge, die nicht da sind. Wert = Stärke.
-V	Eingeschränkte Elementarnähe	Nachteil		Zauber eines bestimmten Elements fallen schwer.
-V	Eingeschränkter Sinn	Nachteil		Ein Sinn ist geschwächt (z. B. schwerhörig oder kurzsichtig); passende Wahrnehmungsproben sind erschwert.
-V	Elfische Weltsicht	Nachteil		Denkt wie ein Elf: Begriffe wie Besitz oder Zeit bleiben fremd; manche menschliche Talente sind schwer zu lernen.
-V	Farbenblind	Nachteil		Kann Farben nicht oder kaum unterscheiden.
-V	Feste Gewohnheit	Nachteil		Hält an einer Gewohnheit fest und weicht nur ungern davon ab.
-V	Fluch der Finsternis	Nachteil		Von dunklen Mächten gezeichnet; Licht und Heiliges bereiten Unbehagen.
+V	Einarmig	Nachteil		Zweihändige Handlungen: Eigenschaftsproben +5, Talentproben +10; keine Schilde, Parierwaffen, Bögen.
+V	Einbeinig	Nachteil		GE –5, GS –3 (mind. 1); lässt sich weder durch Prothese noch Magie ausgleichen.
+V	Einhändig	Nachteil		Zweihändige Handlungen: Eigenschaftsproben +3, Talentproben +5; Bogen und Zweihänder kaum möglich.
+V	Einbildungen	Nachteil		Nimmt Dinge wahr, die es nicht gibt (Verfolger, Anschuldigungen); nicht mit Wahnvorstellungen kombinierbar.
+V	Eingeschränkte Elementarnähe	Nachteil		Schamanen: nur drei der sechs Elemente zugänglich; Wesen der anderen kann er nicht rufen.
+V	Eingeschränkter Sinn	Nachteil		Sinnenschärfe-Proben für einen Sinn (z. B. schwerhörig, kurzsichtig) um 5 erschwert.
+V	Elfische Weltsicht	Nachteil		Elfen denken in Zusammenhängen und Harmonie; viele menschliche Talente lernen sie nur schwer.
+V	Farbenblind	Nachteil		Sieht nur Grautöne; Fernkampf über 50 Schritt –4, gezielte Zauber –4.
+V	Feste Gewohnheit	Nachteil		Zauber gelingen nur mit einer zusätzlichen Handlung oder Bedingung (z. B. Gebet, nur nachts, barfuß).
+V	Fluch der Finsternis	Nachteil		Zauber- und Ritualproben bei Tag um 1/2/3 erschwert.
 V	Grausamkeit	Nachteil		Empfindet Freude daran, anderen Leid zuzufügen. Wert = Stärke.
 V	Herrschsucht	Nachteil		Will andere bestimmen und duldet keinen Widerspruch. Wert = Stärke.
 V	Jagdfieber	Nachteil		Verfällt bei der Jagd in Eifer und lässt nicht von der Beute ab. Wert = Stärke.
-V	Kein Vertrauter	Nachteil		Hexe ohne Vertrautentier.
+V	Kein Vertrauter	Nachteil		Hexen: findet nie ein Vertrautentier; unter Schwestern mitunter Abzüge auf soziale Proben.
 V	Konstruktionswahn	Nachteil		Dämonisch geprägter Zwang, ständig Neues zu bauen und zu erfinden. Wert = Stärke.
 V	Krankhafte Nekromantie	Nachteil		Krankhafte Faszination für Tod, Leichen und Untote. Wert = Stärke.
-V	Krankhafte Reinlichkeit	Nachteil		Übertriebener Ekel vor Schmutz; muss sich ständig reinigen. Wert = Stärke.
-V	Kristallgebunden	Nachteil		Die Zauberkraft ist an Kristalle gebunden.
-V	Kältestarre	Nachteil		Wechselwarm: wird bei Kälte träge und langsam.
-V	Körpergebundene Kraft	Nachteil		Die Magie wirkt vor allem auf den eigenen Körper; Zauber auf andere fallen schwer.
-V	Lichtscheu	Nachteil		Meidet helles Licht; bei grellem Licht Abzüge.
-V	Lästige Mindergeister	Nachteil		Kleine Geister folgen dem Helden und stiften Unruhe.
-V	Madas Fluch	Nachteil		Die Zauberkraft schwankt mit dem Mond: Astralenergie hängt von der Mondphase ab.
-V	Mondsüchtig	Nachteil		Wird bei Vollmond unruhig und wandelt im Schlaf.
+V	Krankhafte Reinlichkeit	Nachteil		Schlechte Eigenschaft: Schmutz an sich oder in der Umgebung lenkt stark ab; will sich ständig reinigen.
+V	Kristallgebunden	Nachteil		Kristallomanten: jeder Zauber braucht Edelsteine, das Vorbereiten dauert länger.
+V	Kältestarre	Nachteil		Unter etwa 10 °C GE, FF und KK –2 bis –5; unter 0 °C handlungsunfähig (z. B. Achaz).
+V	Körpergebundene Kraft	Nachteil		Ein Fünftel der AE sitzt im Haar: Ist es kürzer als 2,5 Spann, regeneriert er nur bis 4/5 der AsP.
+V	Lichtscheu	Nachteil		Im direkten Sonnenlicht Eigenschaftsproben +1, Talent- und Zauberproben +3.
+V	Lästige Mindergeister	Nachteil		Kleine Elementargeister folgen dem Helden, stören die Konzentration (+1) und irritieren Beobachter.
+V	Madas Fluch	Nachteil		Drei Tage vor bis drei Tage nach Vollmond Zauber- und Ritualproben um 1/2/3 erschwert.
+V	Mondsüchtig	Nachteil		Mondlicht versetzt in Verzückung (stärker gegen Vollmond); neigt dann zu Visionen und Schlafwandeln.
 V	Morbidität	Nachteil		Hang zu Tod und Verfall; düsteres Gemüt. Wert = Stärke.
 V	Nagrachwahn	Nachteil		Dämonisch geprägter Drang zu Kälte und grausamer Jagd (Nagrach). Wert = Stärke.
-V	Nahrungsrestriktion	Nachteil		Kann sich nur von bestimmter Nahrung ernähren.
-V	Niedrige Astralkraft	Nachteil		Weniger Astralenergie als üblich.
+V	Nahrungsrestriktion	Nachteil		Mindestens die Hälfte der Nahrung muss einer Art sein (z. B. rohes Fleisch); sonst schlechtere Regeneration.
+V	Niedrige Astralkraft	Nachteil		Je GP 1 AsP weniger (höchstens 6).
 V	Paktierer	Nachteil		Hat einen Pakt mit einer dämonischen Macht geschlossen; der Pakt fordert seinen Preis.
-V	Raubtiergeruch	Nachteil		Riecht nach Raubtier; Tiere reagieren scheu oder aggressiv.
+V	Raubtiergeruch	Nachteil		Tiere reagieren scheu oder aggressiv: Abrichten, Reiten und ähnliche Proben +5.
 V	Ruhelosigkeit	Nachteil		Kann kaum still sitzen und braucht ständig Bewegung. Wert = Stärke.
-V	Rückschlag	Nachteil		Misslungene Zauber können auf den Zaubernden zurückschlagen.
+V	Rückschlag	Nachteil		Misslungene Zauber treffen mit halber Wirkung den Zaubernden selbst, Patzer mit voller.
 V	Schlaflosigkeit	Nachteil		Findet kaum Schlaf; die Erholung leidet.
-V	Schlafstörungen	Nachteil		Schläft unruhig; nächtliche Regeneration fällt geringer aus.
-V	Schlechte Eigenschaft	Nachteil		Charakterschwäche mit einer Stärke; je höher der Wert, desto schwerer lässt sie sich unterdrücken.
-V	Schneller alternd	Nachteil		Altert schneller als andere seines Volkes.
-V	Schwache Ausstrahlung	Nachteil		Schwache magische Ausstrahlung; manche Zauber wirken weniger stark.
-V	Schwacher Astralkörper	Nachteil		Die Astralenergie regeneriert langsamer.
+V	Schlafstörungen	Nachteil		Albträume oder Einschlafprobleme: nur 1W6–1 LeP und AsP pro Nacht, morgens unausgeschlafen.
+V	Schlechte Eigenschaft	Nachteil		Charakterschwäche: Gelingt eine Probe auf den Wert, gibt der Held ihr nach; Proben teils um den Wert erschwert.
+V	Schneller alternd	Nachteil		Erreicht die Altersschwellen schon bei zwei Dritteln der Jahre; Proben gegen Alterung +3.
+V	Schwache Ausstrahlung	Nachteil		Zauber- und Ritualproben mit CH um den Wert (max. 5) erschwert, mit zweimal CH doppelt.
+V	Schwacher Astralkörper	Nachteil		Je angefangene 12 AsP in einem Zauber gehen 1W3 weitere AsP verloren; fehlen sie, misslingt der Zauber.
 V	Schöpferwahn	Nachteil		Dämonisch geprägter Zwang, Leben bzw. Wesen zu erschaffen. Wert = Stärke.
-V	Seffer Manich	Nachteil		Nachteil aus der Tradition der Zibilja (norbardische Zauberinnen).
-V	Sensibler Geruchssinn	Nachteil		Sehr feine Nase; starke Gerüche stören und lenken ab.
-V	Sippenlosigkeit	Nachteil		Ohne Sippe bzw. Familie; es fehlt der Rückhalt der Gemeinschaft.
-V	Sonnensucht	Nachteil		Braucht Sonnenlicht; Dunkelheit und lange Nächte setzen dem Helden zu.
-V	Speisegebote	Nachteil		Muss religiöse oder kulturelle Speisevorschriften einhalten.
-V	Spruchhemmung	Nachteil		Gerät beim Zaubern leicht ins Stocken; Zauber misslingen öfter.
-V	Stigma	Nachteil		Auffälliges Kennzeichen (Mal, Narbe, ungewöhnliche Farbe), das Misstrauen weckt.
-V	Stubenhocker	Nachteil		Ungern draußen; Wildnis und Reisen fallen schwer.
-V	Thesisgebunden	Nachteil		Kann Zauber nur so wirken, wie sie gelernt wurden; Abwandlungen fallen schwer.
+V	Seffer Manich	Nachteil		Zibiljas: Rituale nur mit Sippenchronik und Rollsiegel, sonst +6 bzw. +12 erschwert.
+V	Sensibler Geruchssinn	Nachteil		Schlechte Eigenschaft: Gestank verlangt eine Selbstbeherrschungs-Probe, um nicht zu fliehen.
+V	Sippenlosigkeit	Nachteil		Elfen: ohne Sippe; kein Sippen-Salasandra und keine Große Meditation, Elfenlieder doppelt teuer.
+V	Sonnensucht	Nachteil		Schlechte Eigenschaft (nur mit Kältestarre): braucht täglich mindestens zwei Stunden Sonne.
+V	Speisegebote	Nachteil		Isst keine Nahrung, die gegen seine Gebote verstößt; Bruch wirkt wie eine Schlechte Eigenschaft 5.
+V	Spruchhemmung	Nachteil		Zeigen zwei Würfel einer Zauberprobe dieselbe Zahl, verpufft der Zauber trotzdem (volle AsP).
+V	Stigma	Nachteil		Auffälliges Mal (z. B. Katzenaugen, grünes Haar); gesellschaftliche Proben etwa +3, wenn bemerkt.
+V	Stubenhocker	Nachteil		Körperliche und Kampftalente eine Spalte teurer; GE, KK und KO zu Beginn höchstens 11.
+V	Thesisgebunden	Nachteil		Zaubert nur „vom Blatt“ mit der Thesis in der Hand; sonst wie eine spontane Modifikation.
 V	Treulosigkeit	Nachteil		Hält Versprechen ungern und wechselt leicht die Seiten. Wert = Stärke.
 V	Trägheit	Nachteil		Bequem und schwer zu motivieren. Wert = Stärke.
-V	Unangenehme Stimme	Nachteil		Die Stimme klingt unangenehm; gesellschaftliche Proben sind erschwert.
+V	Unangenehme Stimme	Nachteil		Gesellschaftliche Proben und CH-Proben, bei denen er spricht, um 2 erschwert.
 V	Unbewusster Viertelzauberer	Nachteil		Magisch begabt, ohne es zu wissen; die Kräfte zeigen sich unkontrolliert.
-V	Unverträglichkeit mit verarbeitetem Metall	Nachteil		Verarbeitetes Metall am Körper schwächt den Helden.
-V	Wahnvorstellungen	Nachteil		Hält Eingebildetes für wahr. Wert = Stärke.
-V	Wahrer Name	Nachteil		Besitzt einen wahren Namen: Wer ihn kennt, hat Macht über den Helden.
-V	Zielschwierigkeiten	Nachteil		Zielen fällt schwer; Fernkampf und gezielte Zauber sind erschwert.
-V	Zögerlicher Zauberer	Nachteil		Zaubert nur zögernd; Zauber brauchen länger.
-V	Vergesslichkeit	Nachteil		Vergisst leicht Namen, Verabredungen oder Gelerntes; der Meister kann Proben zum Erinnern verlangen.
+V	Unverträglichkeit mit verarbeitetem Metall	Nachteil		Metall am Körper stört die Magie stark (wie bei Druiden und Geoden).
+V	Wahnvorstellungen	Nachteil		Lebt teils in einer eigenen Wirklichkeit (z. B. Weltverschwörung gegen ihn).
+V	Wahrer Name	Nachteil		Besitzt einen Wahren Namen; wer ihn kennt, kann den Helden leicht seinem Willen unterwerfen.
+V	Zielschwierigkeiten	Nachteil		Zauber auf ein Ziel müssen wie mit einer Fernwaffe gezielt werden.
+V	Zögerlicher Zauberer	Nachteil		Zauber- und Ritualproben mit MU um den Wert (max. 5) erschwert, mit zweimal MU doppelt.
+V	Vergesslichkeit	Nachteil		Vergisst Ausrüstung, Namen und Informationen; KL-Proben zum Erinnern bis +5.
 # --- Ergänzungen: Sonderfertigkeiten (Gruppen)
 S	Ritual	Magie		Ritual einer magischen Tradition (z. B. Schamanen, Druiden, Geoden, Hexen); gewirkt über die Ritualkenntnis dieser Tradition.
 S	Zaubertanz	Magie		Zaubertanz der Zaubertänzer (z. B. Sharisad, Majuna): Die Wirkung entsteht durch den Tanz und wird über die Ritualkenntnis gewirkt.
-S	Zauberzeichen	Magie		Magisches Zeichen bzw. Bann- oder Schutzkreis, das gezeichnet wird und an seinem Ort wirkt.
-S	Zibilja-Ritual	Magie		Ritual der Zibilja (norbardische Zauberinnen), oft mit Bienen und Wachs verbunden.
-S	Trommelzauber	Magie		Zauber der novadischen Derwische, gewirkt durch rhythmisches Trommeln.
-S	Schuppenbeutel	Magie		Ritual mit dem Schuppenbeutel, dem Ritualgegenstand der Achaz-Schamanen.
+S	Zauberzeichen	Magie		Arkanoglyphen per Handwerkstalent an Orten oder Objekten anbringen, die mit AsP Zauberwirkungen entfalten.
+S	Zibilja-Ritual	Magie		Ritual der norbardischen Zibiljas, das vor allem den Zusammenhalt der Sippe stärkt.
+S	Trommelzauber	Magie		Derwische: hypnotische Trommelklänge, die die körperlichen und kämpferischen Fähigkeiten der Zuhörer stärken.
+S	Schuppenbeutel	Magie		Kristallomanten: Rituale für den Schuppenbeutel (Bindung, Suchende Finger, Ewige Wegzehrung).
 S	Waffenloser Kampfstil	Kampf		Waffenlose Kampftechnik: AT/PA im zugehörigen Talent +1 (höchstens +2), enthält ihre Manöver.
 S	Spätweihe*	Karma		Weihe zum Geweihten einer Gottheit erst im Erwachsenenalter, nach der Erschaffung.
-S	Matrixregeneration*	Magie		Artefaktmagie: erschöpfte oder beschädigte Zaubermatrizen von Artefakten wieder aufladen bzw. herstellen.
-S	Regeneration*	Magie		Die Astralenergie regeneriert schneller (Stufe I bzw. II).
-S	Semipermanenz*	Magie		Artefaktmagie: Wirkungen über lange Zeit festigen (semipermanent).
-S	Meisterliche Zauberkontrolle*	Magie		Sehr gute Beherrschung der Zauber; Patzer und unerwünschte Nebenwirkungen werden abgemildert.
+S	Matrixregeneration*	Magie		Rückkauf permanenter AsP billiger: 40 AP (Stufe I) bzw. 30 AP (Stufe II) je Punkt, weniger Zeit.
+S	Regeneration*	Magie		Kurze Meditation vor dem Schlaf: 1W6+1 (I) bzw. 1W6+2 (II) AsP pro Ruhephase statt 1W6.
+S	Semipermanenz*	Magie		Semipermanente Artefakte herstellen (aktiviert ARCANOVI (Semipermanenz)).
+S	Meisterliche Zauberkontrolle*	Magie		Zauber in der letzten Aktion abbrechen (halbe Kosten) oder überschüssige ZfP* verfallen lassen.
 # --- Ergänzungen: Sonderfertigkeiten (einzeln)
-S	Apport	Magie		Ein gebundener Gegenstand (z. B. der Zauberstab) lässt sich magisch zu sich rufen.
-S	Aura der Heiligkeit	Karma		Ausstrahlung göttlicher Nähe; Dämonen und Untote scheuen den Geweihten.
-S	Aurapanzer	Magie		Schützt die eigene Aura gegen fremde Beherrschungs- und Einflusszauber.
-S	Bannschwert	Magie		Eine Waffe als Bannschwert binden: damit Bannkreise ziehen und magische Wesen wirksamer treffen.
-S	Chimärenmeister	Magie		Fortgeschrittene Kunst, Chimären zu erschaffen.
+S	Apport	Magie		Objektritual: das gebundene Traditionsartefakt (z. B. Stab, Kugel, Dolch) magisch zu sich rufen.
+S	Aura der Heiligkeit	Karma		Der Geweihte verströmt seine göttliche Kraft als sichtbare Aura, die je nach Gottheit wirkt.
+S	Aurapanzer	Magie		RS in Höhe der natürlichen MR gegen magischen Schaden (Schadenszauber, magische Waffen).
+S	Bannschwert	Magie		Objektritual: ein Instrument, das die Verbindung jenseitiger Wesen ins Diesseits schwächt und Austreibungen erleichtert.
+S	Chimärenmeister	Magie		Chimären leichter erschaffen; sie sind loyaler als üblich.
 S	Die Gestalt aus Rauch	Magie		Magische Verwandlung in eine Gestalt aus Rauch.
 S	Doppelschlag	Kampf		Raufen-AT +4 mit beiden Fäusten zugleich; der Gegner braucht zwei Paraden. Jeder Hieb macht eigene TP(A).
-S	Druidenrache	Magie		Druiden: Wer den Druiden verletzt, wird von dessen Magie getroffen.
-S	Elementarharmonisierte Aura	Magie		Die Aura steht im Einklang mit den Elementen; Elementarzauber fallen leichter.
-S	Form der Formlosigkeit	Magie		Hohe Verwandlungskunst: die eigene Gestalt frei verändern.
-S	Geber der Gestalt	Magie		Kann Geistern bzw. Wesen eine körperliche Gestalt geben.
-S	Gefäß der Sterne	Magie		Erhöht die Astralenergie dauerhaft.
-S	Golembauer	Magie		Kann Golems erschaffen und beleben.
+S	Druidenrache	Magie		Alle Reserven (LE, Eigenschaften, Fertigkeiten) in einen letzten, gewaltigen Zauber legen – und dabei sterben.
+S	Elementarharmonisierte Aura	Magie		Merkmalskenntnis des Gegenelements erlernen und dessen Zauber ohne Einschränkung wirken.
+S	Form der Formlosigkeit	Magie		Einem Dämon bei oder nach der Beschwörung zusätzliche Eigenschaften geben bzw. seine Werte verbessern.
+S	Geber der Gestalt	Magie		Einem Dämon beim nachträglichen Formen leichter zusätzliche Eigenschaften mitgeben.
+S	Gefäß der Sterne	Magie		CH zählt doppelt für die AE-Basis; Große Meditation auch über CH und ohne besonderen Ort.
+S	Golembauer	Magie		Golems (dämonisch oder elementar) leichter erschaffen; sie sind loyaler als üblich.
 S	Hexenritual: Hexensalbe	Magie		Herstellung der Hexensalbe, u. a. Voraussetzung für das Fliegen auf dem Fluggerät der Hexe.
-S	Hypervehemenz	Magie		Zauber mit zusätzlicher Astralenergie in ihrer Wirkung über das übliche Maß hinaus verstärken.
-S	Höhere Dämonenbindung	Magie		Bessere Kontrolle über beschworene Dämonen; Voraussetzung für die Bindung mächtigerer Dämonen.
-S	Invocatio Integra	Magie		Beschwörung mächtiger Dämonen in ihrer vollständigen Form.
+S	Hypervehemenz	Magie		Artefakte per ARCANOVI mit Stapeleffekt aus beliebig vielen Wirkenden Sprüchen speisen.
+S	Höhere Dämonenbindung	Magie		Bindung oder Manifestation eines Dämons kostet weniger AsP.
+S	Invocatio Integra	Magie		Ritual für sicherere Beschwörung gehörnter Dämonen (Paraphernalia, Zeitpunkt, Vorbereitung).
 S	Kontakt zum Großen Geist	Magie		Schamanen: Verbindung zum Großen Geist, Grundlage für höhere Rituale.
 S	Kristallkraft bündeln	Magie		Kristallomanten: die Kraft mehrerer Kristalle für einen stärkeren Zauber bündeln.
-S	Lockeres Zaubern	Magie		Zaubern mit weniger Konzentration; Zauber lassen sich leichter nebenher wirken.
-S	Matrixkontrolle	Magie		Bessere Kontrolle über die Zaubermatrix; Patzer lassen sich abfangen.
-S	Matrixverständnis	Magie		Versteht den Aufbau von Zaubermatrizen; erleichtert Analyse und Abwandlung von Zaubern.
+S	Lockeres Zaubern	Magie		Schelme: Schelmenzauber ignorieren eine MR bis 12.
+S	Matrixkontrolle	Magie		Zauberwerkstatt: Der Gesamtzuschlag beim dauerhaften Abwandeln von Zaubern wird halbiert.
+S	Matrixverständnis	Magie		Spontane Modifikationen kosten keine zusätzliche Zeit; auch bei Fremdrepräsentationen möglich.
 S	Meister der Improvisation	Kampf		Fehlendes Werkzeug durch Behelfsmittel ersetzen: Zuschläge dafür und beim Ausweichen auf andere Handwerke halbiert.
-S	Meisterliche Regeneration	Magie		Die Astralenergie regeneriert deutlich besser.
+S	Meisterliche Regeneration	Magie		Pro Ruhephase ohne Wurf KL/3+3 bzw. IN/3+3 AsP, mit gelungener IN-Probe einen mehr.
 S	Meisterliches Entwaffnen	Kampf		Auch Kämpfer mit Zweihandwaffen entwaffnen; Einhandkämpfer brauchen eine KK-Probe +10 statt +8, um ihre Waffe zu halten.
-S	Nekromant	Magie		Kenntnis der Totenbeschwörung: Untote erheben und Geister von Toten rufen.
+S	Nekromant	Magie		Untote und Nephazz-Dienste kosten weniger AsP; Untote sind loyaler.
 S	Niederringen	Kampf		Ringen-AT: Gegner zu Boden ringen, der Angreifer geht mit (INI –1W6 für ihn, –2W6 für den Gegner).
-S	Ottagaldr	Magie		Thorwalsche Magie: Galdr-Gesang, der auf die Mannschaft einer Otta wirkt.
-S	Salasandra	Magie		Elfisches Gemeinschaftsritual, in dem mehrere Elfen ihre Kräfte verbinden.
+S	Ottagaldr	Magie		Thorwaler: Bund-Lied einer Schiffsbesatzung, mit deren Lebenskraft der Schiffsmagier zaubert.
+S	Salasandra	Magie		Elfen: geistige Verschmelzung mit der Sippe, in der Erfahrungen und Fertigkeiten geteilt werden.
 S	Schmetterschlag	Kampf		Verstärkte Gerade: Über der Wundschwelle droht Bewusstlosigkeit (KO-Probe), über der KO sofort.
 S	Schmutzige Tricks	Kampf		Die Umgebung nutzen (Sand in die Augen …): meist 1W6 AU- oder INI-Verlust, Rüstung schützt nicht.
 S	Schwanzfeger	Kampf		Achaz: mit dem Schwanz nach den Beinen fegen; der Gegner muss eine GE-Probe bestehen.
 S	Schwanzschlag	Kampf		Achaz (Raufen-AT): Die Hälfte der Punkte, um die die AT gelang, erschwert die gegnerische Parade.
 S	Schwinger	Kampf		Raufen-AT, eine Art Finte: Ansage erschwert die gegnerische Parade; ohne Auspendeln dort +4.
 S	Schwitzkasten	Kampf		Ringen-AT: Gegner im Schwitzkasten; jede weitere AT leichter und mit steigendem AU-Verlust.
-S	Signaturkenntnis	Magie		Magische Signaturen (die „Handschrift“ eines Zauberers) erkennen und setzen.
-S	Simultanzaubern	Magie		Zwei Zauber gleichzeitig wirken.
+S	Signaturkenntnis	Magie		Zauberer an der „Handschrift“ ihrer Zauber und Artefakte erkennen (ODEM, ANALYS, OCULUS +2).
+S	Simultanzaubern	Magie		Zaubern, während andere Zauber aufrechterhalten werden: nur +1 je Zauber statt +3.
 S	Spießgespann	Kampf		Zwei Kämpfer führen gemeinsam einen überlangen Spieß: bei Erfolg doppelte TP und addierte KK.
 S	Sprung	Kampf		Waffenlose Ausweich-Parade „nach oben“ (+2 bis +4, INI –1W6); Ansage als Bonus für den nächsten Sprungtritt.
-S	Stapeleffekt	Magie		Artefaktmagie: mehrere gleichartige Wirkungen übereinander legen.
-S	Tanz der Mada	Magie		Zaubertänzer: ein der Mada geweihter Tanz mit magischer Wirkung.
-S	Tierischer Begleiter	Allgemein		Ein Tier begleitet den Helden treu (kein magischer Vertrauter).
-S	Trank des ungehinderten Weges	Magie		Alchimistisches Wissen um einen Trank, der Bewegungshindernisse überwinden hilft.
-S	Traumgänger	Magie		Kann in die Träume anderer eintreten und darin handeln.
+S	Stapeleffekt	Magie		Beim ARCANOVI die ZfP* mehrerer Wirkender Sprüche zu einem stärkeren Effekt addieren.
+S	Tanz der Mada	Magie		Gildenmagier: Meditationstanz für Spezielle Erfahrungen in körperlichen Talenten (bis TaW 10).
+S	Tierischer Begleiter	Allgemein		Elfen: gedankliche Verbindung mit einem Tier, auf das bestimmte Zauber ausgeweitet werden können.
+S	Trank des ungehinderten Weges	Magie		Geoden: gemeinsam auf Geodentreffen gebrauter Trank, der bis zur nächsten Sonnenwende wirkt.
+S	Traumgänger	Magie		In fremden Träumen frei bewegen; Traumzauber und Heilkunde Seele dabei erleichtert.
 S	Tritt	Kampf		Waffenlos (Raufen-AT): Ansage erhöht die TP; ohne Beinarbeit ist die Parade +4 erschwert.
 S	Turnierreiterei	Kampf		Lanzenreiten-Proben +5; Reiten-Probe, um im Sattel zu bleiben, um die Hälfte erleichtert.
-S	Verbotene Pforten	Magie		Zaubern mit Lebensenergie statt Astralenergie – gefährlich und kräftezehrend.
+S	Verbotene Pforten	Magie		Eigene Lebensenergie für Zauber einsetzen; riskant und der Blutmagie verwandt.
 S	Versteckte Klinge	Kampf		Handgemengewaffe mit den Raufen-Werten führen, aber mit deren TP; mit Gerade und Schwinger kombinierbar.
-S	Vertrautenbindung	Magie		Bindung an ein Vertrautentier.
-S	Vielfache Ladungen	Magie		Artefaktmagie: Artefakte mit mehreren Ladungen herstellen.
+S	Vertrautenbindung	Magie		Hexen, Geoden u. a.: Ritual, mit dem ein Tier zum Vertrauten gebunden wird.
+S	Vielfache Ladungen	Magie		Artefakte mit vielen Ladungen und Wirkenden Sprüchen leichter herstellen.
 S	Wahrer Name: Dämon	Magie		Kennt wahre Namen von Dämonen; erleichtert deren Beschwörung und Beherrschung.
 S	Wahrer Name: Geist	Magie		Kennt wahre Namen von Geistern; erleichtert deren Beschwörung und Beherrschung.
 S	Wahrer Name: Untoter	Magie		Kennt wahre Namen von Untoten; erleichtert deren Erhebung und Beherrschung.
@@ -600,11 +600,11 @@ S	Wahrer Name: Dschinn	Magie		Kennt wahre Namen von Dschinnen; erleichtert deren
 S	Wahrer Name: Elementarer Meister	Magie		Kennt wahre Namen elementarer Meister; erleichtert deren Beschwörung.
 S	Wurf	Kampf		Waffenlos (Ringen-AT +4): Gegner zu Boden werfen (1W6 TP(A), INI –2W6); vorher muss ein Halten oder Griff gelungen sein.
 S	Würgegriff	Kampf		Waffenlos (Ringen-AT): Hält der Griff, entstehen in jeder folgenden KR automatisch 1W6+2 TP(A).
-S	Zauber bereithalten	Magie		Einen Zauber vorbereiten und erst später auslösen.
-S	Zauber unterbrechen	Magie		Einen begonnenen Zauber abbrechen, ohne die volle Astralenergie zu verlieren.
-S	Zauber vereinigen	Magie		Mehrere Zauberer bündeln ihre Kraft in einem gemeinsamen Zauber.
-S	Zauberkontrolle	Magie		Bessere Beherrschung der Zauber; Patzerfolgen fallen geringer aus.
-S	Zauberroutine	Magie		Oft gewirkte Zauber gelingen schneller bzw. mit weniger Aufwand.
+S	Zauber bereithalten	Magie		Einen Zauber wirken und bis zu MU Aktionen zurückhalten; Handeln erfordert Selbstbeherrschung.
+S	Zauber unterbrechen	Magie		Während der Zauberdauer eine Aktion einschieben und nach einer Selbstbeherrschungs-Probe weiterzaubern.
+S	Zauber vereinigen	Magie		Im UNITATIO-Zirkel deutlich mehr ZfP* zur Gesamtwirkung beisteuern.
+S	Zauberkontrolle	Magie		Eigene Zauber jederzeit aufheben; erkennt, ob ein Zauber an ihm selbst oder an MR scheiterte.
+S	Zauberroutine	Magie		Misslungene Zauber ohne Zuschlag wiederholen; Wiederholungen dauern nicht länger.
 # --- Eigenschaften und Basiswerte
 E	Mut	Eigenschaft		Tapferkeit und Entschlossenheit. Fließt ein in: Ausdauer, Astralenergie, Magieresistenz, Initiative (doppelt) und Attacke-Basis; dazu Proben gegen Angst.
 E	Klugheit	Eigenschaft		Verstand und Gedächtnis. Fließt ein in: Magieresistenz; Grundlage vieler Wissens- und Handwerkstalente und Zauber.
