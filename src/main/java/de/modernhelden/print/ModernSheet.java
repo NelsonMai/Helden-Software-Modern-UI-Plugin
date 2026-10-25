@@ -1280,6 +1280,8 @@ public final class ModernSheet implements Pageable, Printable {
         List<ColItem> items = new ArrayList<>();
         int i = 0;
         final float invColW = colWidth();
+        double unzenVorab = 0;
+        for (SheetData.Gegenstand gg : d.inventar) unzenVorab += gg.unzen;
         for (final SheetData.Gegenstand gg : d.inventar) {
             final boolean zebra = (i++ % 2) == 1;
             // lange Namen umbrechen; Anzahl, Gewicht und „angelegt“ bleiben auf der ersten Zeile
@@ -1300,9 +1302,11 @@ public final class ModernSheet implements Pageable, Printable {
                 right(g, gg.gewichtStein.isEmpty() ? "" : gg.gewichtStein + " St. (" + gg.gewichtStein + " kg)", x + w - 3, base);
             }));
         }
-        // leere Zeilen zum Eintragen weiterer Gegenstände (gehören zu den Notizfeldern)
+        // leere Zeilen zum Eintragen weiterer Gegenstände (gehören zu den Notizfeldern), höchstens 14: Sie füllen
+        // nur den Platz auf der Seite, lassen Raum für das Gesamtgewicht und beginnen nie eine neue Seite
+        final float reserve = unzenVorab > 0 ? 11 : 0;
         if (opt.notizseite) {
-            for (int k = 0; k < 10; k++) {
+            for (int k = 0; k < 14; k++) {
                 final boolean zebra = (i++ % 2) == 1;
                 items.add(new ColItem(14f, false, (g, x, yy, w, h) -> {
                     if (zebra) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, h)); }
@@ -1313,20 +1317,19 @@ public final class ModernSheet implements Pageable, Printable {
                     g.setFont(F.reg(6.5f));
                     g.setColor(MUTED);
                     right(g, "St.", x + w - 3, base - 1);
-                }));
+                }).alsFuell(reserve));
             }
         }
-        columns(items, "Inventar");
-        double unzen = 0;
-        for (SheetData.Gegenstand gg : d.inventar) unzen += gg.unzen;
-        if (unzen > 0) {
-            final String st = SheetData.fmt(unzen / 40.0);
-            atomic(13, (g, x, yy, w, h) -> {
+        // Gesamtgewicht als letzte Zeile des Inventars (auf derselben Seite wie mindestens ein Gegenstand)
+        if (unzenVorab > 0) {
+            final String st = SheetData.fmt(unzenVorab / 40.0);
+            items.add(new ColItem(11, false, (g, x, yy, w, h) -> {
                 g.setFont(F.reg(7.5f));
                 g.setColor(MUTED);
-                right(g, "Gesamtgewicht Inventar: " + st + " Stein (" + st + " kg)  ·  1 Stein = 40 Unzen = 1 kg", x + w - 3, yy + 9.5f);
-            });
+                right(g, fit(g, "Gesamtgewicht: " + st + " Stein (" + st + " kg)  ·  1 Stein = 40 Unzen = 1 kg", w - 3), x + w - 3, yy + 8.5f);
+            }).alsAbschluss());
         }
+        columns(items, "Inventar");
         space(4);
         geldboerse();
     }
@@ -1805,7 +1808,16 @@ public final class ModernSheet implements Pageable, Printable {
     private static final class ColItem {
         static final ColItem BREAK = new ColItem(0, false, null);
         final float h; final boolean keepNext; final Painter p;
+        /** Füllzeile (z. B. leere Inventarzeile): nur, solange Platz ist – löst nie eine neue Seite aus */
+        boolean fuell;
+        /** Platz, der unter Füllzeilen frei bleiben muss (z. B. für die Gesamtgewicht-Zeile) */
+        float reserve;
         ColItem(float h, boolean keepNext, Painter p) { this.h = h; this.keepNext = keepNext; this.p = p; }
+        ColItem alsFuell(float reserve) { fuell = true; this.reserve = reserve; return this; }
+        /** Abschlusszeile (z. B. Gesamtgewicht): rutscht nie allein auf eine neue Seite, sondern nimmt den
+         *  letzten Eintrag davor mit */
+        boolean abschluss;
+        ColItem alsAbschluss() { abschluss = true; return this; }
     }
 
     private static float colWidth() { return (W - 2 * M - 16) / 2f; }
@@ -1830,26 +1842,46 @@ public final class ModernSheet implements Pageable, Printable {
         float total = 0;
         for (ColItem it : items) total += it.h;
         float target = (!hasBreak && total / 2 + 30 <= BOTTOM - y) ? total / 2 : Float.MAX_VALUE;
+        boolean fuellAus = false;
+        int ersteFuellWeg = -1;     // erste Füllzeile, die auf dieser Seite keinen Platz mehr fand
+        float linksUnten = 0;       // Unterkante der linken Spalte (für die bündige Abschlusszeile)
+        ColItem letzter = null;
         for (int i = 0; i < items.size(); i++) {
             ColItem it = items.get(i);
             if (it == ColItem.BREAK) {
-                if (col == 0) { col = 1; maxY = Math.max(maxY, y); y = top; }
+                if (col == 0) { col = 1; maxY = Math.max(maxY, y); linksUnten = y; y = top; }
                 continue;
             }
             float need = it.h;
             if (it.keepNext && i + 1 < items.size() && items.get(i + 1) != ColItem.BREAK) need += items.get(i + 1).h;
             // an den Vorgänger gebunden (z. B. Legende an die letzte Zeile): beim Ausgleichen nicht davon trennen
             boolean gebunden = i > 0 && items.get(i - 1).keepNext && items.get(i - 1) != ColItem.BREAK;
-            if (col == 0 && !gebunden && target != Float.MAX_VALUE && y - top + need / 2 > target && y > top) {
+            if (col == 0 && !gebunden && !it.abschluss && target != Float.MAX_VALUE && y - top + need / 2 > target && y > top) {
                 maxY = Math.max(maxY, y);
+                linksUnten = y;
                 col = 1;
                 y = top;
             }
+            // Füllzeilen nicht auf eine neue Seite tragen: was nicht mehr passt, entfällt
+            if (it.fuell && (fuellAus || col == 1 && y + need + it.reserve > BOTTOM)) {
+                if (!fuellAus) ersteFuellWeg = i;
+                fuellAus = true;
+                continue;
+            }
             if (y + need > BOTTOM) {
                 maxY = Math.max(maxY, y);
-                if (col == 0) { col = 1; y = top; }
+                if (col == 0) { col = 1; linksUnten = y; y = top; }
                 else {
+                    // Abschlusszeile nicht allein: den letzten echten Eintrag dieser Seite mitnehmen
+                    Placed mit = null;
+                    float mitH = 0;
+                    if (it.abschluss && letzter != null && !letzter.fuell) {
+                        List<Placed> seite = pages.get(pages.size() - 1);
+                        mit = seite.remove(seite.size() - 1);
+                        mitH = letzter.h;
+                    }
                     newPage();
+                    linksUnten = 0;
                     col = 0;
                     if (titel != null) place(18, fortsetzung(titel).p);
                     top = y; maxY = y;
@@ -1860,9 +1892,28 @@ public final class ModernSheet implements Pageable, Printable {
                         if (items.get(k) == ColItem.BREAK) restBreak = true; else rest += items.get(k).h;
                     }
                     target = (!restBreak && rest / 2 + 30 <= BOTTOM - y) ? rest / 2 : Float.MAX_VALUE;
+                    if (mit != null) {
+                        pages.get(pages.size() - 1).add(new Placed(mit.p, M, y, colW, mitH));
+                        y += mitH;
+                        maxY = Math.max(maxY, y);
+                        // die auf der vorigen Seite weggefallenen Leerzeilen kommen hier wieder (vor die Abschlusszeile)
+                        if (ersteFuellWeg >= 0) {
+                            float rest2 = mitH;
+                            for (int k = ersteFuellWeg; k < items.size(); k++) rest2 += items.get(k).h;
+                            target = rest2 / 2 + 30 <= BOTTOM - top ? rest2 / 2 : Float.MAX_VALUE;
+                            i = ersteFuellWeg - 1;
+                            ersteFuellWeg = -1;
+                            fuellAus = false;
+                            letzter = null;
+                            continue;
+                        }
+                    }
                 }
             }
+            // Abschlusszeile rechts bündig mit der letzten Zeile der linken Spalte
+            if (it.abschluss && col == 1 && linksUnten - it.h > y && linksUnten <= BOTTOM) y = linksUnten - it.h;
             pages.get(pages.size() - 1).add(new Placed(it.p, M + col * (colW + gap), y, colW, it.h));
+            letzter = it;
             y += it.h;
             maxY = Math.max(maxY, y);
         }
