@@ -135,6 +135,7 @@ public final class IconSwap {
             slot(l, "icon", l.getIcon(), l::setIcon);
         } else if (c instanceof JTabbedPane) {
             JTabbedPane t = (JTabbedPane) c;
+            reiterBilder(t);
             for (int i = 0; i < t.getTabCount(); i++) {
                 final int idx = i;
                 slot(t, "tab" + i, t.getIconAt(i), ic -> t.setIconAt(idx, ic));
@@ -143,6 +144,62 @@ public final class IconSwap {
     }
 
     private interface Setter { void set(Icon i); }
+
+    /** Bilder der Helden-Software, deren Inhalt im modernen Design ersetzt ist (für die Rückkehr zum Original). */
+    private static final java.util.Map<ImageIcon, Image> ERSETZT = new java.util.WeakHashMap<>();
+
+    /**
+     * Reitersymbole, die die Helden-Software selbst immer wieder setzt (z. B. das Warnzeichen am Reiter
+     * „Kampfwerte“ nach jeder Änderung): Sie benutzt dafür jeweils dasselbe Bildobjekt. Dessen Bild wird hier durch
+     * das moderne ersetzt – sonst blitzte bis zum nächsten Durchlauf das alte Symbol auf.
+     */
+    private static void reiterBilder(JTabbedPane t) {
+        if (!modern) {
+            for (java.util.Map.Entry<ImageIcon, Image> e : ERSETZT.entrySet()) e.getKey().setImage(e.getValue());
+            if (!ERSETZT.isEmpty()) t.repaint();
+            ERSETZT.clear();
+            return;
+        }
+        for (Class<?> k = t.getClass(); k != null && k != JTabbedPane.class; k = k.getSuperclass()) {
+            for (java.lang.reflect.Field f : k.getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(f.getModifiers()) || !Icon.class.isAssignableFrom(f.getType())) continue;
+                Object v;
+                try {
+                    f.setAccessible(true);
+                    v = f.get(t);
+                } catch (ReflectiveOperationException | RuntimeException e) {
+                    continue;
+                }
+                if (!(v instanceof ImageIcon) || v instanceof ModernIcons.VektorIcon || ERSETZT.containsKey(v)) continue;
+                ImageIcon ii = (ImageIcon) v;
+                String key = ModernIcons.schluessel(ii.getDescription());
+                if (key == null) continue;
+                int w = ii.getIconWidth() > 0 ? ii.getIconWidth() : 16, h = ii.getIconHeight() > 0 ? ii.getIconHeight() : 16;
+                ERSETZT.put(ii, ii.getImage());
+                ii.setImage(bild(ModernIcons.icon(key, w, h), w, h));
+            }
+        }
+    }
+
+    /** Vektorsymbol als Bild (1× und 2× für hochauflösende Bildschirme). */
+    private static Image bild(Icon i, int w, int h) {
+        java.awt.image.BufferedImage a = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        java.awt.image.BufferedImage b = new java.awt.image.BufferedImage(w * 2, h * 2, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = a.createGraphics();
+        i.paintIcon(null, g, 0, 0);
+        g.dispose();
+        g = b.createGraphics();
+        g.scale(2, 2);
+        i.paintIcon(null, g, 0, 0);
+        g.dispose();
+        try {
+            // ab Java 9 (die Helden-Software läuft mit neuerem Java): scharf auch bei Skalierung
+            return (Image) Class.forName("java.awt.image.BaseMultiResolutionImage")
+                    .getConstructor(Image[].class).newInstance((Object) new Image[]{a, b});
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+            return a;
+        }
+    }
 
     /** Ordner-/Eintragssymbole eines Baum-Renderers (z. B. Gruppenliste, Gruppenvergleich). */
     private static void baumRenderer(Object r) {
