@@ -445,12 +445,11 @@ public final class HeroPanel extends JPanel {
         String summe = h.geldSilber > 0 ? "  (= " + Geld.silber(h.geldSilber) + " Silbertaler)" : "";
         JLabel geld = new JLabel("Geldbörse: " + (h.geld.isEmpty() ? "leer" : h.geld) + summe);
         geld.setFont(geld.getFont().deriveFont(Font.BOLD));
-        JLabel umr = new JLabel(Geld.UMRECHNUNG + "   ·   1 Stein = 40 Unzen = 1 kg (1 Unze = 25 g)");
-        umr.setForeground(Theme.muted());
+        // Umrechnung als Tooltip statt eigener Zeile – so bleibt mehr Platz für die Inventartabelle
+        geld.setToolTipText(Geld.UMRECHNUNG + "   ·   1 Stein = 40 Unzen = 1 kg (1 Unze = 25 g)");
         final JPanel kopf = new JPanel(new GridLayout(0, 1, 0, 2));
         kopf.setOpaque(false);
         kopf.add(geld);
-        kopf.add(umr);
         p.add(kopf, BorderLayout.NORTH);
         if (druckDaten == null) {
             p.add(scroll(itemList(h.inventar, false)));
@@ -509,12 +508,15 @@ public final class HeroPanel extends JPanel {
             if (g.angelegt) unzenAngelegt += g.unzen;
             preis += g.gesamtpreis;
         }
-        // Zusammenfassung über der Tabelle
+        // Zusammenfassung neben der Suche (kurz; der volle Wortlaut im Tooltip)
         JLabel summe = new JLabel(zeilen.size() + (zeilen.size() == 1 ? " Gegenstand" : " Gegenstände")
+                + "  ·  " + InventarInfo.stein(unzen) + " Stein"
+                + (preis > 0 ? "  ·  " + InventarInfo.preisText(preis) : ""));
+        summe.setToolTipText(zeilen.size() + (zeilen.size() == 1 ? " Gegenstand" : " Gegenstände")
                 + "  ·  Gesamtgewicht " + InventarInfo.stein(unzen) + " Stein"
                 + (unzenAngelegt > 0 ? " (davon angelegt " + InventarInfo.stein(unzenAngelegt) + ")" : "")
                 + (preis > 0 ? "  ·  Gesamtwert " + InventarInfo.preisText(preis) : ""));
-        kopf.add(summe);
+        summe.setForeground(Theme.muted());
 
         final String[] cols = {"Anz.", "Gegenstand", "Art", "Gewicht (Stein)", "Wert", "Angelegt", "Werte"};
         final javax.swing.table.AbstractTableModel model = new javax.swing.table.AbstractTableModel() {
@@ -607,18 +609,21 @@ public final class HeroPanel extends JPanel {
             public void changedUpdate(javax.swing.event.DocumentEvent e) { filtern.run(); }
         });
         art.addActionListener(e -> filtern.run());
+        // Suche, Filter und Zusammenfassung in einer Zeile
+        JPanel rechts = new JPanel(new BorderLayout(10, 0));
+        rechts.setOpaque(false);
+        rechts.add(art, BorderLayout.WEST);
+        rechts.add(summe, BorderLayout.CENTER);
         JPanel leiste = new JPanel(new BorderLayout(8, 0));
         leiste.setOpaque(false);
         leiste.add(suche, BorderLayout.CENTER);
-        leiste.add(art, BorderLayout.EAST);
+        leiste.add(rechts, BorderLayout.EAST);
+        suche.setPreferredSize(new Dimension(220, suche.getPreferredSize().height));
 
-        JLabel hinweis = new JLabel("Werte aus dem aktiven Kampfset (inkl. Behinderung). Mauszeiger über einer Zeile zeigt alle Angaben, Doppelklick legt eine Notiz an.");
-        hinweis.setForeground(Theme.muted());
         JPanel box = new JPanel(new BorderLayout(0, 6));
         box.setOpaque(false);
         box.add(leiste, BorderLayout.NORTH);
         box.add(scroll(table), BorderLayout.CENTER);
-        box.add(hinweis, BorderLayout.SOUTH);
         return box;
     }
 
@@ -711,7 +716,7 @@ public final class HeroPanel extends JPanel {
             HeroData.Talent t = h.talent(k.name);
             data.add(new Object[]{k.name, k.fernkampf ? "" : k.at, k.fernkampf ? "" : k.pa, k.fernkampf ? k.at : "", t == null ? "" : t.wert});
         }
-        return simpleTable(cols, data, "Kampfwerte inkl. Talentverteilung, ohne Waffen- und Rüstungsmodifikatoren.");
+        return simpleTable(cols, data, null);
     }
 
     private JComponent zauberTab(HeroData h) {

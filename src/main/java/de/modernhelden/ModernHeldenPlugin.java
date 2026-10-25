@@ -98,9 +98,13 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
                 stableTicks[0] = ready ? stableTicks[0] + 1 : 0;
                 if (stableTicks[0] >= 4 || System.currentTimeMillis() - start > 30000) {
                     t.stop();
+                    // Standbild über das Fenster, solange umgebaut wird: sonst sieht man kurz die Original-Ansichten
+                    // im neuen Erscheinungsbild, bevor die modernen Ansichten stehen
+                    Startvorhang v = Theme.ORIGINAL.equals(mode) ? null : Startvorhang.zeigen(frame);
                     Theme.apply(mode);
                     installDruckvorschau();
                     refresh();
+                    if (v != null) v.wegNachAufbau();
                 }
             });
             t.start();

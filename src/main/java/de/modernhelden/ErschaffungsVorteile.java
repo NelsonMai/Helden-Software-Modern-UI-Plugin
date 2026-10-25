@@ -25,8 +25,7 @@ final class ErschaffungsVorteile {
 
     static void doppelteAusblenden(JDialog dialog) {
         try {
-            Object w = ErschaffungsRahmen.rufe(dialog, "getWerkezug");
-            Object hsw = ErschaffungsRahmen.rufe(w, "getHswVorteile");
+            Object hsw = hswVorteile(dialog);
             Object moeglich = ErschaffungsRahmen.rufe(hsw, "getMoegliche");
             Object gewaehlt = ErschaffungsRahmen.rufe(hsw, "getVorteile");
             if (moeglich == null || !(gewaehlt instanceof List)) return;
@@ -56,6 +55,12 @@ final class ErschaffungsVorteile {
         }
     }
 
+    /** Die Vor-/Nachteil-Daten des Erschaffungs-Assistenten (beim Eingeben/Editieren: keine, dort null). */
+    static Object hswVorteile(Component c) {
+        Window w = c instanceof Window ? (Window) c : SwingUtilities.getWindowAncestor(c);
+        return ErschaffungsRahmen.rufe(ErschaffungsRahmen.rufe(w, "getWerkezug"), "getHswVorteile");
+    }
+
     private static Method methode(Object o, String name) {
         for (Method m : o.getClass().getMethods())
             if (m.getName().equals(name) && m.getParameterCount() == 1) return m;
@@ -68,7 +73,8 @@ final class ErschaffungsVorteile {
             if (ErschaffungsTabellen.ist(k)) {
                 JTable t = (JTable) k;
                 Object def = ErschaffungsRahmen.rufe(t.getModel(), "getTabDef");
-                if (def != null && def.getClass().getSimpleName().equals(TABDEF) && t.getModel() instanceof AbstractTableModel)
+                boolean eingabe = "Vorteile".equals(t.getName()) || "Nachteile".equals(t.getName());
+                if (def != null && (def.getClass().getSimpleName().equals(TABDEF) || eingabe) && t.getModel() instanceof AbstractTableModel)
                     ((AbstractTableModel) t.getModel()).fireTableDataChanged();
             }
             if (k instanceof Container) neuZeigen((Container) k);
@@ -89,13 +95,16 @@ final class ErschaffungsVorteile {
         for (JTable t : ErschaffungsSchritte.alle(mitte, JTable.class)) {
             if (!ErschaffungsTabellen.ist(t) || t.getClientProperty(GETEILT) != null) continue;
             Object def = ErschaffungsRahmen.rufe(t.getModel(), "getTabDef");
-            if (!String.valueOf(ErschaffungsRahmen.rufe(def, "getGlobalname")).startsWith("Automatische und gewählte Vor")) continue;
             JScrollPane sp = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, t);
             if (sp == null || !(sp.getParent() instanceof JPanel) || !(sp.getParent().getLayout() instanceof GridBagLayout)) continue;
-            Window w = SwingUtilities.getWindowAncestor(huelle);
-            Object hsw = ErschaffungsRahmen.rufe(ErschaffungsRahmen.rufe(w, "getWerkezug"), "getHswVorteile");
-            if (hsw == null) continue;
-            java.util.function.IntPredicate nachteil = r -> istNachteil(hsw, r);
+            // Erschaffen: Name der Tabellendefinition; Eingeben/Editieren: Überschrift über der Tabelle
+            boolean gewaehlte = String.valueOf(ErschaffungsRahmen.rufe(def, "getGlobalname")).startsWith("Automatische und gewählte Vor");
+            for (Component k : sp.getParent().getComponents())
+                if (k instanceof JLabel && String.valueOf(((JLabel) k).getText()).startsWith("Automatische und gewählte Vor")) gewaehlte = true;
+            if (!gewaehlte) continue;
+            Object hsw = hswVorteile(huelle);
+            final JTable tab = t;
+            java.util.function.IntPredicate nachteil = r -> istNachteil(hsw, tab, r);
             // zweite Tabelle über den Konstruktor der Helden-Software (ErschaffungsJTable(TabellenDefinition))
             JTable zweite = null;
             try {
@@ -167,7 +176,8 @@ final class ErschaffungsVorteile {
         for (JTable t : ErschaffungsSchritte.alle(mitte, JTable.class)) {
             if (!ErschaffungsTabellen.ist(t) || t.getClientProperty("modernhelden.vnSpalten") != null) continue;
             Object def = ErschaffungsRahmen.rufe(t.getModel(), "getTabDef");
-            if (def == null || !def.getClass().getSimpleName().equals(TABDEF)) continue;
+            boolean eingabe = "Vorteile".equals(t.getName()) || "Nachteile".equals(t.getName());
+            if (def == null || !(def.getClass().getSimpleName().equals(TABDEF) || eingabe)) continue;
             javax.swing.table.TableColumnModel cm = t.getColumnModel();
             int name = -1, gp = -1;
             for (int i = 0; i < cm.getColumnCount(); i++) {
@@ -175,7 +185,17 @@ final class ErschaffungsVorteile {
                 if (h.startsWith("Vor-/Nachteil")) name = i;
                 if (h.equals("GP")) gp = i;
             }
-            if (name < 0 || gp < 1 || gp - 1 == name) continue;
+            if (name < 0) continue;
+            if (gp < 1 || gp - 1 == name) {
+                // Eingeben/Editieren: keine GP-Spalte – nur den Namen breit genug machen
+                if (!eingabe) continue;
+                t.putClientProperty("modernhelden.vnSpalten", Boolean.TRUE);
+                javax.swing.table.TableColumn n = cm.getColumn(name);
+                int altN = n.getPreferredWidth();
+                n.setPreferredWidth(Math.max(altN, t.getFontMetrics(t.getFont()).stringWidth("Akademische Ausbildung (Gelehrter)") + 24));
+                ErschaffungsSchritte.rueck(huelle, () -> { n.setPreferredWidth(altN); t.putClientProperty("modernhelden.vnSpalten", null); });
+                continue;
+            }
             t.putClientProperty("modernhelden.vnSpalten", Boolean.TRUE);
             javax.swing.table.TableColumn n = cm.getColumn(name), vor = cm.getColumn(gp - 1);
             int altN = n.getPreferredWidth(), altV = vor.getPreferredWidth();
@@ -194,10 +214,19 @@ final class ErschaffungsVorteile {
      * Spaltenbreiten für die halbe Breite: Name breit, Wert mittel, die Zusatz-Auswahlen (nur bei Einträgen mit
      * mehreren Angaben belegt), Kosten und Knopf schmal. Liefert die bisherigen Breiten.
      */
+    private static boolean hatNachteilFrage(Object o) {
+        try {
+            return o.getClass().getMethod("\u00d600000").getReturnType() == boolean.class;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return false;
+        }
+    }
+
     private static int[] breiten(JTable t) {
         javax.swing.table.TableColumnModel cm = t.getColumnModel();
         int[] alt = new int[cm.getColumnCount()];
-        int[] neu = {180, 66, 18, 18, 60, 30};
+        // Erschaffen: Name, Wert, zwei Zusatz-Auswahlen, Kosten, Knopf; Eingeben: Name, Wert, Knopf
+        int[] neu = alt.length >= 6 ? new int[]{180, 66, 18, 18, 60, 30} : alt.length == 3 ? new int[]{220, 90, 30} : new int[]{180};
         for (int i = 0; i < alt.length; i++) {
             alt[i] = cm.getColumn(i).getPreferredWidth();
             if (i < neu.length) cm.getColumn(i).setPreferredWidth(neu[i]);
@@ -219,10 +248,15 @@ final class ErschaffungsVorteile {
     }
 
     /** Ist der gewählte Eintrag in dieser Zeile (Modell) ein Nachteil? */
-    private static boolean istNachteil(Object hsw, int zeile) {
+    private static boolean istNachteil(Object hsw, JTable t, int zeile) {
+        Object k = null;
         Object l = ErschaffungsRahmen.rufe(hsw, "getVorteile");
-        if (!(l instanceof List) || zeile < 0 || zeile >= ((List<?>) l).size()) return false;
-        Object k = ((List<?>) l).get(zeile);
+        if (l instanceof List && zeile >= 0 && zeile < ((List<?>) l).size()) k = ((List<?>) l).get(zeile);
+        // ohne Werkzeug: der Eintrag selbst steht in den Zellen der Zeile (Spalte mit Knopf/Wert)
+        for (int c = 1; k == null && zeile >= 0 && zeile < t.getModel().getRowCount() && c < t.getModel().getColumnCount(); c++) {
+            Object v = t.getModel().getValueAt(zeile, c);
+            if (v != null && !(v instanceof String) && hatNachteilFrage(v)) k = v;
+        }
         if (k == null) return false;
         // dieselbe Einteilung wie bei den Reitern „Vorteile“/„Nachteile“ der möglichen: die Liste der Helden-Software
         // fragt dafür den Eintrag selbst (boolesche Methode ohne Parameter, in 5.6.0 „\u00d600000“)
