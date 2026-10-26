@@ -419,6 +419,116 @@ public final class ModernIcons {
             g.setColor(ROT);
             linie(g, 14, 12, 19, 12);
         });
+        // ---- Ausrüstung (Reiter „Ausrüstung“)
+        def("aus_schild", (g, fg, a) -> {     // Wappenschild
+            Path2D p = new Path2D.Double();
+            p.moveTo(12, 3); p.lineTo(19.5, 5.5); p.lineTo(19.5, 11);
+            p.curveTo(19.5, 16, 16, 19.5, 12, 21.5); p.curveTo(8, 19.5, 4.5, 16, 4.5, 11);
+            p.lineTo(4.5, 5.5); p.closePath();
+            g.setColor(new Color(a.getRed(), a.getGreen(), a.getBlue(), 60));
+            g.fill(p);
+            g.setColor(fg);
+            g.draw(p);
+            g.setColor(a);
+            linie(g, 12, 6, 12, 18.5);
+        });
+        def("aus_last", (g, fg, a) -> {       // Gewicht (Kugelhantel)
+            g.setColor(fg);
+            g.draw(new Arc2D.Double(8, 3, 8, 8, 0, 180, Arc2D.OPEN));
+            linie(g, 8, 7, 8, 9); linie(g, 16, 7, 16, 9);
+            g.setColor(new Color(a.getRed(), a.getGreen(), a.getBlue(), 70));
+            g.fill(new Ellipse2D.Double(4.5, 8.5, 15, 13));
+            g.setColor(fg);
+            g.draw(new Ellipse2D.Double(4.5, 8.5, 15, 13));
+        });
+        def("aus_behinderung", (g, fg, a) -> { // Kugel am Fuß (Behinderung)
+            g.setColor(fg);
+            g.draw(pfad(5, 4, 5, 16, 10, 16));
+            g.draw(rr(3.5, 15, 8, 5, 2));
+            g.setColor(a);
+            g.draw(pfad(11, 18, 13, 18));
+            g.setColor(new Color(a.getRed(), a.getGreen(), a.getBlue(), 70));
+            g.fill(new Ellipse2D.Double(13, 13, 8, 8));
+            g.setColor(a);
+            g.draw(new Ellipse2D.Double(13, 13, 8, 8));
+        });
+        def("aus_ini", (g, fg, a) -> {        // Blitz
+            Path2D p = pfad(13.5, 2.5, 5.5, 13.5, 11, 13.5, 10, 21.5, 18.5, 9.5, 13, 9.5, 13.5, 2.5);
+            p.closePath();
+            g.setColor(new Color(a.getRed(), a.getGreen(), a.getBlue(), 70));
+            g.fill(p);
+            g.setColor(a);
+            g.draw(p);
+        });
+        def("aus_ausweichen", (g, fg, a) -> { // ausweichender Pfeil
+            g.setColor(fg);
+            Path2D p = new Path2D.Double();
+            p.moveTo(4, 19); p.curveTo(9, 19, 8, 6, 17, 6);
+            g.draw(p);
+            g.setColor(a);
+            g.draw(pfad(14, 3, 17.5, 6, 14, 9));
+            linie(g, 15, 15, 20, 20); linie(g, 20, 15, 15, 20);
+        });
+        def("aus_schwert", (g, fg, a) -> {    // Schwert, schräg
+            g.setColor(fg);
+            g.draw(pfad(20, 4, 20, 7, 9.5, 17.5, 6.5, 14.5, 17, 4, 20, 4));
+            g.setColor(a);
+            linie(g, 5, 13, 11, 19);
+            linie(g, 7.5, 16.5, 4, 20);
+        });
+        def("aus_bogen", (g, fg, a) -> {      // Bogen mit Pfeil
+            g.setColor(fg);
+            Path2D p = new Path2D.Double();
+            p.moveTo(6, 3); p.curveTo(18, 6, 18, 18, 6, 21);
+            g.draw(p);
+            Stroke alt = g.getStroke();
+            g.setStroke(new BasicStroke(1f));
+            linie(g, 6, 3, 6, 21);
+            g.setStroke(alt);
+            g.setColor(a);
+            linie(g, 3, 12, 20, 12);
+            g.draw(pfad(17, 9.5, 20.5, 12, 17, 14.5));
+        });
+        def("aus_helm", (g, fg, a) -> {       // Helm
+            g.setColor(new Color(a.getRed(), a.getGreen(), a.getBlue(), 60));
+            g.fill(new Arc2D.Double(4, 4, 16, 18, 0, 180, Arc2D.CHORD));
+            g.setColor(fg);
+            g.draw(new Arc2D.Double(4, 4, 16, 18, 0, 180, Arc2D.OPEN));
+            g.draw(pfad(3, 13, 21, 13));
+            g.setColor(a);
+            g.draw(pfad(12, 13, 12, 19));
+            g.draw(pfad(7, 13, 7, 17, 10, 17));
+        });
+        def("aus_ruestung", (g, fg, a) -> {   // Wams / Kettenhemd
+            Path2D p = pfad(8, 3.5, 3.5, 7, 5, 12, 7, 11, 7, 20.5, 17, 20.5, 17, 11, 19, 12, 20.5, 7, 16, 3.5, 14, 5, 10, 5, 8, 3.5);
+            p.closePath();
+            g.setColor(new Color(a.getRed(), a.getGreen(), a.getBlue(), 60));
+            g.fill(p);
+            g.setColor(fg);
+            g.draw(p);
+            g.setColor(a);
+            linie(g, 7, 14, 17, 14);
+        });
+        def("aus_arm", (g, fg, a) -> {        // Panzerhandschuh
+            Path2D p = pfad(7, 21, 7, 12, 5, 9, 6.5, 7.5, 9, 9.5, 9, 4.5, 11, 3.5, 12, 4.5, 13, 3.5, 15, 4.5, 16.5, 5.5, 17, 12, 15, 21);
+            p.closePath();
+            g.setColor(new Color(a.getRed(), a.getGreen(), a.getBlue(), 60));
+            g.fill(p);
+            g.setColor(fg);
+            g.draw(p);
+            g.setColor(a);
+            linie(g, 7.5, 16, 15.5, 16);
+        });
+        def("aus_bein", (g, fg, a) -> {       // Stiefel
+            Path2D p = pfad(8, 3, 15, 3, 15, 14, 20.5, 17, 20.5, 21, 7, 21, 8, 3);
+            p.closePath();
+            g.setColor(new Color(a.getRed(), a.getGreen(), a.getBlue(), 60));
+            g.fill(p);
+            g.setColor(fg);
+            g.draw(p);
+            g.setColor(a);
+            linie(g, 8, 8, 15, 8);
+        });
         def("kampf", (g, fg, a) -> {          // gekreuzte Schwerter
             g.setColor(fg);
             linie(g, 5, 5, 17, 17);
