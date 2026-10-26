@@ -147,6 +147,13 @@ final class TalenteAktivieren {
             ap.setOpaque(false);
             guthaben.setColumns(8);
             eingesetzt.setColumns(8);
+            // Beschriftungen nach Text bemessen (+4 px, unter Windows sonst abgeschnitten)
+            for (JLabel l : new JLabel[]{lGuthaben, lEingesetzt}) {
+                l.setPreferredSize(null);
+                l.setMinimumSize(null);
+                Dimension dl = l.getPreferredSize();
+                l.setPreferredSize(new Dimension(l.getFontMetrics(l.getFont()).stringWidth(l.getText()) + l.getInsets().left + l.getInsets().right + 4, dl.height));
+            }
             ap.add(lGuthaben);
             ap.add(guthaben);
             ap.add(Box.createHorizontalStrut(12));
@@ -194,7 +201,10 @@ final class TalenteAktivieren {
             aktiviert.setToolTipText("„−“ nimmt das Talent wieder zurück (die AP werden erstattet)");
             JScrollPane aktScroll = new JScrollPane(aktiviert);
             aktScroll.setPreferredSize(new Dimension(100, 170));
-            JLabel ueber = new JLabel("Aktivierte Talente");
+            JLabel ueber = new JLabel("Aktivierte Talente") {
+                // fett gesetzt: unter Windows sonst um wenige Pixel abgeschnitten
+                @Override public Dimension getPreferredSize() { Dimension d = super.getPreferredSize(); return new Dimension(d.width + 4, d.height); }
+            };
             ueber.setFont(ueber.getFont().deriveFont(Font.BOLD));
             JPanel unten = new JPanel(new BorderLayout(0, 6));
             unten.setOpaque(false);
