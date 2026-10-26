@@ -14,13 +14,8 @@ zurückschalten.
 ### Oberfläche
 
 - **Drei Designs:** *Modern hell*, *Modern dunkel* und *Original* – für die ganze Software samt Dialogen.
-- **Tabellen:** Zebra-Streifen, sortierbar per Spaltenkopf; *+1* und *SE* funktionieren auch sortiert.
-- **Suche:** über Talenten und Zaubern, bei Talenten zusätzlich Schalter für die Talentgruppen.
-- **Eigene Symbole** für hell und dunkel.
-- **Jede Fenstergröße:** schon in der Startgröße wird nichts abgeschnitten.
-
-Die neu gestalteten Reiter gibt es nur in den modernen Designs; im *Original* bleibt alles wie bisher. Änderungen
-am Helden laufen immer über die Bedienelemente der Helden-Software.
+- **Tabellen** mit Zebra-Streifen, sortierbar; **Suche** bei Talenten und Zaubern; **eigene Symbole**.
+- Neu gestaltete Reiter nur in den modernen Designs; Änderungen laufen immer über die Helden-Software.
 
 | Modern dunkel | Neue Symbole |
 |---|---|
@@ -28,42 +23,28 @@ am Helden laufen immer über die Bedienelemente der Helden-Software.
 
 ### Helden erschaffen
 
-Der Erschaffungs-Assistent in neuem Rahmen: links die Schritte mit Nummer, Häkchen und Warnung, in der Mitte der
-Schritt mit kurzer Erklärung, rechts eine Info-Spalte mit dem bisherigen Helden, den Punkten (GP, AP, Nachteile …)
-als Balken, Hinweisen der Regelprüfung und dem, was die gewählte Rasse, Kultur oder Profession mitbringt.
-Regelbasis, Einstellungen und Aussehen sind als Karten aufgebaut, Rassen, Kulturen und Professionen zeigen ihre
-GP-Kosten als Plakette. Die Tabellen (Eigenschaften, Vor-/Nachteile, Sonderfertigkeiten, Talente, Zauber, Kosten)
-sind per Spaltenkopf sortierbar, z. B. nach Kosten oder Wert; Vor-/Nachteile, Sonderfertigkeiten, Talente und Zauber
-haben eine Suche, Talente zusätzlich Schalter je Kategorie, Unterreiter zeigen die Trefferzahl.
-Bei den Vor- und Nachteilen stehen die gewählten getrennt nach Vorteilen und Nachteilen nebeneinander, und
-bereits gewählte werden auch nach dem Wechsel auf „Auch ungeeignete Vor- und Nachteile“ nicht erneut angeboten.
-Gerechnet und geprüft wird weiter von der Helden-Software.
-„Einen Helden eingeben“ und „Einen Helden editieren“ haben denselben Rahmen (Schrittleiste, Kopf, Info-Spalte,
-Karten für Geschlecht/Setting und Person) und eine Suche bei Rasse, Kultur, Profession und Talenten.
+Assistent in neuem Rahmen: Schritte links, Erklärung in der Mitte, rechts der bisherige Held mit GP/AP als Balken
+und Hinweisen der Regelprüfung. Sortierbare Tabellen mit Suche, Vor- und Nachteile getrennt nebeneinander.
+„Einen Helden eingeben/editieren“ im selben Rahmen.
 
 ![Erschaffung: Schritt Kultur mit Info-Spalte](docs/bilder/erschaffung.png)
 
 ### Allgemein
 
-Links der Steckbrief mit allen Angaben (*Angaben bearbeiten …*), rechts die Abenteuerpunkte mit Balken,
-Herkunfts-Tooltip und *AP hinzufügen …*. Darunter Vorteile, Nachteile und Sonderfertigkeiten in drei Spalten mit
-Kurzbeschreibung und Suche.
+Steckbrief, Abenteuerpunkte mit Herkunft und *AP hinzufügen …*, Vor-/Nachteile und SF mit Kurzbeschreibung.
 
 ![Reiter „Allgemein“ im modernen Design](docs/bilder/allgemein.png)
 
 ### Eigenschaften
 
-Eigenschaften mit Kosten und wofür sie gebraucht werden; LE, AU, AE und MR mit Rechenweg
-(„(KO 12 + KO 12 + KK 11) / 2 = 17,5 → 18 · Modifikator +10“), verlorene AE mit *Zurückkaufen*;
-Kampf-Basiswerte, Sozialstatus und Gilde.
+Eigenschaften mit Kosten und Verwendung, LE/AU/AE/MR mit Rechenweg, Kampf-Basiswerte, Sozialstatus und Gilde.
 
 ![Reiter „Eigenschaften“ im modernen Design](docs/bilder/eigenschaften.png)
 
 ### Inventar, Hinzufügen und Geldbörse
 
-- **Inventar:** Gewicht und Geld auf einen Blick, Suche, Filter und Gruppierung nach Art.
-- **Gegenstand hinzufügen:** Suche links, Werte rechts; *Kaufen* bezahlt direkt aus der Geldbörse.
-- **Geldbörse:** Betrag eingeben, *Einnehmen* oder *Ausgeben* – gewechselt wird automatisch.
+Gewicht und Geld auf einen Blick, Suche und Gruppierung; Gegenstände mit Werten hinzufügen und direkt kaufen;
+Geldbörse zum Einnehmen und Ausgeben mit automatischem Wechseln.
 
 ![Inventar im modernen Design](docs/bilder/inventar.png)
 
@@ -73,8 +54,8 @@ Kampf-Basiswerte, Sozialstatus und Gilde.
 
 ### Ausrüstung
 
-Die drei Sets als Karten mit RS je Zone, Summen und angelegten Gegenständen; Ablegen mit ✕. Beim *Bearbeiten*
-per Doppelklick oder Ziehen anlegen.
+Je Set Figur mit RS je Zone, Belastung und Kampfwerte; Rüstung nach Zonen, Waffen als Kacheln. Hand, Schild,
+beidhändig und Jagdwaffe per Schalter, „Werte …“ und Ablegen direkt; *Bearbeiten*: Platz wählen und anlegen.
 
 | Ausrüstung | Nahkampfwaffen bearbeiten |
 |---|---|
@@ -82,17 +63,14 @@ per Doppelklick oder Ziehen anlegen.
 
 ### Kampfwerte
 
-Basiswerte mit Formel, Nahkampf mit AT/PA-Verteilung als Balken und den Verteilungsregeln (gesperrtes „+“ mit
-Begründung, **↺** gibt die TaP eines Talents wieder frei), Fernkampf mit Rechenweg.
+Basiswerte mit Formel, AT/PA-Verteilung als Balken samt Regeln, Fernkampf mit Rechenweg.
 
 ![Reiter „Kampfwerte“ im modernen Design](docs/bilder/kampfwerte.png)
 
 ### Tooltips und eigene Notizen
 
-- **Tooltips** zu Talenten, SF, Vor-/Nachteilen, Zaubern, Eigenschaften und Basiswerten.
-- **Herkunft** eines Werts (jede Steigerung mit Datum, Lernmethode und AP) und der Abenteuerpunkte.
-- **Eigene Notizen** per Doppelklick oder `Strg+Umschalt+T` – auch auf dem Heldenbogen.
-- *Erweiterte Tooltips anzeigen* schaltet alle Tooltips und Hinweise des Plugins ab.
+Tooltips zu Talenten, SF, Vor-/Nachteilen, Zaubern und Werten, mit Herkunft jeder Steigerung; eigene Notizen per
+Doppelklick oder `Strg+Umschalt+T` (auch auf dem Heldenbogen).
 
 | Herkunft eines Talentwerts | Herkunft der Abenteuerpunkte |
 |---|---|
@@ -100,27 +78,21 @@ Begründung, **↺** gibt die TaP eines Talents wieder frei), Fernkampf mit Rech
 
 ### Verlauf
 
-Alle Steigerungen und Sonderfertigkeiten mit Datum, Lernmethode und AP. *Rückgängig machen …* nimmt die jeweils
-letzte Änderung zurück und erstattet die AP (gerechnet von der Helden-Software, dauerhaft erst nach dem Speichern).
+Alle Steigerungen mit Datum, Lernmethode und AP; *Rückgängig machen …* nimmt die letzte Änderung zurück.
 
 ![Reiter „Verlauf“ mit Lernmethode und Spezieller Erfahrung](docs/bilder/verlauf.png)
 
 ### Kompaktansicht
 
-Der ganze Held auf einen Blick: Eigenschaften als Kacheln, Talente mit Balken, SF, Vor-/Nachteile, Kampf, Zauber
-und Inventar.
+Der ganze Held auf einen Blick.
 
 ![Reiter „Kompaktansicht“ im dunklen Design](docs/bilder/kompaktansicht-dunkel.png)
 
 ### Moderner Heldenbogen
 
-Neu gestalteter A4-Bogen in der Druckvorschau, mit Drucken und PDF: Werte, Kampf mit Trefferzonen, Talente nach
-Gruppen, Magie-Seite, Inventar und Notizen mit Portrait. *Optionen ▾* blendet Teile ein und aus; *Original*
-zeigt die bisherige Druckvorschau. Das Portrait-Feld passt sich dem Bild an oder bekommt ein festes Format
-(3:4, 2:3, 4:5, 9:16, 1:1, 4:3, 3:2, 16:9) – unter *Optionen ▾ → Portrait-Format*, je Held gespeichert.
-Über *Optionen ▾ → Charakterbeschreibung öffnen …* lässt sich eine Textdatei (TXT, MD) hinterlegen, über
-*Charakterbeschreibung schreiben/bearbeiten …* der Text direkt eingeben oder ändern (je Held gespeichert, auf Wunsch auch als Datei); er
-steht dann im Feld „Charakterbeschreibung“ (längere Texte gehen auf Linien darunter weiter).
+A4-Bogen in der Druckvorschau (Drucken und PDF): Werte, Kampf mit Trefferzonen, Talente, Magie, Inventar und
+Notizen mit Portrait. *Optionen ▾* blendet Teile ein und aus, legt das Portrait-Format fest und nimmt eine
+Charakterbeschreibung auf; *Original* zeigt die bisherige Druckvorschau.
 
 ![Druckvorschau mit dem modernen Heldenbogen](docs/bilder/druckvorschau.png)
 
@@ -142,8 +114,7 @@ steht dann im Feld „Charakterbeschreibung“ (längere Texte gehen auf Linien 
 
 Deinstallation: JAR löschen – die Helden-Software sieht danach aus wie vorher.
 
-**Updates:** Mit *Einstellungen → Updater → Automatisch Updaten* installiert das Plugin neue Releases selbst
-(geprüft per SHA-256, alte Version bleibt in `helden/plugins/modern-ui/update/`); von Hand über
+**Updates:** automatisch über *Einstellungen → Updater → Automatisch Updaten* oder von Hand über
 *Erweiterungen → Modern-UI → Nach Updates suchen …*.
 
 ## Bedienung
@@ -153,7 +124,7 @@ Deinstallation: JAR löschen – die Helden-Software sieht danach aus wie vorher
 | Design, Tooltips an/aus | *Erweiterungen → Modern-UI* |
 | AP hinzufügen | *Allgemein* → *AP hinzufügen …* oder „+350“ ins Feld *AP gesamt* |
 | Eigene Notiz | Doppelklick auf einen Eintrag oder `Strg+Umschalt+T` |
-| Ausrüstung anlegen / ablegen | *Ausrüstung* → *Bearbeiten* → Doppelklick oder Ziehen / rotes „✕“ |
+| Ausrüstung anlegen / ablegen | *Ausrüstung* → *Bearbeiten* → Platz wählen, „Anlegen“ / rotes „✕“ |
 | Steigerung rückgängig | *Verlauf* → Eintrag wählen → *Rückgängig machen …* |
 
 Eigene Notizen liegen nur auf deinem Rechner in `helden/plugins/modern-ui/eigene-tooltips.tsv` – Auszüge aus
@@ -162,9 +133,7 @@ Regelbüchern bitte nicht weitergeben.
 ## Selbst bauen
 
 JDK 8 oder neuer: `./build.sh` erzeugt `build/ModernUI-Plugin.jar` (FlatLaf von Maven Central oder aus
-`FLATLAF_JAR`; die Helden-Software wird nicht benötigt). GitHub Actions hängt das JAR an veröffentlichte Releases.
-Der Quellcode liegt in `src/main/java/de/modernhelden/`: je Reiter eine `…Layout.java`, dazu `Theme`, `TooltipHook`,
-`Rueckgaengig`, `HeroPanel` (Kompaktansicht und Verlauf) sowie `print/` (Heldenbogen) und `update/`.
+`FLATLAF_JAR`). Quellcode in `src/main/java/de/modernhelden/`.
 
 ## Hinweise
 
