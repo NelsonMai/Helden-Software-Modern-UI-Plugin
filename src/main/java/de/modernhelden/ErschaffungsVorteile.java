@@ -145,6 +145,9 @@ final class ErschaffungsVorteile {
             p.add(geteilt, gbc);
             int[] breiten = breiten(t);
             breiten(z2);
+            // Spaltenkopf je Seite: „Vorteil“ bzw. „Nachteil“ statt „Vor-/Nachteil“
+            Runnable kopfZurueck = ueberschrift(t, "Vorteil");
+            ueberschrift(z2, "Nachteil");
             ErschaffungsTabellen.grundfilter(t, r -> !nachteil.test(r));
             ErschaffungsTabellen.grundfilter(z2, nachteil);
             p.revalidate();
@@ -152,6 +155,7 @@ final class ErschaffungsVorteile {
 
             ErschaffungsSchritte.rueck(huelle, () -> {
                 t.getModel().removeTableModelListener(mit);
+                kopfZurueck.run();
                 for (int i = 0; i < breiten.length && i < t.getColumnModel().getColumnCount(); i++)
                     t.getColumnModel().getColumn(i).setPreferredWidth(breiten[i]);
                 ErschaffungsTabellen.grundfilter(t, null);
@@ -166,6 +170,20 @@ final class ErschaffungsVorteile {
                 t.putClientProperty(GETEILT, null);
             });
         }
+    }
+
+    /** Kopf der Namensspalte („Vor-/Nachteil“) umbenennen – nur in der Ansicht; liefert die Rücknahme. */
+    private static Runnable ueberschrift(JTable t, String neu) {
+        javax.swing.table.TableColumnModel cm = t.getColumnModel();
+        for (int i = 0; i < cm.getColumnCount(); i++) {
+            javax.swing.table.TableColumn c = cm.getColumn(i);
+            Object alt = c.getHeaderValue();
+            if (!String.valueOf(alt).trim().startsWith("Vor-/Nachteil")) continue;
+            c.setHeaderValue(neu);
+            if (t.getTableHeader() != null) t.getTableHeader().repaint();
+            return () -> { c.setHeaderValue(alt); if (t.getTableHeader() != null) t.getTableHeader().repaint(); };
+        }
+        return () -> { };
     }
 
     /**

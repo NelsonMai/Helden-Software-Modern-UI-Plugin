@@ -62,7 +62,7 @@ final class TabellenStil {
         @Override
         public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean focus, int row, int col) {
             TableCellRenderer r = original != null ? original : t.getDefaultRenderer(t.getColumnClass(col));
-            Component c = r.getTableCellRendererComponent(t, v, sel, focus, row, col);
+            Component c = r.getTableCellRendererComponent(t, v, sel, focus, ErschaffungsTabellen.zeileFuer(t, r, row), col);
             gruppe(t, c, row, col);
             if (c == null && ErschaffungsTabellen.ist(t)) c = leer(t);
             if (c != null && sel) return markiert(t, c);

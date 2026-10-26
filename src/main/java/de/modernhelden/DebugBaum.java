@@ -23,6 +23,9 @@ final class DebugBaum {
         if (!anf.isFile()) return;
         anf.delete();
         StringBuilder sb = new StringBuilder();
+        Component fokus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        sb.append("FOKUS: ").append(fokus == null ? "null" : fokus.getClass().getName() + " in "
+                + (fokus.getParent() == null ? "-" : fokus.getParent().getClass().getName())).append('\n');
         for (Window w : Window.getWindows()) {
             if (w.isShowing()) knoten(sb, w, 0);
         }

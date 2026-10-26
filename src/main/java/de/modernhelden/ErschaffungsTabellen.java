@@ -19,9 +19,9 @@ import java.util.regex.Pattern;
  * per Klick auf den Spaltenkopf sortierbar (auf, ab, ursprünglich) und über eine Suchleiste filterbar.
  * <p>
  * Die Tabellen der Helden-Software arbeiten an einigen Stellen mit der Zeilennummer statt mit dem Eintrag:
- * Auswahl einer Zeile und Zusatz-Tooltips. Beides wird hier auf die Zeile im Modell umgerechnet, damit
- * Sortieren und Filtern nie den falschen Eintrag treffen. Knöpfe, Spinner und Auswahllisten hängen ohnehin am
- * Eintrag selbst.
+ * Auswahl einer Zeile, Zusatz-Tooltips und die Zellen mit wechselndem Inhalt (Auswahlliste oder Freitext, etwa der
+ * Dämon beim Paktierer). All das wird hier auf die Zeile im Modell umgerechnet, damit Sortieren und Filtern nie den
+ * falschen Eintrag treffen. Knöpfe, Spinner und feste Auswahllisten hängen ohnehin am Eintrag selbst.
  */
 final class ErschaffungsTabellen {
 
@@ -91,11 +91,24 @@ final class ErschaffungsTabellen {
 
         if (t.getClientProperty(GRUND) != null) filtern(t, (String) t.getClientProperty(LETZTE_SUCHE), (String) t.getClientProperty(LETZTE_KATEGORIE));
 
+        // Zellen mit wechselndem Inhalt (Auswahlliste, Freitext, Häkchen) fragen die Spaltendefinition nach der Zeile
+        // im Modell: Editoren bekommen deshalb die umgerechnete Zeile (Renderer: siehe TabellenStil.Zebra)
+        List<Runnable> editorRueck = new ArrayList<>();
+        for (int c = 0; c < t.getColumnModel().getColumnCount(); c++) {
+            javax.swing.table.TableColumn col = t.getColumnModel().getColumn(c);
+            javax.swing.table.TableCellEditor ed = col.getCellEditor();
+            if (ed == null || !zeilenAbhaengig(ed)) continue;
+            col.setCellEditor(new Umrechner(ed));
+            editorRueck.add(() -> col.setCellEditor(ed));
+        }
+
         // Tooltips je Zeile aus dem Modell statt aus der Ansicht
         t.putClientProperty(TooltipHook.TABELLEN_TIP, (java.util.function.Function<Point, String>) p -> tip(t, tabDef, p));
         ToolTipManager.sharedInstance().unregisterComponent(t);
 
         rueck.accept(() -> {
+            if (t.isEditing()) try { t.removeEditor(); } catch (RuntimeException ignore) { }
+            editorRueck.forEach(Runnable::run);
             t.setRowSorter(alterSortierer);
             if (!fremd.isEmpty()) {
                 t.getSelectionModel().removeListSelectionListener(eigen);
@@ -109,6 +122,33 @@ final class ErschaffungsTabellen {
             t.putClientProperty(MARKE, null);
             t.putClientProperty("modernhelden.gefiltert", null);
         });
+    }
+
+    /** Zellen der Helden-Software, die über die Zeilennummer (statt über den Eintrag) bei der Spaltendefinition nachfragen. */
+    static boolean zeilenAbhaengig(Object zelle) {
+        return zelle != null && zelle.getClass().getName().endsWith("tabellenDialog.CellMultifunctional");
+    }
+
+    /** Zeile, die eine Helden-Zelle erwartet: bei zeilenabhängigen Zellen die Zeile im Modell. */
+    static int zeileFuer(JTable t, Object zelle, int row) {
+        if (row < 0 || !zeilenAbhaengig(zelle) || !(t.getRowSorter() instanceof Sortierer)) return row;
+        try { int m = t.convertRowIndexToModel(row); return m < 0 ? row : m; } catch (RuntimeException e) { return row; }
+    }
+
+    /** Editor-Hülle, die der Helden-Zelle die Zeile im Modell übergibt. */
+    static final class Umrechner implements javax.swing.table.TableCellEditor {
+        final javax.swing.table.TableCellEditor original;
+        Umrechner(javax.swing.table.TableCellEditor original) { this.original = original; }
+        @Override public Component getTableCellEditorComponent(JTable t, Object v, boolean sel, int row, int col) {
+            return original.getTableCellEditorComponent(t, v, sel, zeileFuer(t, original, row), col);
+        }
+        @Override public Object getCellEditorValue() { return original.getCellEditorValue(); }
+        @Override public boolean isCellEditable(EventObject e) { return original.isCellEditable(e); }
+        @Override public boolean shouldSelectCell(EventObject e) { return original.shouldSelectCell(e); }
+        @Override public boolean stopCellEditing() { return original.stopCellEditing(); }
+        @Override public void cancelCellEditing() { original.cancelCellEditing(); }
+        @Override public void addCellEditorListener(javax.swing.event.CellEditorListener l) { original.addCellEditorListener(l); }
+        @Override public void removeCellEditorListener(javax.swing.event.CellEditorListener l) { original.removeCellEditorListener(l); }
     }
 
     /** Tooltip der Helden-Software für die Zelle unter dem Mauszeiger, mit der richtigen Zeile im Modell. */

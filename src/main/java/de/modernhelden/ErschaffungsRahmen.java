@@ -821,6 +821,18 @@ final class ErschaffungsRahmen {
         }
     }
 
+    /** Öffentliche Methode mit einem Parameter aufrufen; null, wenn es sie nicht gibt oder etwas schiefgeht. */
+    static Object rufeMit(Object o, String methode, Class<?> typ, Object wert) {
+        if (o == null) return null;
+        try {
+            Method m = o.getClass().getMethod(methode, typ);
+            m.setAccessible(true);
+            return m.invoke(o, wert);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+            return null;
+        }
+    }
+
     static <T> T erstes(Container c, Class<T> art) {
         if (c == null) return null;
         for (Component k : c.getComponents()) {
