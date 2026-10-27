@@ -194,6 +194,7 @@ final class HinzufuegenLayout {
             tabelle.addMouseListener(new MouseAdapter() {
                 @Override public void mousePressed(MouseEvent ev) { SwingUtilities.invokeLater(() -> inventarDetails()); }
             });
+            liste.putClientProperty(TooltipHook.DOPPELKLICK_BELEGT, true);
             liste.addMouseListener(new MouseAdapter() {
                 @Override public void mouseClicked(MouseEvent ev) {
                     // Doppelklick: wie beim Ziehen ins Inventar nachfragen (geben oder kaufen)

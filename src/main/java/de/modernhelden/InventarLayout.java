@@ -281,6 +281,8 @@ final class InventarLayout {
                 if (rs != null && rs.getModel() != tabelle.getModel()) tabelle.setRowSorter(null);
                 SwingUtilities.invokeLater(this::tabelle);
             });
+            // nur im modernen Design belegt – im Original bleibt der Doppelklick wie bisher
+            t.putClientProperty(TooltipHook.DOPPELKLICK_BELEGT, (java.util.function.BooleanSupplier) () -> aktiv);
             t.addMouseListener(new MouseAdapter() {
                 @Override public void mouseClicked(MouseEvent e) {
                     // Doppelklick auf Anzahl/Name/Art/Gewicht: Gegenstand bearbeiten

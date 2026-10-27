@@ -236,7 +236,17 @@ public final class TooltipHook implements AWTEventListener {
             if (d == c) break;
         }
         if (Boolean.TRUE.equals(c.getClientProperty("modernhelden.own"))) return;   // eigener Reiter regelt das selbst
+        // Plugin nutzt den Doppelklick dort selbst (Markierung an der Komponente oder an einem Vorfahren)
+        for (Component a = c; a != null; a = a.getParent()) {
+            Object belegtVomPlugin = a instanceof JComponent ? ((JComponent) a).getClientProperty(DOPPELKLICK_BELEGT) : null;
+            if (Boolean.TRUE.equals(belegtVomPlugin)) return;
+            if (belegtVomPlugin instanceof java.util.function.BooleanSupplier
+                    && ((java.util.function.BooleanSupplier) belegtVomPlugin).getAsBoolean()) return;
+        }
         if (!(c instanceof JTable || c instanceof JList || c instanceof JTree || c instanceof JLabel)) return;
+        // aufgeklappte Auswahlliste (z. B. Kampftalent im Fenster „Werte …“): ein Klick dort wählt nur aus
+        for (Component a = c; a != null; a = a.getParent())
+            if (a instanceof javax.swing.plaf.basic.ComboPopup) return;
         String belegt = eigeneDoppelklickLogik(c, e.getPoint());
         String text = textAt(c, e.getPoint());
         TooltipDB.Match m = text == null ? null : db.find(text);
@@ -293,6 +303,14 @@ public final class TooltipHook implements AWTEventListener {
         pendingScreen = e.getLocationOnScreen();
         showTimer.restart();
     }
+
+    /**
+     * Markiert Tabellen/Listen, in denen das Plugin selbst etwas mit einem Doppelklick macht (z. B. „Anlegen“
+     * im Ausrüstungsdialog) – dort öffnet ein Doppelklick nicht zusätzlich „Tooltip-Text bearbeiten“. Gilt für die
+     * markierte Komponente samt allem, was darin liegt.
+     * Wert: {@code true} oder ein {@link java.util.function.BooleanSupplier} (z. B. nur im modernen Design).
+     */
+    static final String DOPPELKLICK_BELEGT = "modernhelden.doppelklickBelegt";
 
     /** Eigene Ansichten markieren Zellen damit, für welchen Eintrag (z. B. „Mut“) der Tooltip gezeigt wird. */
     static final String TOOLTIP_FUER = "modernhelden.tooltipFuer";

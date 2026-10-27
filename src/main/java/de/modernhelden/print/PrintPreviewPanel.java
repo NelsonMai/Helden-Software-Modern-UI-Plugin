@@ -26,6 +26,8 @@ public final class PrintPreviewPanel extends JPanel {
 
     private final TooltipDB db;
     private final Supplier<Document> data;
+    /** Heldendaten („exportHeld“) für Angaben, die in den Druckdaten fehlen (z. B. die Hand der Nahkampfwaffen). */
+    public static Supplier<Document> export;
     private final Map<String, String> props;
     private final BiConsumer<String, String> save;
     private final CardLayout cards = new CardLayout();
@@ -383,6 +385,7 @@ public final class PrintPreviewPanel extends JPanel {
         } else {
             try {
                 SheetData d = SheetData.parse(doc);
+                try { if (export != null) d.handAusExport(export.get()); } catch (RuntimeException ignore) { }
                 heroName = d.name.isEmpty() ? "Held" : d.name;
                 sheetData = d;
                 // gespeicherte Wahl dieses Helden übernehmen (ohne eigene Wahl: bisherige allgemeine Einstellung)

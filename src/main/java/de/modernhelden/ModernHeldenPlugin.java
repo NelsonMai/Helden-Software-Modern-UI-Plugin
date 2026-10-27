@@ -300,6 +300,14 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         try {
             if (printPanel == null) {
                 printPanel = new PrintPreviewPanel(db, this::heldDaten, props, this::saveProp);
+                PrintPreviewPanel.export = () -> {
+                    try {
+                        Object o = exec("exportHeld", "id", "selected");
+                        return o instanceof Document ? (Document) o : null;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                };
             }
             JTabbedPane tabs = findTabs(frame.getContentPane());
             if (tabs == null) return;

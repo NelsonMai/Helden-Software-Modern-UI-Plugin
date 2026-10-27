@@ -205,6 +205,7 @@ final class AusruestungLayout {
             setOpaque(false);
             setBorder(new EmptyBorder(12, 12, 12, 12));
             putClientProperty("modernhelden.own", true);
+            putClientProperty(TooltipHook.DOPPELKLICK_BELEGT, true);   // Doppelklick auf der Seite öffnet keine Tooltip-Notiz
         }
 
         public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }

@@ -47,6 +47,12 @@ public final class SheetData {
         public boolean ausdauer;
         /** Kombiniert mit Schild/Parierwaffe Nr. … (Helden-Software: „(S1)“ im Namen), sonst leer. */
         public String schild = "";
+        /** Platz 1–5 im Kampfset (für den Abgleich mit der Ausrüstung). */
+        public int nummer;
+        /** Beidhändiger Kampf für dieses Waffenpaar (1+2 bzw. 3+4) eingestellt. */
+        public boolean beidhaendig;
+        /** Hand laut Ausrüstung: „R“, „L“ oder leer, wenn unbekannt. */
+        public String hand = "";
     }
 
     public static final class Fernkampfwaffe {
@@ -98,6 +104,8 @@ public final class SheetData {
     public final List<Eintrag> vorteile = new ArrayList<>();
     public final List<Eintrag> sf = new ArrayList<>();
     public final List<Nahkampfwaffe> nahkampf = new ArrayList<>();
+    /** Nummer des gedruckten Kampfsets (1-basiert), 0 wenn unbekannt. */
+    public int kampfset;
     public final List<Fernkampfwaffe> fernkampf = new ArrayList<>();
     public final List<Schild> schilde = new ArrayList<>();
     public final List<Ruestung> ruestungen = new ArrayList<>();
@@ -265,6 +273,7 @@ public final class SheetData {
 
         Element ks = pickKampfset(child(root, "kampfsets"), child(root, "config"));
         if (ks != null) {
+            try { d.kampfset = Integer.parseInt(ks.getAttribute("nr").trim()); } catch (NumberFormatException ignore) { }
             Element r = child(ks, "raufen");
             d.raufenAt = text(r, "at"); d.raufenPa = text(r, "pa"); d.raufenTp = text(r, "tp");
             Element ri = child(ks, "ringen");
@@ -297,6 +306,8 @@ public final class SheetData {
                 n.pa = text(w, "pa");
                 n.bf = text(w, "bfakt");
                 n.be = text(w, "be");
+                try { n.nummer = Integer.parseInt(text(w, "nummer").trim()); } catch (NumberFormatException ignore) { }
+                n.beidhaendig = "true".equals(text(w, "bh"));
                 // Kennzeichnungen, die die Helden-Software an den Namen hängt: „(A)“ Ausdauerschaden, „(S1)“ mit Schild Nr. 1
                 java.util.regex.Matcher km;
                 while ((km = java.util.regex.Pattern.compile("^(.*\\S)\\s+\\((A|S(\\d+))\\)$").matcher(n.name)).matches()) {
@@ -349,6 +360,25 @@ public final class SheetData {
             if ("true".equals(k.getAttribute("tzm")) == zone) return k;
         }
         return fallback;
+    }
+
+    /**
+     * Ergänzt die Hand der Nahkampfwaffen aus den Heldendaten („exportHeld“): Einträge „nkwaffeN“ des gedruckten
+     * Kampfsets tragen dort „hand“ = rechts/links. Die Druckdaten selbst enthalten die Hand nicht.
+     */
+    public void handAusExport(Document export) {
+        if (export == null || kampfset <= 0) return;
+        org.w3c.dom.NodeList nl = export.getElementsByTagName("heldenausruestung");
+        for (Nahkampfwaffe n : nahkampf) {
+            if (n.nummer <= 0) continue;
+            for (int i = 0; i < nl.getLength(); i++) {
+                Element e = (Element) nl.item(i);
+                if (!("nkwaffe" + n.nummer).equals(e.getAttribute("name"))
+                        || !String.valueOf(kampfset - 1).equals(e.getAttribute("set"))) continue;
+                String h = e.getAttribute("hand");
+                n.hand = "links".equals(h) ? "L" : "rechts".equals(h) ? "R" : "";
+            }
+        }
     }
 
     public Wert wert(String key) { return werte.get(key); }

@@ -379,6 +379,10 @@ public final class ModernSheet implements Pageable, Printable {
             for (SheetData.Nahkampfwaffe n : d.nahkampf) {
                 r.add(new String[]{n.name, n.talent, n.dk, n.tp, n.tpkk, n.ini, n.wm, n.at, n.pa, n.bf});
                 List<Kennung> k = new ArrayList<>();
+                // wie im Original-Heldenbogen: Hand und beidhändiger Kampf („1-BK R“) an der Waffe kenntlich machen
+                if ("R".equals(n.hand)) { k.add(new Kennung(Plakette.RECHTS, "R")); benutzt.add(Plakette.RECHTS); }
+                if ("L".equals(n.hand)) { k.add(new Kennung(Plakette.LINKS, "L")); benutzt.add(Plakette.LINKS); }
+                if (n.beidhaendig) { k.add(new Kennung(Plakette.BEIDHAENDIG, "BK")); benutzt.add(Plakette.BEIDHAENDIG); }
                 if (n.ausdauer) { k.add(new Kennung(Plakette.AUSDAUER, "A")); benutzt.add(Plakette.AUSDAUER); }
                 if (!n.schild.isEmpty()) { k.add(new Kennung(Plakette.SCHILD, "S" + n.schild)); benutzt.add(Plakette.SCHILD); }
                 kz.add(k);
@@ -414,11 +418,10 @@ public final class ModernSheet implements Pageable, Printable {
             table(new String[]{"Name", "Typ", "INI", "WM", "PA", "BF"},
                     new float[]{3f, 1.5f, .6f, .9f, .6f, .5f}, new int[]{0, 0, 1, 1, 2, 1}, r, false);
         }
-        ruestung();
+        ruestungUndTrefferzonen();
+        space(6);
         behinderungUndInitiative();
         waffenlos();
-        space(6);
-        trefferzonenUndWunden(trefferLinks);
         space(6);
     }
 
@@ -426,120 +429,159 @@ public final class ModernSheet implements Pageable, Printable {
     private static final String[][] TREFFERZONEN = {
             {"Kopf", "+4", "19–20", "17–20", "MU, KL, IN, INI-Basis −2; INI −2W6", "+2W6 SP, bewusstlos, Blutverlust"},
             {"Brust", "+6", "15–18", "11–16", "AT, PA, KO, KK −1; +1W6 SP", "bewusstlos, Blutverlust"},
-            {"Arme", "+4/+6**", "9–14", "3–10", "AT, PA, KK, FF −2 mit diesem Arm", "Arm handlungsunfähig"},
+            {"Arme", "+4/+6**", "9–14**", "3–10", "AT, PA, KK, FF −2 mit diesem Arm", "Arm handlungsunfähig"},
             {"Bauch", "+4", "7–8", "1–2", "AT, PA, KO, KK, GS, INI-Basis −1; +1W6 SP", "bewusstlos, Blutverlust"},
             {"Beine", "+2", "1–6***", "–", "AT, PA, GE, INI-Basis −2; GS −1", "Sturz, kampfunfähig"}};
 
-    private void ruestung() {
-        // Schwertarm = rechts, außer bei Linkshändern
-        boolean links = false;
-        for (SheetData.Eintrag e : d.vorteile) if (e.name.startsWith("Linkshänder")) links = true;
-        final String schwert = "9–14 ger.", schild = "9–14 ung.";
-        final String[][] zonenW20 = {
-                {"Kopf", "19–20"}, {"Brust", "15–18"}, {"Rücken", "15–18"}, {"Bauch", "7–8"},
-                {"R. Arm", links ? schild : schwert}, {"L. Arm", links ? schwert : schild},
-                {"R. Bein", "1–6 ger."}, {"L. Bein", "1–6 ung."}};
-        final List<String[]> z = new ArrayList<>();          // {Name, RS, W20}
-        for (String[] t : zonenW20) {
-            String rs = d.zonen.get(t[0]);
-            // ohne Zonendaten: ohne Rüstung ist der RS überall 0, sonst unbekannt (einfache RS-Berechnung)
-            if (rs == null) rs = d.ruestungen.isEmpty() ? "0" : "–";
-            z.add(new String[]{t[0], rs, t[1]});
-        }
-        final int zonen = z.size();
-        String rsGes = !d.rsGesamt.isEmpty() ? d.rsGesamt : d.ruestungen.isEmpty() ? "0" : "";
-        if (!rsGes.isEmpty()) z.add(new String[]{"RS", rsGes, "gesamt"});
-        final List<String> teile = new ArrayList<>();
-        for (SheetData.Ruestung r : d.ruestungen) teile.add(r.name + (r.rs.isEmpty() || "*".equals(r.rs) ? "" : " (RS " + r.rs + ", BE " + r.be + ")"));
-        final List<String> lines = wrap(String.join(" · ", teile), F.reg(7.5f), W - 2 * M);
-        final float tileH = zonen > 0 ? 40 : 28;
-        final float blockH = tileH + 8 + lines.size() * 10;
-        subheading("Rüstung & Trefferzonen", blockH);
-        atomic(blockH, (g, x, yy, w, h) -> {
-            float gap = 4, tw = (w - gap * (z.size() - 1)) / Math.max(1, z.size());
-            for (int i = 0; i < z.size(); i++) {
-                boolean sum = i >= zonen;
-                float tx = x + i * (tw + gap);
-                g.setColor(sum ? ACCENT_SOFT : FILL);
-                g.fill(new RoundRectangle2D.Float(tx, yy, tw, tileH, 6, 6));
-                g.setFont(F.bold(6.5f));
-                g.setColor(MUTED);
-                center(g, z.get(i)[0].toUpperCase(Locale.GERMAN), tx, tw, yy + 9);
-                g.setFont(F.bold(12));
-                g.setColor(sum ? ACCENT : INK);
-                center(g, z.get(i)[1], tx, tw, yy + 23);
-                if (zonen > 0) {
-                    String w20 = z.get(i)[2];
-                    if (!sum) {
-                        g.setColor(WHITE);
-                        g.fill(new RoundRectangle2D.Float(tx + 3, yy + 27, tw - 6, 10, 5, 5));
-                    }
-                    g.setFont(F.bold(6.1f));
-                    g.setColor(sum ? MUTED : ACCENT);
-                    center(g, sum ? w20 : fit(g, "W20 " + w20, tw - 8), tx, tw, yy + 34.5f);
-                }
-            }
-            float ly = yy + tileH + 10;
-            g.setFont(F.reg(7.5f));
-            g.setColor(MUTED);
-            for (String l : lines) { g.drawString(l, x, ly); ly += 10; }
-        });
-        trefferLinks = links;
+    /** RS einer Rüstungszone; ohne Zonendaten: ohne Rüstung 0, sonst unbekannt (einfache RS-Berechnung). */
+    private String rsZone(String zone) {
+        String rs = d.zonen.get(zone);
+        return rs != null ? rs : d.ruestungen.isEmpty() ? "0" : "–";
     }
 
-    private boolean trefferLinks;
+    /**
+     * Rüstung, Trefferzonen und Wunden in einem Block: je Trefferzone eine flache Karte mit Zonenname, RS-Plakette,
+     * Kästchen zum Abstreichen, einer Würfelzeile und den Wundfolgen; die sechste Zelle trägt RS gesamt und Fußnoten,
+     * darunter die angelegten Rüstungsteile.
+     */
+    private void ruestungUndTrefferzonen() {
+        // Schwertarm = rechts, außer bei Linkshändern
+        boolean lh = false;
+        for (SheetData.Eintrag e : d.vorteile) if (e.name.startsWith("Linkshänder")) lh = true;
+        final boolean linkshaender = lh;
+        // RS je Trefferzone als {Beschriftung, Wert}; Zonen mit zwei Seiten bekommen zwei Einträge
+        final String[][][] rs = {
+                {{"RS", rsZone("Kopf")}},
+                {{"Brust", rsZone("Brust")}, {"Rücken", rsZone("Rücken")}},
+                {{"Rechts", rsZone("R. Arm")}, {"Links", rsZone("L. Arm")}},
+                {{"RS", rsZone("Bauch")}},
+                {{"Rechts", rsZone("R. Bein")}, {"Links", rsZone("L. Bein")}}};
+        final String rsGes = !d.rsGesamt.isEmpty() ? d.rsGesamt : d.ruestungen.isEmpty() ? "0" : "–";
+        final List<String> teile = new ArrayList<>();
+        for (SheetData.Ruestung r : d.ruestungen) teile.add(r.name + (r.rs.isEmpty() || "*".equals(r.rs) ? "" : " (RS " + r.rs + ", BE " + r.be + ")"));
+        final List<String> ruestLines = teile.isEmpty() ? new ArrayList<>()
+                : wrap("Angelegt: " + String.join(" · ", teile), F.reg(7.2f), W - 2 * M);
 
-    /** Tabelle der Trefferzonen mit Zufallswurf, Reiter, gezieltem Schlag und Wundfolgen. */
-    private void trefferzonenUndWunden(final boolean linkshaender) {
-        final float[] rel = {0.8f, 0.62f, 0.72f, 0.58f, 3.1f, 2.15f, 0.8f};
-        final String[] head = {"Zone", "G.S.*", "Zufall", "Reiter", "Erste und zweite Wunde", "Dritte Wunde", "Wunden"};
-        final int[] align = {0, 1, 1, 1, 0, 0, 1};
-        final float rowH = 14, headH = 14;
+        final float gap = 5, cw = (W - 2 * M - gap) / 2, pad = 7, zeile = 9, dW = 56;
+        final float linksW = cw - 2 * pad - dW - 6, textW = linksW - 22;
+        final Font fLab = F.bold(6f), fTxt = F.reg(7.3f);
         final String[] fuss = {
-                "*) Gezielter Schlag; Ansage jeweils +2.",
-                "**) Ansage +4 für den Schwertarm, +6 für den Schildarm. Zufall: gerade = Schwertarm, ungerade = Schildarm"
-                        + (linkshaender ? " (Linkshänder: Schwertarm links)." : " (Schwertarm rechts)."),
-                "***) Zufall: gerade = rechtes Bein, ungerade = linkes Bein.   Rücken wird wie die Brust (Torso) ausgewürfelt."};
-        float h = 14 + headH + TREFFERZONEN.length * rowH + 4 + fuss.length * 9.5f;
-        if (y + h > BOTTOM) newPage();
+                "□ je Wunde abstreichen  ·  * G.S. = gezielter Schlag, Ansage +2",
+                "** Schwertarm +4, Schildarm +6; W20 gerade = Schwertarm ("
+                        + (linkshaender ? "links, Linkshänder)" : "rechts)"),
+                "*** W20 gerade = rechtes, ungerade = linkes Bein  ·  Rücken wie Brust"};
+        final List<List<String>> w12 = new ArrayList<>(), w3 = new ArrayList<>();
+        for (String[] z : TREFFERZONEN) { w12.add(wrap(z[4], fTxt, textW)); w3.add(wrap(z[5], fTxt, textW)); }
+        final List<String> fz = new ArrayList<>();
+        for (String f : fuss) fz.addAll(wrap(f, F.reg(6.2f), cw - 2 * pad));
+        final int reihen = (TREFFERZONEN.length + 2) / 2;      // + eine Zelle für RS gesamt und Fußnoten
+        final float[] rh = new float[reihen];
+        for (int i = 0; i <= TREFFERZONEN.length; i++) {
+            float k = i < TREFFERZONEN.length
+                    ? 16 + (Math.max(1, w12.get(i).size()) + Math.max(1, w3.get(i).size())) * zeile + 5
+                    : 16 + fz.size() * 7.6f + 3;
+            rh[i / 2] = Math.max(rh[i / 2], k);
+        }
+        float h0 = 0;
+        for (float r : rh) h0 += r + gap;
+        h0 -= gap;
+        final float gridH = h0, h = gridH + (ruestLines.isEmpty() ? 0 : 4 + ruestLines.size() * 9.5f);
+        subheading("Rüstung, Trefferzonen & Wunden", h);
         atomic(h, (g, x, yy, w, hh) -> {
-            float sum = 0;
-            for (float r : rel) sum += r;
-            float[] cx = new float[rel.length + 1];
-            cx[0] = x;
-            for (int i = 0; i < rel.length; i++) cx[i + 1] = cx[i] + rel[i] / sum * w;
-            g.setFont(F.bold(7));
-            g.setColor(MUTED);
-            g.drawString("TREFFERZONEN & WUNDEN", x, yy + 9);
-            float ty = yy + 14;
-            g.setColor(ACCENT_SOFT);
-            g.fill(new RoundRectangle2D.Float(x, ty, w, headH, 6, 6));
-            g.setFont(F.bold(6.3f));
-            g.setColor(ACCENT.darker());
-            for (int i = 0; i < head.length; i++) cell(g, head[i].toUpperCase(Locale.GERMAN), cx[i], cx[i + 1] - cx[i], ty + 9.8f, align[i]);
-            float ry = ty + headH;
-            for (int r = 0; r < TREFFERZONEN.length; r++) {
-                String[] z = TREFFERZONEN[r];
-                if (r % 2 == 1) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, ry, w, rowH)); }
-                float base = ry + rowH - 4;
-                for (int c = 0; c < z.length; c++) {
-                    g.setFont(c == 0 ? F.bold(8) : c >= 4 ? F.reg(7.2f) : F.reg(7.8f));
-                    g.setColor(c == 0 ? INK : c == 5 ? ACCENT.darker() : new Color(0x444444));
-                    cell(g, z[c], cx[c], cx[c + 1] - cx[c], base, align[c]);
+            float ry = yy;
+            for (int i = 0; i <= TREFFERZONEN.length; i++) {
+                float kx = x + (i % 2) * (cw + gap), kh = rh[i / 2];
+                if (i == TREFFERZONEN.length) {
+                    // freie Zelle im Stil der Karten: „Gesamt“ mit RS-Plakette, darunter die Fußnoten
+                    g.setColor(FILL);
+                    g.fill(new RoundRectangle2D.Float(kx, ry, cw, kh, 8, 8));
+                    g.setFont(F.bold(9));
+                    g.setColor(INK);
+                    g.drawString("Gesamt", kx + pad, ry + 12.5f);
+                    plaketteFest(g, new String[]{"RS", rsGes}, kx + pad + NAME_SP, ry + 4.5f, PLAK_W);
+                    g.setFont(F.reg(6.2f));
+                    g.setColor(MUTED);
+                    float fy = ry + 16 + (kh - 16 - fz.size() * 7.6f) / 2 + 5.6f;
+                    for (String l : fz) { g.drawString(l, kx + pad, fy); fy += 7.6f; }
+                    break;
                 }
-                // drei Kästchen zum Abstreichen der Wunden in dieser Zone
-                int boxes = 3;
-                float bs = 7, bg = 3, bx = cx[6] + ((cx[7] - cx[6]) - (boxes * bs + (boxes - 1) * bg)) / 2;
-                g.setColor(LINE.darker());
-                for (int i = 0; i < boxes; i++)
-                    g.draw(new RoundRectangle2D.Float(bx + i * (bs + bg), ry + (rowH - bs) / 2, bs, bs, 2, 2));
-                ry += rowH;
+                String[] z = TREFFERZONEN[i];
+                g.setColor(FILL);
+                g.fill(new RoundRectangle2D.Float(kx, ry, cw, kh, 8, 8));
+                float cx0 = kx + pad;
+                // Kopfzeile in festen Spalten: Zone | RS-Plakette + drei Kästchen | (zweite Seite) RS-Plakette + drei Kästchen
+                g.setFont(F.bold(9));
+                g.setColor(INK);
+                g.drawString(z[0], cx0, ry + 12.5f);
+                String[][] seiten = rs[i];
+                for (int k = 0; k < seiten.length; k++) {
+                    float gx = cx0 + NAME_SP + k * (PLAK_W + 3 + KASTEN + 6);
+                    plaketteFest(g, seiten[k], gx, ry + 4.5f, PLAK_W);
+                    kaestchen(g, gx + PLAK_W + 3, ry + 6, KB, KG);
+                }
+                // Wundfolgen
+                float ty = ry + 16 + 7;
+                ty = folge(g, "1./2.", w12.get(i), new Color(0x444444), cx0, ty, fLab, fTxt);
+                folge(g, "3.", w3.get(i), ACCENT.darker(), cx0, ty, fLab, fTxt);
+                // rechte Spalte: gezielter Schlag, Zufallswurf, Reiter untereinander
+                float dx = kx + cw - pad - dW, dy = ry + 5, dh = kh - 10;
+                g.setColor(WHITE);
+                g.fill(new RoundRectangle2D.Float(dx, dy, dW, dh, 6, 6));
+                String[][] wuerfe = {{"G.S.", z[1]}, {"W20", z[2]}, {"REITER", z[3]}};
+                float zh = dh / 3;
+                for (int r = 0; r < 3; r++) {
+                    float base = dy + zh * r + zh / 2 + 2.5f;
+                    g.setFont(F.bold(5.6f));
+                    g.setColor(MUTED);
+                    g.drawString(wuerfe[r][0], dx + 5, base - 0.3f);
+                    g.setFont(F.bold(7));
+                    g.setColor(ACCENT);
+                    g.drawString(wuerfe[r][1], dx + dW - 5 - g.getFontMetrics().stringWidth(wuerfe[r][1]), base);
+                }
+                if (i % 2 == 1) ry += kh + gap;
             }
-            g.setFont(F.reg(6.6f));
+            float ly = yy + gridH + 11;
+            g.setFont(F.reg(7.2f));
             g.setColor(MUTED);
-            float fy = ry + 10;
-            for (String f : fuss) { g.drawString(fit(g, f, w), x, fy); fy += 9.5f; }
+            for (String l : ruestLines) { g.drawString(l, x, ly); ly += 9.5f; }
         });
+    }
+
+    /** Feste Spalten der Kartenköpfe: Zonenname, RS-Plakette, Wundkästchen (Kantenlänge, Abstand, Gesamtbreite). */
+    private static final float NAME_SP = 37, PLAK_W = 42, KB = 6.5f, KG = 2, KASTEN = 3 * KB + 2 * KG;
+
+    /** RS-Plakette mit fester Breite: Beschriftung links, Wert rechts. */
+    private static void plaketteFest(Graphics2D g, String[] paar, float x, float y, float w) {
+        g.setColor(ACCENT_SOFT);
+        g.fill(new RoundRectangle2D.Float(x, y, w, 10.5f, 10.5f, 10.5f));
+        g.setFont(F.bold(5.4f));
+        g.setColor(ACCENT.darker());
+        g.drawString(paar[0].toUpperCase(Locale.GERMAN), x + 5, y + 7.5f);
+        g.setFont(F.bold(8));
+        g.setColor(INK);
+        g.drawString(paar[1], x + w - 5 - g.getFontMetrics().stringWidth(paar[1]), y + 8.3f);
+    }
+
+    /** Drei Kästchen zum Abstreichen von Wunden. */
+    private static void kaestchen(Graphics2D g, float x, float y, float bs, float bg) {
+        for (int b = 0; b < 3; b++) {
+            g.setColor(WHITE);
+            g.fill(new RoundRectangle2D.Float(x + b * (bs + bg), y, bs, bs, 2, 2));
+            g.setColor(LINE.darker());
+            g.draw(new RoundRectangle2D.Float(x + b * (bs + bg), y, bs, bs, 2, 2));
+        }
+    }
+
+    /** Eine Wundfolge: kleines Etikett links, Text (ggf. mehrzeilig) daneben. Liefert die nächste Grundlinie. */
+    private static float folge(Graphics2D g, String lab, List<String> zeilen, Color farbe, float x, float base, Font fLab, Font fTxt) {
+        g.setFont(fLab);
+        g.setColor(MUTED);
+        g.drawString(lab, x, base);
+        g.setFont(fTxt);
+        g.setColor(farbe);
+        if (zeilen.isEmpty()) { g.drawString("–", x + 22, base); return base + 9f; }
+        for (String l : zeilen) { g.drawString(l, x + 22, base); base += 9f; }
+        return base;
     }
 
     /** Gesamt-Behinderung der angelegten Rüstung und Initiative-Berechnung je Waffe. */
@@ -909,8 +951,11 @@ public final class ModernSheet implements Pageable, Printable {
         HAUSZAUBER("HZ", new Color(0x7a4f9a), "Hauszauber"),
         LEITZAUBER("L", new Color(0x4a6587), "Leitzauber"),
         JAGD("J", new Color(0x2d7a7e), "Jagdwaffe"),
+        RECHTS("R", new Color(0x7b7b7b), "rechte Hand"),
+        LINKS("L", new Color(0x7b7b7b), "linke Hand"),
+        BEIDHAENDIG("BK", new Color(0x8a5a2b), "beidhändiger Kampf"),
         AUSDAUER("A", new Color(0x7b7b7b), "Ausdauerschaden"),
-        SCHILD("S", new Color(0x7b7b7b), "kombiniert mit Schild/Parierwaffe Nr. 1");
+        SCHILD("S", new Color(0x7b7b7b), "mit Schild/Parierwaffe Nr. 1");
 
         final String text; final Color farbe; final String bedeutung;
         Plakette(String text, Color farbe, String bedeutung) { this.text = text; this.farbe = farbe; this.bedeutung = bedeutung; }

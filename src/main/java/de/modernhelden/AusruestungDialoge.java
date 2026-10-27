@@ -564,6 +564,7 @@ final class AusruestungDialoge {
         });
 
         // ---- Doppelklick und Ziehen
+        tabelle.putClientProperty(TooltipHook.DOPPELKLICK_BELEGT, true);
         tabelle.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(e) || tabelle.getSelectedRow() < 0) return;
@@ -1121,6 +1122,7 @@ final class AusruestungDialoge {
     }
 
     private static void doppelklick(JTable t, AbstractButton b) {
+        t.putClientProperty(TooltipHook.DOPPELKLICK_BELEGT, true);
         t.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && t.getSelectedRow() >= 0) b.doClick();
