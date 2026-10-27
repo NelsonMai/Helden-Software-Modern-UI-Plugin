@@ -462,7 +462,7 @@ public final class ModernSheet implements Pageable, Printable {
         final List<String> ruestLines = teile.isEmpty() ? new ArrayList<>()
                 : wrap("Angelegt: " + String.join(" · ", teile), F.reg(7.2f), W - 2 * M);
 
-        final float gap = 5, cw = (W - 2 * M - gap) / 2, pad = 7, zeile = 9, dW = 56;
+        final float gap = 5, cw = (W - 2 * M - gap) / 2, pad = 7, zeile = 9, dW = 60;
         final float linksW = cw - 2 * pad - dW - 6, textW = linksW - 22;
         final Font fLab = F.bold(6f), fTxt = F.reg(7.3f);
         final String[] fuss = {
@@ -527,16 +527,21 @@ public final class ModernSheet implements Pageable, Printable {
                 float dx = kx + cw - pad - dW, dy = ry + 5, dh = kh - 10;
                 g.setColor(WHITE);
                 g.fill(new RoundRectangle2D.Float(dx, dy, dW, dh, 6, 6));
-                String[][] wuerfe = {{"G.S.", z[1]}, {"W20", z[2]}, {"REITER", z[3]}};
+                // Zufallswurf und Reiter sind beide W20-Würfe – Beschriftung wird bei Platzmangel etwas kleiner
+                String[][] wuerfe = {{"G.S.", z[1]}, {"W20", z[2]}, {"W20 REITER", z[3]}};
                 float zh = dh / 3;
                 for (int r = 0; r < 3; r++) {
                     float base = dy + zh * r + zh / 2 + 2.5f;
-                    g.setFont(F.bold(5.6f));
+                    g.setFont(F.bold(7));
+                    float vw = g.getFontMetrics().stringWidth(wuerfe[r][1]);
+                    float platz = dW - 8 - vw - 3, gr = 5.6f;
+                    while (gr > 4.4f && g.getFontMetrics(F.bold(gr)).stringWidth(wuerfe[r][0]) > platz) gr -= 0.2f;
+                    g.setFont(F.bold(gr));
                     g.setColor(MUTED);
-                    g.drawString(wuerfe[r][0], dx + 5, base - 0.3f);
+                    g.drawString(wuerfe[r][0], dx + 4, base - 0.3f);
                     g.setFont(F.bold(7));
                     g.setColor(ACCENT);
-                    g.drawString(wuerfe[r][1], dx + dW - 5 - g.getFontMetrics().stringWidth(wuerfe[r][1]), base);
+                    g.drawString(wuerfe[r][1], dx + dW - 4 - vw, base);
                 }
                 if (i % 2 == 1) ry += kh + gap;
             }
