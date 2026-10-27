@@ -159,6 +159,8 @@ final class AusruestungLayout {
         final boolean raster;
         SetLayout(int abstand, int mindest) { this(abstand, mindest, false); }
         SetLayout(int abstand, int mindest, boolean raster) { this.abstand = abstand; this.mindest = mindest; this.raster = raster; }
+        /** Jede Karte behält ihre eigene Höhe (statt auf die Zeilenhöhe gestreckt zu werden). */
+        boolean eigeneHoehe;
 
         private int spalten(Container c, int breite) {
             int n = c.getComponentCount();
@@ -191,14 +193,17 @@ final class AusruestungLayout {
             for (int z = 0; z < n; z += sp) {
                 int zh = 0;
                 for (int k = z; k < Math.min(n, z + sp); k++) zh = Math.max(zh, c.getComponent(k).getPreferredSize().height);
-                for (int k = z; k < Math.min(n, z + sp); k++)
-                    c.getComponent(k).setBounds(i.left + (k - z) * (w + abstand), y, w, zh);
+                for (int k = z; k < Math.min(n, z + sp); k++) {
+                    Component k1 = c.getComponent(k);
+                    // eigene Höhe: nebeneinander stehende Karten oben bündig, aber nicht künstlich gestreckt
+                    k1.setBounds(i.left + (k - z) * (w + abstand), y, w, eigeneHoehe ? k1.getPreferredSize().height : zh);
+                }
                 y += zh + abstand;
             }
         }
     }
 
-    /** Breite folgt dem Fenster, Höhe dem Inhalt (scrollt bei Bedarf). Zeigt ein Set: Übersicht, Rüstung, Waffen. */
+    /** Breite folgt dem Fenster, Höhe dem Inhalt (scrollt bei Bedarf). Zeigt ein Set: Übersicht, Waffen, Rüstung. */
     private static final class Ansicht extends JPanel implements Scrollable {
         Ansicht() {
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -220,15 +225,19 @@ final class AusruestungLayout {
             removeAll();
             Map<Integer, Element> sets = sets(d);
             Seite s = new Seite(z, sets, gewichte(d), export);
-            JPanel oben = new JPanel(new SetLayout(12, 470));
+            SetLayout obenLayout = new SetLayout(12, 470);
+            obenLayout.eigeneHoehe = true;
+            JPanel oben = new JPanel(obenLayout);
             oben.setOpaque(false);
             oben.setAlignmentX(0);
+            // breites Fenster: Übersicht links, Waffen rechts daneben; schmal: untereinander. Rüstungsteile ganz unten.
             oben.add(s.uebersicht());
-            oben.add(s.ruestungKarte());
+            oben.add(s.waffenKarte());
             add(oben);
             add(Box.createVerticalStrut(12));
-            JComponent w = s.waffenKarte();
-            add(w);
+            JComponent r = s.ruestungKarte();
+            r.setAlignmentX(0);
+            add(r);
             markieren(this);
             revalidate();
             repaint();
