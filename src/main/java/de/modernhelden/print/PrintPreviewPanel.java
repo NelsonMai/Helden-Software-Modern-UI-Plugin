@@ -36,8 +36,9 @@ public final class PrintPreviewPanel extends JPanel {
     private final JScrollPane scroll = new JScrollPane(pages);
     private final JToggleButton modern = new JToggleButton("Modern"), original = new JToggleButton("Original");
     private final JComboBox<String> zoom = new JComboBox<>(ZOOMS);
-    private final JCheckBox desc = new JCheckBox("Beschreibungen zu SF und Vor-/Nachteilen"),
-            eigene = new JCheckBox("Eigene Notizen zu SF, Vor-/Nachteilen und Zaubern (ersetzen die Beschreibung)"),
+    private final JCheckBox desc = new JCheckBox("Kurzbeschreibungen (werden durch Kommentare und eigene Tooltips ersetzt)"),
+            kommentare = new JCheckBox("Kommentare aus der Helden-Software (inkl. Anmerkungen bei Zaubern)"),
+            eigene = new JCheckBox("Eigene Tooltip-Texte"),
             notes = new JCheckBox("Notizfelder und Linienseite"),
             meta = new JCheckBox("Meta-Talente zeigen (z. B. Wache halten, Kräuter suchen)"),
             portrait = new JCheckBox("Portrait neben der Charakterbeschreibung");
@@ -61,6 +62,7 @@ public final class PrintPreviewPanel extends JPanel {
         // bisher eine gemeinsame Option – ohne eigene Einstellung gilt deren Wert
         String ei = props.get("druck.eigeneNotizen");
         eigene.setSelected(ei != null ? !"false".equals(ei) : !"false".equals(props.get("druck.beschreibungen")));
+        kommentare.setSelected(!"false".equals(props.get("druck.kommentare")));
         notes.setSelected(!"false".equals(props.get("druck.notizen")));
         // Meta-Talente sind zunächst aus; einschalten nur, wenn sie für den Helden in der Helden-Software aktiv sind
         meta.setSelected("true".equals(props.get("druck.meta")));
@@ -82,6 +84,7 @@ public final class PrintPreviewPanel extends JPanel {
 
         desc.addActionListener(e -> { save.accept("druck.beschreibungen", String.valueOf(desc.isSelected())); rebuild(); });
         eigene.addActionListener(e -> { save.accept("druck.eigeneNotizen", String.valueOf(eigene.isSelected())); rebuild(); });
+        kommentare.addActionListener(e -> { save.accept("druck.kommentare", String.valueOf(kommentare.isSelected())); rebuild(); });
         notes.addActionListener(e -> { save.accept("druck.notizen", String.valueOf(notes.isSelected())); rebuild(); });
         portrait.addActionListener(e -> { save.accept("druck.portrait", String.valueOf(portrait.isSelected())); rebuild(); });
         // Meta-Talente liefert die Helden-Software nur auf Anfrage – daher Daten neu holen
@@ -129,7 +132,7 @@ public final class PrintPreviewPanel extends JPanel {
         modernTools.add(zoom);
         modernTools.add(Box.createHorizontalStrut(6));
         final JPopupMenu optMenu = new JPopupMenu();
-        for (JCheckBox cb : new JCheckBox[]{desc, eigene, meta, notes, portrait}) {
+        for (JCheckBox cb : new JCheckBox[]{kommentare, eigene, desc, meta, notes, portrait}) {
             final JCheckBox src = cb;
             final JCheckBoxMenuItem mi = new JCheckBoxMenuItem(cb.getText(), cb.isSelected());
             mi.addActionListener(e -> {
@@ -385,7 +388,11 @@ public final class PrintPreviewPanel extends JPanel {
         } else {
             try {
                 SheetData d = SheetData.parse(doc);
-                try { if (export != null) d.handAusExport(export.get()); } catch (RuntimeException ignore) { }
+                try {
+                    Document ex = export != null ? export.get() : null;
+                    d.handAusExport(ex);
+                    d.zauberKommentareAusExport(ex);
+                } catch (RuntimeException ignore) { }
                 heroName = d.name.isEmpty() ? "Held" : d.name;
                 sheetData = d;
                 // gespeicherte Wahl dieses Helden übernehmen (ohne eigene Wahl: bisherige allgemeine Einstellung)
@@ -411,6 +418,7 @@ public final class PrintPreviewPanel extends JPanel {
         ModernSheet.Options o = new ModernSheet.Options();
         o.beschreibungen = desc.isSelected();
         o.eigeneNotizen = eigene.isSelected();
+        o.kommentare = kommentare.isSelected();
         o.notizseite = notes.isSelected();
         // ohne Aktivierung in der Helden-Software liefert sie keine Meta-Talente – Option dann aus
         // (nur angezeigt; die gespeicherte Wahl des Helden bleibt, bis man sie selbst ändert)

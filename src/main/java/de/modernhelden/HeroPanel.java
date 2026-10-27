@@ -422,16 +422,30 @@ public final class HeroPanel extends JPanel {
     private JComponent sfTab(HeroData h) {
         JPanel p = new JPanel(new BorderLayout());
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
-        p.add(scroll(itemList(h.sf, true)));
+        // [i] je Sonderfertigkeit öffnet „Infos“ der Helden-Software (Kommentar; Probe, Dauer usw. bei Ritualen/Liturgien)
+        final JList<HeroData.Item> list = itemList(h.sf, true, AllgemeinLayout::sfInfos);
+        JPanel innen = new JPanel(new BorderLayout(0, 8));
+        innen.setOpaque(false);
+        innen.add(suchfeld("Sonderfertigkeiten filtern …", q -> list.setListData(gefiltert(h.sf, q))), BorderLayout.NORTH);
+        innen.add(scroll(list), BorderLayout.CENTER);
+        p.add(innen);
         return p;
     }
 
     private JComponent vtTab(HeroData h) {
         JPanel p = new JPanel(new GridLayout(1, 2, 12, 0));
-        p.setBorder(new EmptyBorder(10, 10, 10, 10));
-        p.add(titled("Vorteile (" + h.vorteile.size() + ")", scroll(itemList(h.vorteile, true))));
-        p.add(titled("Nachteile (" + h.nachteile.size() + ")", scroll(itemList(h.nachteile, true))));
-        return p;
+        p.setOpaque(false);
+        final JList<HeroData.Item> vor = itemList(h.vorteile, true), nach = itemList(h.nachteile, true);
+        p.add(titled("Vorteile (" + h.vorteile.size() + ")", scroll(vor)));
+        p.add(titled("Nachteile (" + h.nachteile.size() + ")", scroll(nach)));
+        JPanel aussen = new JPanel(new BorderLayout(0, 8));
+        aussen.setBorder(new EmptyBorder(10, 10, 10, 10));
+        aussen.add(suchfeld("Vor- und Nachteile filtern …", q -> {
+            vor.setListData(gefiltert(h.vorteile, q));
+            nach.setListData(gefiltert(h.nachteile, q));
+        }), BorderLayout.NORTH);
+        aussen.add(p, BorderLayout.CENTER);
+        return aussen;
     }
 
     /** Liefert die ausführlichen Heldendaten (wie für den Heldenbogen) – nur bei Bedarf abgerufen. */
@@ -629,6 +643,14 @@ public final class HeroPanel extends JPanel {
 
 
     private JList<HeroData.Item> itemList(List<HeroData.Item> items, boolean withDescription) {
+        return itemList(items, withDescription, null);
+    }
+
+    /** Breite des [i]-Knopfs rechts in der Zeile (nur mit {@code info}). */
+    private static final int I_BREITE = 26;
+
+    private JList<HeroData.Item> itemList(List<HeroData.Item> items, boolean withDescription,
+                                          final java.util.function.Predicate<String> info) {
         final JList<HeroData.Item> list = new JList<HeroData.Item>(items.toArray(new HeroData.Item[0])) {
             @Override public boolean getScrollableTracksViewportWidth() { return true; }
             @Override public String getToolTipText(MouseEvent e) {
@@ -656,6 +678,9 @@ public final class HeroPanel extends JPanel {
             final JPanel panel = new JPanel(new BorderLayout(0, 2));
             final JLabel title = new JLabel(), right = new JLabel();
             final JTextArea desc = new JTextArea();
+            /** mit [i]: äußere Zeile (Inhalt + Knopf über die ganze Höhe) */
+            final JPanel zeile = info == null ? null : new JPanel(new BorderLayout());
+            final JButton iKnopf = info == null ? null : new JButton("i");
             {
                 desc.setLineWrap(true);
                 desc.setWrapStyleWord(true);
@@ -670,6 +695,14 @@ public final class HeroPanel extends JPanel {
                 center.add(desc, BorderLayout.CENTER);
                 panel.add(center, BorderLayout.CENTER);
                 panel.add(right, BorderLayout.EAST);
+                if (zeile != null) {
+                    iKnopf.setFont(iKnopf.getFont().deriveFont(Font.BOLD));
+                    iKnopf.setMargin(new Insets(0, 0, 0, 0));
+                    iKnopf.putClientProperty("JButton.buttonType", "square");
+                    iKnopf.setPreferredSize(new Dimension(I_BREITE, 10));
+                    zeile.add(panel, BorderLayout.CENTER);
+                    zeile.add(iKnopf, BorderLayout.EAST);
+                }
             }
             public Component getListCellRendererComponent(JList<? extends HeroData.Item> l, HeroData.Item it, int i, boolean sel, boolean foc) {
                 panel.setBackground(sel ? l.getSelectionBackground() : Theme.zeile(i));
@@ -689,21 +722,49 @@ public final class HeroPanel extends JPanel {
                 right.setForeground(sel ? l.getSelectionForeground() : Theme.accent());
                 right.setFont(l.getFont().deriveFont(Font.BOLD));
                 TooltipDB.Entry e = withDescription ? db.lookupEntry(it.name) : null;
-                String own = withDescription ? db.getUserText(it.name) : null;
-                String d = own != null ? own : (e != null ? e.text : "");
-                int w = Math.max(200, (l.getFixedCellWidth() > 0 ? l.getFixedCellWidth() : l.getWidth()) - 22);
+                String own = withDescription ? eigenerText(it.name) : null;
+                // Kurzbeschreibung und darunter der eigene Tooltip-Text (er ersetzt sie nicht)
+                String d = e != null ? e.text : "";
+                if (own != null && !own.trim().isEmpty()) d = d.isEmpty() ? own.trim() : d + "\n" + own.trim();
+                int w = Math.max(200, (l.getFixedCellWidth() > 0 ? l.getFixedCellWidth() : l.getWidth()) - 22 - (zeile != null ? I_BREITE : 0));
                 desc.setFont(l.getFont());
                 desc.setText(d);
                 desc.setSize(new Dimension(w, Short.MAX_VALUE));
                 desc.setVisible(!d.isEmpty());
                 desc.setForeground(sel ? l.getSelectionForeground() : Theme.muted());
-                return panel;
+                if (zeile == null) return panel;
+                // Trennlinie über die ganze Zeile (auch unter dem Knopf), Innenabstand nur beim Text
+                panel.setBorder(new EmptyBorder(6, 10, 6, 6));
+                zeile.setBackground(panel.getBackground());
+                zeile.setBorder(new MatteBorder(0, 0, 1, 0, Theme.trenner()));
+                iKnopf.updateUI();
+                iKnopf.setFont(l.getFont().deriveFont(Font.BOLD));
+                iKnopf.setMargin(new Insets(0, 0, 0, 0));
+                iKnopf.putClientProperty("JButton.buttonType", "square");
+                return zeile;
             }
         });
         attachPopup(list, ev -> {
             int i = list.locationToIndex(ev.getPoint());
             return i < 0 ? null : list.getModel().getElementAt(i).name;
         });
+        if (info != null) {
+            // Klick auf das [i] am rechten Rand der Zeile
+            list.putClientProperty(TooltipHook.DOPPELKLICK_BELEGT, true);
+            list.addMouseListener(new MouseAdapter() {
+                @Override public void mouseClicked(MouseEvent e) {
+                    if (!SwingUtilities.isLeftMouseButton(e)) return;
+                    int i = list.locationToIndex(e.getPoint());
+                    if (i < 0) return;
+                    Rectangle r = list.getCellBounds(i, i);
+                    if (r == null || !r.contains(e.getPoint()) || e.getX() < r.x + r.width - I_BREITE - 1) return;
+                    String name = list.getModel().getElementAt(i).name;
+                    if (!info.test(name))
+                        JOptionPane.showMessageDialog(list, "Zu „" + name + "“ lässt sich das Fenster „Infos“ der Helden-Software nicht öffnen.",
+                                "Infos", JOptionPane.INFORMATION_MESSAGE);
+                }
+            });
+        }
         return list;
     }
 
@@ -716,17 +777,32 @@ public final class HeroPanel extends JPanel {
             HeroData.Talent t = h.talent(k.name);
             data.add(new Object[]{k.name, k.fernkampf ? "" : k.at, k.fernkampf ? "" : k.pa, k.fernkampf ? k.at : "", t == null ? "" : t.wert});
         }
-        return simpleTable(cols, data, null);
+        return simpleTable(cols, data, null, null, "Waffentalente filtern …");
     }
 
     private JComponent zauberTab(HeroData h) {
         String[] cols = {"Zauber", "Probe", "ZfW", "Repräsentation"};
         List<Object[]> data = new ArrayList<>();
         for (HeroData.Talent z : h.zauber) data.add(new Object[]{z.name, h.probeMitWerten(z.probe), z.wert, z.lernmethode});
-        return simpleTable(cols, data, null);
+        // [i] je Zauber öffnet „Infos“ der Helden-Software (Kommentar, Anmerkungen)
+        return simpleTable(cols, data, null, AllgemeinLayout::zauberInfos, "Zauber filtern …");
     }
 
     private JComponent simpleTable(String[] cols, List<Object[]> data, String hint) {
+        return simpleTable(cols, data, hint, null, null);
+    }
+
+    private JComponent simpleTable(String[] cols, List<Object[]> data, String hint, final java.util.function.Predicate<String> info,
+                                   String suche) {
+        if (info != null) {
+            // letzte Spalte: [i] über die ganze Zellenhöhe
+            cols = Arrays.copyOf(cols, cols.length + 1);
+            cols[cols.length - 1] = "Info";
+            List<Object[]> mit = new ArrayList<>();
+            for (Object[] z : data) { Object[] n = Arrays.copyOf(z, z.length + 1); n[z.length] = "i"; mit.add(n); }
+            data = mit;
+        }
+        final int iSpalte = info == null ? -1 : cols.length - 1;
         final JTable table = new JTable(data.toArray(new Object[0][]), cols) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
             @Override public String getToolTipText(MouseEvent e) {
@@ -757,8 +833,37 @@ public final class HeroPanel extends JPanel {
         for (int i = 1; i < cols.length; i++) table.getColumnModel().getColumn(i).setCellRenderer(center);
         // Zebra-Streifen (in den modernen Designs)
         for (int i = 0; i < cols.length; i++) {
+            if (i == iSpalte) continue;
             javax.swing.table.TableColumn col = table.getColumnModel().getColumn(i);
             col.setCellRenderer(new TabellenStil.Zebra(col.getCellRenderer()));
+        }
+        if (iSpalte >= 0) {
+            final JButton iKnopf = new JButton("i");
+            javax.swing.table.TableColumn col = table.getColumnModel().getColumn(iSpalte);
+            col.setCellRenderer((t, v, sel, foc, r, c) -> {
+                iKnopf.updateUI();
+                iKnopf.setFont(t.getFont().deriveFont(Font.BOLD));
+                iKnopf.setMargin(new Insets(0, 0, 0, 0));
+                iKnopf.putClientProperty("JButton.buttonType", "square");
+                return iKnopf;
+            });
+            // breit genug für die Überschrift „Info“
+            int w = table.getTableHeader().getFontMetrics(table.getTableHeader().getFont()).stringWidth("Info") + 24;
+            col.setMinWidth(w);
+            col.setMaxWidth(w);
+            col.setPreferredWidth(w);
+            table.putClientProperty(TooltipHook.DOPPELKLICK_BELEGT, true);
+            table.addMouseListener(new MouseAdapter() {
+                @Override public void mouseClicked(MouseEvent e) {
+                    if (!SwingUtilities.isLeftMouseButton(e)) return;
+                    int r = table.rowAtPoint(e.getPoint()), c = table.columnAtPoint(e.getPoint());
+                    if (r < 0 || c < 0 || table.convertColumnIndexToModel(c) != iSpalte) return;
+                    String name = String.valueOf(table.getValueAt(r, 0));
+                    if (!info.test(name))
+                        JOptionPane.showMessageDialog(table, "Zu „" + name + "“ lässt sich das Fenster „Infos“ der Helden-Software nicht öffnen.",
+                                "Infos", JOptionPane.INFORMATION_MESSAGE);
+                }
+            });
         }
         attachPopup(table, e -> {
             int r = table.rowAtPoint(e.getPoint());
@@ -768,6 +873,17 @@ public final class HeroPanel extends JPanel {
         JPanel p = new JPanel(new BorderLayout(0, 6));
         p.setBorder(new EmptyBorder(10, 10, 10, 10));
         p.add(scroll(table));
+        if (suche != null) {
+            // Suche über alle Spalten (außer dem [i])
+            p.add(suchfeld(suche, q -> TalenteSortierung.filtern(table, q.isEmpty() ? null
+                    : new RowFilter<javax.swing.table.TableModel, Integer>() {
+                        @Override public boolean include(Entry<? extends javax.swing.table.TableModel, ? extends Integer> e) {
+                            StringBuilder sb = new StringBuilder();
+                            for (int c = 0; c < e.getValueCount(); c++) if (c != iSpalte) sb.append(e.getStringValue(c)).append(' ');
+                            return sb.toString().toLowerCase(Locale.GERMAN).contains(q);
+                        }
+                    })), BorderLayout.NORTH);
+        }
         if (hint != null) {
             JLabel l = new JLabel(hint);
             l.setForeground(Theme.muted());
@@ -1000,6 +1116,45 @@ public final class HeroPanel extends JPanel {
         JScrollPane s = new JScrollPane(c);
         s.setBorder(BorderFactory.createLineBorder(Theme.trenner()));
         return s;
+    }
+
+    /** Suchfeld wie „Talente filtern …“; meldet jede Änderung (klein geschrieben, ohne Leerraum am Rand). */
+    private static JTextField suchfeld(String platzhalter, Consumer<String> aenderung) {
+        final JTextField f = new JTextField();
+        f.putClientProperty("JTextField.placeholderText", platzhalter);
+        f.putClientProperty("JTextField.showClearButton", true);
+        f.putClientProperty("JTextField.leadingIcon", new com.formdev.flatlaf.icons.FlatSearchIcon());
+        f.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { neu(); }
+            public void removeUpdate(DocumentEvent e) { neu(); }
+            public void changedUpdate(DocumentEvent e) { neu(); }
+            void neu() { aenderung.accept(f.getText().trim().toLowerCase(Locale.GERMAN)); }
+        });
+        return f;
+    }
+
+    /** Eigener Tooltip-Text zum Eintrag (unter seinem Namen bzw. dem allgemeinen Eintrag); null, wenn keiner. */
+    private String eigenerText(String name) {
+        String t = db.getUserText(name);
+        if (t != null) return t;
+        TooltipDB.Match m = db.find(name);
+        if (m == null) return null;
+        t = db.getUserText(m.key);
+        if (t == null && m.entry != null) t = db.getUserText(m.entry.name);
+        return t;
+    }
+
+    /** Einträge, deren Name, Detail oder Beschreibung den Suchtext enthalten. */
+    private HeroData.Item[] gefiltert(List<HeroData.Item> items, String q) {
+        List<HeroData.Item> l = new ArrayList<>();
+        for (HeroData.Item it : items) {
+            if (q.isEmpty()) { l.add(it); continue; }
+            TooltipDB.Entry e = db.lookupEntry(it.name);
+            String own = eigenerText(it.name);
+            String text = it.name + " " + it.detail + " " + (own != null ? own : "") + " " + (e != null ? e.text : "");
+            if (text.toLowerCase(Locale.GERMAN).contains(q)) l.add(it);
+        }
+        return l.toArray(new HeroData.Item[0]);
     }
 
     private static JComponent titled(String title, JComponent c) {

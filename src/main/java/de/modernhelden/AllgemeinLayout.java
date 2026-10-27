@@ -131,6 +131,117 @@ final class AllgemeinLayout {
         return "";
     }
 
+    /** [i]-Knopf über die ganze Zeilenhöhe; öffnet „Infos“ der Helden-Software zum Eintrag. */
+    static JButton iKnopf(String name, Runnable aktion) {
+        JButton k = new JButton("i") {
+            @Override public Dimension getPreferredSize() { return new Dimension(26, super.getPreferredSize().height); }
+        };
+        k.setFocusable(false);
+        k.setFont(k.getFont().deriveFont(Font.BOLD));
+        k.setMargin(new Insets(0, 0, 0, 0));
+        k.putClientProperty("JButton.buttonType", "square");
+        TooltipHook.infoTip(k, "<html>Öffnet <b>Infos</b> der Helden-Software zu „" + esc(name) + "“:<br>"
+                + "Kommentar und – bei Ritualen und Liturgien – Probe, Dauer, Kosten und Wirkung</html>");
+        k.addActionListener(e -> aktion.run());
+        InventarLayout.eigen(k);
+        return k;
+    }
+
+    /**
+     * Öffnet „Infos“ der Helden-Software zu einer Sonderfertigkeit – über den i-Knopf der Tabelle im Reiter
+     * „Allgemein“ (auch wenn dieser gerade im Original-Design oder unsichtbar ist). false, wenn nicht gefunden.
+     */
+    static boolean sfInfos(String name) {
+        JPanel allg = null;
+        for (JComponent c : alle.keySet()) if (c instanceof JPanel) { allg = (JPanel) c; break; }
+        if (allg == null) for (Frame f : Frame.getFrames()) { allg = allgemeinSuchen(f); if (allg != null) break; }
+        if (allg == null) return false;
+        Daten d = lesen(allg);
+        if (d.sf == null || infoSpalte(d.sf) < 0) return false;
+        javax.swing.table.TableModel m = d.sf.getModel();
+        int treffer = -1;
+        for (int i = 0; i < m.getRowCount() && treffer < 0; i++) {
+            Object o = m.getValueAt(i, 0);
+            if (o != null && String.valueOf(o).trim().equals(name)) treffer = i;
+        }
+        // Namen in anderer Schreibweise (z. B. mit Auswahl in Klammern): Anfang genügt
+        for (int i = 0; i < m.getRowCount() && treffer < 0; i++) {
+            Object o = m.getValueAt(i, 0);
+            if (o != null && (String.valueOf(o).trim().startsWith(name) || name.startsWith(String.valueOf(o).trim()))) treffer = i;
+        }
+        if (treffer < 0) return false;
+        infosOeffnen(d.sf, treffer);
+        return true;
+    }
+
+    private static JPanel allgemeinSuchen(Container c) {
+        for (Component k : c.getComponents()) {
+            if (k instanceof JPanel && istAllgemein((JPanel) k)) return (JPanel) k;
+            if (k instanceof Container) { JPanel r = allgemeinSuchen((Container) k); if (r != null) return r; }
+        }
+        return null;
+    }
+
+    /** Spalte „Info“ (i-Knöpfe) der Tabelle der Helden-Software; -1, wenn es sie nicht gibt. */
+    private static int infoSpalte(JTable t) {
+        for (int c = 0; c < t.getColumnCount(); c++) if ("Info".equals(t.getColumnName(c))) return c;
+        return -1;
+    }
+
+    /** Löst den i-Knopf der Helden-Software zum Eintrag aus (öffnet ihr Fenster „Infos“). */
+    private static void infosOeffnen(JTable t, String name) {
+        javax.swing.table.TableModel m = t.getModel();
+        for (int i = 0; i < m.getRowCount(); i++) {
+            Object o = m.getValueAt(i, 0);
+            if (o != null && String.valueOf(o).trim().equals(name)) { infosOeffnen(t, i); return; }
+        }
+    }
+
+    /**
+     * Klickt den i-Knopf einer Tabellenzeile der Helden-Software. Der Knopf kommt von ihrem Zellen-Renderer zum
+     * Wert der Zeile – das klappt auch, wenn die Zeile gerade weggefiltert oder die Tabelle unsichtbar ist.
+     */
+    private static boolean infosOeffnen(JTable t, int modelZeile) {
+        int col = infoSpalte(t);
+        if (col < 0 || modelZeile < 0 || modelZeile >= t.getModel().getRowCount()) return false;
+        Object wert = t.getModel().getValueAt(modelZeile, t.convertColumnIndexToModel(col));
+        int zeile = t.convertRowIndexToView(modelZeile);
+        javax.swing.table.TableCellRenderer r = t.getColumnModel().getColumn(col).getCellRenderer();
+        if (r == null) r = t.getDefaultRenderer(t.getColumnClass(col));
+        Component k = r.getTableCellRendererComponent(t, wert, false, false, Math.max(0, zeile), col);
+        if (!(k instanceof AbstractButton)) return false;
+        ((AbstractButton) k).doClick();
+        return true;
+    }
+
+    /** Öffnet „Infos“ der Helden-Software zu einem Zauber – über den i-Knopf im Reiter „Zauber“. */
+    static boolean zauberInfos(String name) {
+        for (Frame f : Frame.getFrames()) {
+            JTable t = tabelleSuchen(f, "Zauberfertigkeit");
+            if (t == null || infoSpalte(t) < 0) continue;
+            int sp = -1;
+            for (int c = 0; c < t.getColumnCount(); c++) if ("Zauberfertigkeit".equals(t.getColumnName(c))) sp = t.convertColumnIndexToModel(c);
+            javax.swing.table.TableModel m = t.getModel();
+            for (int i = 0; i < m.getRowCount(); i++) {
+                String z = String.valueOf(m.getValueAt(i, sp)).trim();
+                // „Analys Arkanstruktur (KL/KL/IN)“ – Probe in Klammern hinter dem Namen
+                if (z.equals(name) || z.startsWith(name + " (")) return infosOeffnen(t, i);
+            }
+        }
+        return false;
+    }
+
+    private static JTable tabelleSuchen(Container c, String spalte) {
+        for (Component k : c.getComponents()) {
+            if (k instanceof JTable) {
+                JTable t = (JTable) k;
+                for (int i = 0; i < t.getColumnCount(); i++) if (spalte.equals(t.getColumnName(i))) return t;
+            }
+            if (k instanceof Container) { JTable r = tabelleSuchen((Container) k, spalte); if (r != null) return r; }
+        }
+        return null;
+    }
+
     private static List<String> zeilen(JTable t) {
         List<String> l = new ArrayList<>();
         if (t == null) return l;
@@ -273,7 +384,7 @@ final class AllgemeinLayout {
             oben.setOpaque(false);
             InventarLayout.eigen(oben);
             oben.add(steckbrief(d, h), BorderLayout.CENTER);
-            oben.add(suche(), BorderLayout.SOUTH);
+            oben.add(suche(d), BorderLayout.SOUTH);
             add(oben, BorderLayout.NORTH);
 
             vorteile.eintraege.clear();
@@ -281,6 +392,7 @@ final class AllgemeinLayout {
             for (String s : zeilen(d.vorNach)) (istNachteil(s, h) ? nachteile : vorteile).eintraege.add(s);
             sonder.eintraege.clear();
             sonder.eintraege.addAll(zeilen(d.sf));
+            sonder.info = d.sf == null || infoSpalte(d.sf) < 0 ? null : name -> infosOeffnen(d.sf, name);
             JPanel spalten = new JPanel(new GridLayout(1, 3, 8, 0));
             spalten.setOpaque(false);
             InventarLayout.eigen(spalten);
@@ -293,7 +405,7 @@ final class AllgemeinLayout {
             repaint();
         }
 
-        JComponent suche() {
+        JComponent suche(Daten d) {
             JPanel p = new JPanel(new BorderLayout());
             p.setOpaque(false);
             InventarLayout.eigen(p);
@@ -308,7 +420,23 @@ final class AllgemeinLayout {
                 public void changedUpdate(DocumentEvent e) { neu(); }
                 void neu() { z.filter = f.getText(); filtern(); }
             });
-            p.add(f, BorderLayout.WEST);
+            JPanel links = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+            links.setOpaque(false);
+            InventarLayout.eigen(links);
+            links.add(f);
+            // „Info“ öffnet das Fenster „Infos“ der Helden-Software (Kommentare und Angaben aller Einträge)
+            JTable quelle = d.sf != null && d.sf.getRowCount() > 0 && infoSpalte(d.sf) >= 0 ? d.sf
+                    : d.vorNach != null && d.vorNach.getRowCount() > 0 && infoSpalte(d.vorNach) >= 0 ? d.vorNach : null;
+            if (quelle != null) {
+                JButton info = new JButton("Info");
+                info.setFocusable(false);
+                TooltipHook.infoTip(info, "<html>Öffnet <b>Infos</b> der Helden-Software: Kommentare zu Sonderfertigkeiten, "
+                        + "Vor-/Nachteilen und Zaubern, bei Ritualen und Liturgien auch Probe, Dauer, Kosten und Wirkung</html>");
+                info.addActionListener(e -> infosOeffnen(quelle, 0));
+                InventarLayout.eigen(info);
+                links.add(info);
+            }
+            p.add(links, BorderLayout.WEST);
             return p;
         }
 
@@ -323,6 +451,8 @@ final class AllgemeinLayout {
     private static final class Liste {
         final String titel, leer;
         final List<String> eintraege = new ArrayList<>();
+        /** Öffnet „Infos“ der Helden-Software zum Eintrag (null: kein Info-Knopf in dieser Liste). */
+        java.util.function.Consumer<String> info;
         /** Breite folgt der Spalte (Namen brechen um statt abgeschnitten zu werden), Höhe dem Inhalt. */
         final JPanel inhalt = new ListenInhalt();
         final JLabel anzahl = new JLabel();
@@ -378,9 +508,9 @@ final class AllgemeinLayout {
             inhalt.removeAll();
             int n = 0;
             for (String s : eintraege) {
-                String b = beschreibung(s);
-                if (!q.isEmpty() && !s.toLowerCase(Locale.GERMAN).contains(q) && !b.toLowerCase(Locale.GERMAN).contains(q)) continue;
-                inhalt.add(eintrag(s, b, n++));
+                String b = beschreibung(s), eigen = eigeneNotiz(s);
+                if (!q.isEmpty() && !(s + " " + b + " " + eigen).toLowerCase(Locale.GERMAN).contains(q)) continue;
+                inhalt.add(eintrag(s, b, eigen, n++, info));
             }
             if (n == 0) {
                 JLabel x = KampfwerteLayout.klein(eintraege.isEmpty() ? leer : "Keine Treffer");
@@ -402,13 +532,22 @@ final class AllgemeinLayout {
         return e != null && "Nachteil".equals(e.gruppe);
     }
 
-    /** Erster Satz der Beschreibung (eigene Notiz hat Vorrang). */
-    static String beschreibung(String zeile) {
+    /** Eigener Tooltip-Text zum Eintrag (eine Zeile), leer, wenn keiner. */
+    static String eigeneNotiz(String zeile) {
         if (db == null) return "";
         TooltipDB.Match m = db.find(zeile);
         if (m == null) return "";
         String t = db.getUserText(m.key);
-        if (t == null && m.entry != null) t = m.entry.text;
+        if (t == null && m.entry != null) t = db.getUserText(m.entry.name);
+        return t == null ? "" : t.replace('\n', ' ').trim();
+    }
+
+    /** Erster Satz der Kurzbeschreibung – ein eigener Tooltip-Text ersetzt sie nicht, er steht darunter. */
+    static String beschreibung(String zeile) {
+        if (db == null) return "";
+        TooltipDB.Match m = db.find(zeile);
+        if (m == null || m.entry == null) return "";
+        String t = m.entry.text;
         if (t == null) return "";
         t = t.replace('\n', ' ').trim();
         int punkt = satzende(t);
@@ -738,7 +877,7 @@ final class AllgemeinLayout {
     }
 
     /** Eine Zeile: Name (fett) und Kurzbeschreibung darunter (gedämpft, bei Platzmangel gekürzt). */
-    private static JComponent eintrag(String name, String beschreibung, int i) {
+    private static JComponent eintrag(String name, String beschreibung, String eigen, int i, java.util.function.Consumer<String> info) {
         JPanel z = new JPanel(new BorderLayout(0, 0)) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
         };
@@ -763,8 +902,33 @@ final class AllgemeinLayout {
             InventarLayout.eigen(b);
             z.add(b, BorderLayout.CENTER);
         }
+        if (!eigen.isEmpty()) {
+            // eigener Tooltip-Text als zusätzliche Zeile unter der Kurzbeschreibung (gekürzt, ganz im Tooltip)
+            JLabel o = new JLabel(eigen) {
+                @Override public Dimension getPreferredSize() { return new Dimension(40, super.getPreferredSize().height); }
+            };
+            o.setForeground(Theme.accent());
+            o.setFont(o.getFont().deriveFont(o.getFont().getSize2D() - 1f));
+            InventarLayout.eigen(o);
+            z.add(o, BorderLayout.SOUTH);
+        }
         // Tooltip (mit vollem Text) und Doppelklick (eigene Notiz) wie in den Ansichten der Helden-Software
         TooltipHook.tooltipFuer(name, z);
+        if (info != null) {
+            // [i] rechts neben dem Eintrag über die ganze Zeilenhöhe – wie der i-Knopf in der Tabelle der Helden-Software
+            JPanel text = new JPanel(new BorderLayout(0, 0));
+            text.setOpaque(false);
+            text.setBorder(new EmptyBorder(2, 0, 2, 6));
+            InventarLayout.eigen(text);
+            for (Component c : z.getComponents()) {
+                Object lage = ((BorderLayout) z.getLayout()).getConstraints(c);
+                z.remove(c);
+                text.add(c, lage);
+            }
+            z.setBorder(new EmptyBorder(0, 6, 0, 0));
+            z.add(text, BorderLayout.CENTER);
+            z.add(iKnopf(name, () -> info.accept(name)), BorderLayout.EAST);
+        }
         return z;
     }
 

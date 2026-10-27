@@ -155,7 +155,13 @@ public final class TooltipDB {
         if (cached != null) return cached.orElse(null);
         Match m = null;
         for (String c : candidates(raw)) {
-            if (userTexts.containsKey(c)) { m = new Match(c, exact.get(norm(c)), c); break; }
+            // eigener Text: Eintrag (Art, Kurzbeschreibung) trotzdem zuordnen – genau oder über den allgemeinen Eintrag
+            if (userTexts.containsKey(c)) {
+                Entry e = exact.get(norm(c));
+                if (e == null) e = praefixEintrag(c);
+                m = new Match(c, e, c);
+                break;
+            }
             Entry e = exact.get(norm(c));
             if (e != null) { m = new Match(e.name, e, c); break; }
         }
@@ -174,6 +180,16 @@ public final class TooltipDB {
         if (cache.size() > 5000) cache.clear();
         cache.put(raw, Optional.ofNullable(m));
         return m;
+    }
+
+    /** Allgemeiner Eintrag, mit dessen Namen der Text beginnt („Elfenlied:“ für „Elfenlied: …“); null, wenn keiner. */
+    private Entry praefixEintrag(String raw) {
+        String n = norm(raw.replaceAll("<[^>]*>", " "));
+        for (Entry e : prefixes) {
+            String pn = norm(e.name);
+            if (pn.length() >= 4 && n.startsWith(pn)) return e;
+        }
+        return null;
     }
 
     public Entry lookupEntry(String name) {

@@ -32,8 +32,10 @@ public final class ModernSheet implements Pageable, Printable {
     public static final class Options {
         /** mitgelieferte Kurzbeschreibungen zu SF und Vor-/Nachteilen (für Zauber gibt es keine) */
         public boolean beschreibungen = true;
-        /** eigene Notizen; wo noch keine steht, eine leere Linie zum Schreiben */
+        /** eigene Tooltip-Texte; wo noch keiner steht, eine leere Linie zum Schreiben (bei Zaubern, Ritualen, Liturgien) */
         public boolean eigeneNotizen = true;
+        /** Kommentare aus der Helden-Software (für alle Einträge; bei Zaubern samt Anmerkungen) */
+        public boolean kommentare = true;
         public boolean metatalente = true;
         public boolean notizseite = true;
         /** Portrait-Feld neben der Charakterbeschreibung (mit Bild oder leer zum Zeichnen/Einkleben) */
@@ -728,10 +730,10 @@ public final class ModernSheet implements Pageable, Printable {
 
     private void sonderfertigkeiten() {
         if (d.sf.isEmpty()) return;
-        heading("Sonderfertigkeiten", 30);
         List<ColItem> items = new ArrayList<>();
         float colW = colWidth();
-        for (SheetData.Eintrag e : d.sf) items.addAll(entryItems(e.name, colW));
+        for (SheetData.Eintrag e : d.sf) items.addAll(entryItems(e, colW));
+        heading("Sonderfertigkeiten", Math.max(30, ersteHoehe(items)));
         columns(items, "Sonderfertigkeiten");
         space(6);
     }
@@ -742,18 +744,19 @@ public final class ModernSheet implements Pageable, Printable {
         for (SheetData.Eintrag e : d.vorteile) { if (e.nachteil) nach = true; else vor = true; }
         // nur eine Art vorhanden: keine leere Spalte mit Überschrift, sondern beide Spalten nutzen
         String titel = vor && nach ? "Vorteile & Nachteile" : vor ? "Vorteile" : "Nachteile";
-        heading(titel, 30);
         List<ColItem> items = new ArrayList<>();
         float colW = colWidth();
         if (vor) {
             if (nach) items.add(labelItem("Vorteile"));
-            for (SheetData.Eintrag e : d.vorteile) if (!e.nachteil) items.addAll(entryItems(e.name, colW));
+            for (SheetData.Eintrag e : d.vorteile) if (!e.nachteil) items.addAll(entryItems(e, colW));
         }
         if (vor && nach) items.add(ColItem.BREAK);
         if (nach) {
             if (vor) items.add(labelItem("Nachteile"));
-            for (SheetData.Eintrag e : d.vorteile) if (e.nachteil) items.addAll(entryItems(e.name, colW));
+            for (SheetData.Eintrag e : d.vorteile) if (e.nachteil) items.addAll(entryItems(e, colW));
         }
+        // Überschrift nur, wenn darunter noch der erste Eintrag (samt „VORTEILE“) Platz hat
+        heading(titel, Math.max(30, ersteHoehe(items)));
         columns(items, titel);
     }
 
@@ -776,11 +779,41 @@ public final class ModernSheet implements Pageable, Printable {
         return t == null ? "" : t.trim();
     }
 
-    /** Text zu einem Eintrag nach den Optionen: der eigene Text ersetzt die Kurzbeschreibung. */
-    private String[] eintragText(String name) {
-        String own = opt.eigeneNotizen ? eigeneNotiz(name) : "";
-        String desc = opt.beschreibungen ? grundBeschreibung(name) : "";
-        return new String[]{own.isEmpty() ? desc : own, opt.eigeneNotizen && own.isEmpty() ? "ja" : ""};
+    /**
+     * Text unter einem Eintrag nach den Optionen: Kommentar aus der Helden-Software (bei Zaubern samt Anmerkung) und
+     * eigener Tooltip-Text – jeweils als eigener Absatz; steht keins von beiden da, die Kurzbeschreibung.
+     */
+    private String notiz(String kommentar, String anmerkung, String vollName, String kurzName) {
+        List<String> n = new ArrayList<>();
+        if (opt.kommentare) {
+            if (kommentar != null && !kommentar.trim().isEmpty()) n.add(kommentar.trim());
+            if (anmerkung != null && !anmerkung.trim().isEmpty() && !anmerkung.trim().equals(kommentar == null ? "" : kommentar.trim()))
+                n.add(anmerkung.trim());
+        }
+        if (opt.eigeneNotizen) {
+            String own = eigeneNotiz(vollName);
+            if (own.isEmpty() && kurzName != null) own = eigeneNotiz(kurzName);
+            if (!own.isEmpty() && !n.contains(own)) n.add(own);
+        }
+        // die Kurzbeschreibung nur, solange weder Kommentar noch eigener Text da steht (sie wird ersetzt); zum kurzen
+        // Namen – der volle passt bei „Liturgie: …“ nur zum allgemeinen Eintrag, derselbe Text bei jeder Liturgie
+        if (n.isEmpty() && opt.beschreibungen) {
+            String desc = grundBeschreibung(kurzName != null ? kurzName : vollName);
+            if (!desc.isEmpty()) n.add(desc);
+        }
+        return String.join("\n", n);
+    }
+
+    /**
+     * true, wenn unter dem Eintrag eine Linie „Notiz“ zum Schreiben stehen soll: Notizfelder sind eingeschaltet und
+     * beim Eintrag wird weder ein Kommentar noch ein eigener Text gezeigt.
+     */
+    private boolean schreiblinie(String kommentar, String anmerkung, String vollName, String kurzName) {
+        // Linie „Notiz“ hängt nur an der Option „Notizfelder und Linienseite“
+        if (!opt.notizseite) return false;
+        boolean k = opt.kommentare && (!kommentar.trim().isEmpty() || anmerkung != null && !anmerkung.trim().isEmpty());
+        boolean o = opt.eigeneNotizen && !(eigeneNotiz(vollName).isEmpty() && (kurzName == null || eigeneNotiz(kurzName).isEmpty()));
+        return !k && !o;
     }
 
     /** So viele Beschreibungszeilen passen in einen Block; längere Texte werden in Folgeblöcke geteilt. */
@@ -790,9 +823,10 @@ public final class ModernSheet implements Pageable, Printable {
      * Eintrag (SF, Vor-/Nachteil) mit Beschreibung. Sehr lange eigene Notizen werden in mehrere
      * Blöcke geteilt, damit sie über Spalten und Seiten weiterlaufen statt über den Rand hinaus.
      */
-    private List<ColItem> entryItems(final String name, float colW) {
-        String[] et = eintragText(name);
-        String desc = et[0];
+    private List<ColItem> entryItems(final SheetData.Eintrag e, float colW) {
+        final String name = e.name;
+        String desc = notiz(e.kommentar, null, e.vollName.isEmpty() ? e.name : e.vollName,
+                grundBeschreibung(e.name).isEmpty() && !e.vollName.isEmpty() ? e.vollName : e.name);
         List<String> alle = desc.isEmpty() ? Collections.<String>emptyList() : wrap(desc, F.reg(7), colW - 10);
         List<ColItem> out = new ArrayList<>();
         out.add(entryItem(name, colW, alle.subList(0, Math.min(BLOCK_ZEILEN, alle.size()))));
@@ -1110,11 +1144,106 @@ public final class ModernSheet implements Pageable, Printable {
         right(g, String.valueOf(t.wert), c[10] + c[11] - 3, base);
     }
 
+    /**
+     * Rituale bzw. Liturgien wie im Heldenbogen der Helden-Software: je Eintrag Name, Probe, Dauer, Kosten und Wirkung
+     * nebeneinander, darunter die Notiz. Die Angaben trägt der Spieler in der Helden-Software ein (Fenster „Infos“);
+     * was fehlt, bleibt auf dem Bogen als Linie zum Eintragen frei.
+     */
+    private void ritualListe(final String titel, final List<SheetData.Ritual> liste, final boolean liturgie) {
+        if (liste.isEmpty()) return;
+        space(8);
+        subheading(titel, 60);
+        final float fullW = W - 2 * M;
+        // Spaltengrenzen (Anteile der Breite): Name | Probe | Dauer | Kosten | Wirkung
+        final float[] sp = {0f, 0.30f, 0.50f, 0.63f, 0.74f, 1f};
+        final String[] kopfText = {liturgie ? "LITURGIE" : "RITUAL", "PROBE", "DAUER", "KOSTEN", "WIRKUNG"};
+        final Painter kopf = (g, x, yy, w, h) -> {
+            g.setColor(ACCENT_SOFT);
+            g.fill(new RoundRectangle2D.Float(x, yy, w, h, 6, 6));
+            g.setFont(F.bold(6.4f));
+            g.setColor(ACCENT.darker());
+            for (int k = 0; k < kopfText.length; k++) g.drawString(kopfText[k], x + w * sp[k] + (k == 0 ? 6 : 4), yy + 9);
+        };
+        place(13, kopf);
+        int idx = 0;
+        for (final SheetData.Ritual r : liste) {
+            final boolean zebra = (idx++ % 2) == 1;
+            final String[] werte = {r.name, r.probe, r.dauer, r.kosten, r.wirkung};
+            final List<List<String>> zellen = new ArrayList<>();
+            int zz = 1;
+            for (int k = 0; k < werte.length; k++) {
+                float cw = fullW * (sp[k + 1] - sp[k]) - (k == 0 ? 10 : 8);
+                Font f = k == 0 ? F.bold(9) : k == 1 ? F.bold(8) : F.reg(7.6f);
+                List<String> l = werte[k].isEmpty() ? new ArrayList<String>() : wrap(werte[k], f, cw);
+                if (k == 0 && l.isEmpty()) l.add(r.name);
+                zellen.add(l);
+                zz = Math.max(zz, l.size());
+            }
+            final float topH = Math.max(20, 6 + zz * 10.5f + 3);
+            // Notiz: Kommentar aus der Helden-Software + eigener Text; ohne beides die Kurzbeschreibung
+            // eigener Tooltip-Text steht unter dem vollen Namen („Liturgie: Eidsegen“), notfalls unter dem kurzen
+            String nz = notiz(r.kommentar, null, r.vollName, r.name);
+            final boolean eigeneLeer = schreiblinie(r.kommentar, null, r.vollName, r.name);
+            List<String> alle = nz.isEmpty() ? new ArrayList<String>() : wrap(nz, F.reg(7.4f), fullW - 22);
+            final List<String> noteLines = alle.subList(0, Math.min(20, alle.size()));
+            final boolean leerNotiz = noteLines.isEmpty();
+            final boolean schreiblinie = eigeneLeer;
+            final float h = topH + (leerNotiz ? (schreiblinie ? 15 : 2) : noteLines.size() * 9.5f + 4 + (schreiblinie ? 13 : 0)) + 4;
+            if (y + h > BOTTOM) {
+                newPage();
+                place(18, fortsetzung(titel).p);
+                place(13, kopf);
+            }
+            atomic(h, (g, x, yy, w, hh) -> {
+                if (zebra) { g.setColor(FILL); g.fill(new Rectangle2D.Float(x, yy, w, hh)); }
+                float base = yy + 14;
+                for (int k = 0; k < werte.length; k++) {
+                    float cx = x + w * sp[k] + (k == 0 ? 6 : 4), cw = w * (sp[k + 1] - sp[k]) - (k == 0 ? 10 : 8);
+                    List<String> l = zellen.get(k);
+                    if (l.isEmpty()) {
+                        // nichts eingetragen: Linie zum Eintragen
+                        g.setColor(LINE.darker());
+                        g.draw(new Line2D.Float(cx, base + 2, cx + cw, base + 2));
+                        continue;
+                    }
+                    g.setFont(k == 0 ? F.bold(9) : k == 1 ? F.bold(8) : F.reg(7.6f));
+                    g.setColor(INK);
+                    float ly = base;
+                    for (String s : l) { g.drawString(s, cx, ly); ly += 10.5f; }
+                }
+                float ly = yy + topH + 6;
+                if (leerNotiz && !schreiblinie) {
+                    // keine Notiz und Notizen ausgeschaltet: nichts zeichnen
+                } else if (leerNotiz) {
+                    g.setFont(F.reg(6.4f));
+                    g.setColor(MUTED);
+                    g.drawString("Notiz", x + 6, ly + 4);
+                    g.setColor(LINE);
+                    g.draw(new Line2D.Float(x + 28, ly + 5, x + w - 6, ly + 5));
+                } else {
+                    g.setColor(ACCENT);
+                    g.fill(new Rectangle2D.Float(x + 7, ly - 5.5f, 1.6f, noteLines.size() * 9.5f - 1.5f));
+                    g.setFont(F.reg(7.4f));
+                    g.setColor(new Color(0x444444));
+                    for (String l : noteLines) { g.drawString(l, x + 14, ly + 1); ly += 9.5f; }
+                    if (schreiblinie) {
+                        g.setFont(F.reg(6.4f));
+                        g.setColor(MUTED);
+                        g.drawString("Notiz", x + 6, ly + 6);
+                        g.setColor(LINE);
+                        g.draw(new Line2D.Float(x + 28, ly + 7, x + w - 6, ly + 7));
+                    }
+                }
+            });
+        }
+    }
+
+
     /** Eigene Seite für Astralenergie und Zauber (bzw. Karmaenergie) – nur, wenn der Held so etwas besitzt. */
     private void magieSeite() {
         boolean asp = d.magisch || d.akt("astralenergie") > 0 || !d.zauber.isEmpty();
-        boolean kap = d.geweiht || d.akt("karmaenergie") > 0;
-        if (!asp && !kap) return;
+        boolean kap = d.geweiht || d.akt("karmaenergie") > 0 || !d.liturgien.isEmpty();
+        if (!asp && !kap && d.rituale.isEmpty()) return;
         if (y > M + 1) newPage();
         if (asp) {
             heading("Magie", 120);
@@ -1126,13 +1255,16 @@ public final class ModernSheet implements Pageable, Printable {
             space(6);
             heading("Karma", 120);
             energiePool("Karmaenergie", "KaP", d.akt("karmaenergie"), "", "Liturgie / Anlass");
+            ritualListe("Liturgien", d.liturgien, true);
         }
         if (asp) zauberUebersicht();
+        else ritualListe("Rituale", d.rituale, false);
     }
 
     /** Zauberübersicht: Probe, ZfW, AsP-Kosten (Feld zum Eintragen, falls leer), Eckdaten und Notizen. */
     private void zauberUebersicht() {
         if (d.zauber.isEmpty()) {
+            ritualListe("Rituale", d.rituale, false);
             // zauberkundig, aber noch keine Zauber: Linien zum Eintragen
             if (!opt.notizseite) return;
             space(8);
@@ -1194,22 +1326,13 @@ public final class ModernSheet implements Pageable, Printable {
             final List<String> eckLines = wrap(String.join("  ·  ", eck), F.reg(7), fullW - 16);
             // Notizen: Anmerkung der Helden-Software + eigener Text
             // eigene Notizen (Anmerkung in der Helden-Software, eigener Tooltip-Text) vor der Kurzbeschreibung
-            List<String> n = new ArrayList<>();
-            if (opt.eigeneNotizen) {
-                if (!z.anmerkung.isEmpty()) n.add(z.anmerkung);
-                String own = eigeneNotiz(z.name);
-                if (!own.isEmpty() && !own.equals(z.anmerkung)) n.add(own);
-            }
-            final boolean eigeneLeer = n.isEmpty();
-            if (n.isEmpty() && opt.beschreibungen) {
-                String desc = grundBeschreibung(z.name);
-                if (!desc.isEmpty()) n.add(desc);
-            }
-            final List<String> alleNotiz = n.isEmpty() ? new ArrayList<String>() : wrap(String.join(" – ", n), F.reg(7.4f), fullW - 22);
+            String nz = notiz(z.kommentar, z.anmerkung, z.name, null);
+            final boolean eigeneLeer = schreiblinie(z.kommentar, z.anmerkung, z.name, null);
+            final List<String> alleNotiz = nz.isEmpty() ? new ArrayList<String>() : wrap(nz, F.reg(7.4f), fullW - 22);
             final List<String> noteLines = alleNotiz.subList(0, Math.min(20, alleNotiz.size()));
             final boolean leerNotiz = noteLines.isEmpty();
             // leere Schreiblinie, wenn eigene Notizen eingeschaltet sind, aber noch keine dasteht
-            final boolean schreiblinie = eigeneLeer && opt.eigeneNotizen;
+            final boolean schreiblinie = eigeneLeer;
             // lange Kostenangaben umbrechen; das Feld wächst mit
             final List<String> kostLines = z.kosten.isEmpty() ? new ArrayList<String>() : wrap(z.kosten, F.reg(7.6f), kostW - 10);
             final float kostH = 14 + Math.max(0, kostLines.size() - 1) * 9;
@@ -1312,6 +1435,7 @@ public final class ModernSheet implements Pageable, Printable {
             }
         }
         if (!benutzt.isEmpty()) { space(3); legende("Zauber", benutzt); }
+        ritualListe("Rituale", d.rituale, false);
         // Platz für weitere Zauber – nur den Rest der Seite nutzen, keine neue Seite dafür anfangen
         space(6);
         if (!opt.notizseite || y + 14 + 3 * 17 > BOTTOM) return;
@@ -1883,6 +2007,17 @@ public final class ModernSheet implements Pageable, Printable {
         });
     }
 
+    /** Höhe des ersten Eintrags einer Spaltenliste (samt daran gebundener Beschriftung). */
+    private static float ersteHoehe(List<ColItem> items) {
+        float h = 0;
+        for (ColItem it : items) {
+            if (it == ColItem.BREAK) continue;
+            h += it.h;
+            if (!it.keepNext) break;
+        }
+        return h;
+    }
+
     private void columns(List<ColItem> items, String titel) {
         float colW = colWidth(), gap = 16;
         int col = 0;
@@ -1920,8 +2055,10 @@ public final class ModernSheet implements Pageable, Printable {
             }
             if (y + need > BOTTOM) {
                 maxY = Math.max(maxY, y);
-                if (col == 0) { col = 1; linksUnten = y; y = top; }
-                else {
+                // linke Spalte schon belegt: oben rechts weiter; ist sie noch leer (oder passt es auch rechts nicht),
+                // gleich auf die nächste Seite – sonst stünde z. B. „VORTEILE“ allein rechts unten
+                if (col == 0 && y > top) { col = 1; linksUnten = y; y = top; }
+                if (y + need > BOTTOM) {
                     // Abschlusszeile nicht allein: den letzten echten Eintrag dieser Seite mitnehmen
                     Placed mit = null;
                     float mitH = 0;

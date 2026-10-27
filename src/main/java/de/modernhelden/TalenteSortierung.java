@@ -484,6 +484,12 @@ public final class TalenteSortierung {
     }
 
     /** Macht eine eigene Tabelle per Spaltenkopf sortierbar (aufsteigend, absteigend, ursprünglich). */
+    /** Zeilenfilter für eine mit {@link #sortierbar(JTable)} sortierbare Tabelle (null: alle Zeilen). */
+    static void filtern(JTable t, RowFilter<? super TableModel, ? super Integer> f) {
+        if (t.getRowSorter() instanceof DreiStufen) ((DreiStufen) t.getRowSorter()).s.setRowFilter(f);
+        else if (t.getRowSorter() instanceof TableRowSorter) ((TableRowSorter<?>) t.getRowSorter()).setRowFilter(f);
+    }
+
     static void sortierbar(JTable t) {
         TableRowSorter<TableModel> s = new TableRowSorter<>(t.getModel());
         for (int i = 0; i < t.getModel().getColumnCount(); i++) s.setComparator(i, TalenteSortierung::vergleiche);

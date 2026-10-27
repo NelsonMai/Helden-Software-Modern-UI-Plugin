@@ -402,8 +402,19 @@ public class ModernHeldenPlugin implements HeldenXMLDatenPlugin3 {
         editTooltip(m);
     }
 
+    /**
+     * Name, unter dem der eigene Text gespeichert wird: der volle Name des Eintrags („Liturgie: Eidsegen“), damit er
+     * nicht für alle Einträge des allgemeinen Eintrags („Liturgie:“) gilt. Hängt hinter dem allgemeinen Namen nur eine
+     * Stufe („Aberglaube: 6“), bleibt es beim allgemeinen Namen – sonst ginge der Text beim Steigern verloren.
+     */
+    private String notizSchluessel(TooltipDB.Match m) {
+        if (m.entry == null || m.key.equals(m.entry.name) || db.getUserText(m.key) != null) return m.key;
+        String rest = m.key.length() > m.entry.name.length() ? m.key.substring(m.entry.name.length()) : "";
+        return rest.replaceAll("[\\s:()0-9+\\-–]", "").isEmpty() ? m.entry.name : m.key;
+    }
+
     private void editTooltip(TooltipDB.Match m) {
-        String key = m.entry != null && db.getUserText(m.key) == null ? m.entry.name : m.key;
+        String key = notizSchluessel(m);
         String current = db.getUserText(key);
         JTextArea area = new JTextArea(current == null ? "" : current, 10, 44);
         area.setLineWrap(true);

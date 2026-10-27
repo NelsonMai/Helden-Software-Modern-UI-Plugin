@@ -32,13 +32,29 @@ public final class SheetData {
     public static final class Zauber {
         public String name = "", probe = "", probenwerte = "", spalte = "", merkmale = "", rep = "", anmerkung = "",
                 kosten = "", zauberdauer = "", reichweite = "", wirkungsdauer = "", mr = "";
+        /** Kommentar des Spielers aus der Helden-Software (steht nur in den Heldendaten, nicht in den Druckdaten). */
+        public String kommentar = "";
         public int wert;
         public boolean hauszauber, leit;
     }
 
     public static final class Eintrag {
         public String name = "", bereich = "", bezeichner = "";
+        /** Kommentar des Spielers aus der Helden-Software (Fenster „Infos“); leer, wenn keiner. */
+        public String kommentar = "";
+        /** Voller Name wie in der Helden-Software („Repräsentation: Elf“) – unter ihm stehen eigene Tooltip-Texte. */
+        public String vollName = "";
         public boolean nachteil, vorteil;
+    }
+
+    /**
+     * Ritual oder Liturgie (in der Helden-Software Sonderfertigkeiten). Probe, Dauer, Kosten und Wirkung pflegt der
+     * Spieler selbst in der Helden-Software; der Kommentar ist sein eigener Text zum Eintrag.
+     */
+    public static final class Ritual {
+        public String name = "", probe = "", dauer = "", kosten = "", wirkung = "", kommentar = "", grad = "";
+        /** Voller Name wie in der Helden-Software („Liturgie: Eidsegen“) – unter ihm stehen eigene Tooltip-Texte. */
+        public String vollName = "";
     }
 
     public static final class Nahkampfwaffe {
@@ -104,6 +120,8 @@ public final class SheetData {
     public final List<Eintrag> vorteile = new ArrayList<>();
     public final List<Eintrag> sf = new ArrayList<>();
     public final List<Nahkampfwaffe> nahkampf = new ArrayList<>();
+    /** Rituale (auch Schamanenrituale, Elfenlieder u. ä.) und Liturgien – nicht in {@link #sf} enthalten. */
+    public final List<Ritual> rituale = new ArrayList<>(), liturgien = new ArrayList<>();
     /** Nummer des gedruckten Kampfsets (1-basiert), 0 wenn unbekannt. */
     public int kampfset;
     public final List<Fernkampfwaffe> fernkampf = new ArrayList<>();
@@ -174,8 +192,11 @@ public final class SheetData {
         Element vt = child(root, "vorteile");
         if (vt != null) for (Element e : children(vt)) {
             Eintrag x = new Eintrag();
-            x.name = text(e, "namemitkommentar");
-            if (x.name.isEmpty()) x.name = text(e, "name");
+            // Name ohne angehängten Kommentar – der Kommentar wird getrennt darunter gezeigt
+            x.name = text(e, "name");
+            if (x.name.isEmpty()) x.name = text(e, "namemitkommentar");
+            x.kommentar = text(e, "kommentar");
+            x.vollName = x.name;
             x.bezeichner = text(e, "bezeichner");
             x.nachteil = "true".equals(text(e, "istnachteil"));
             x.vorteil = "true".equals(text(e, "istvorteil"));
@@ -183,9 +204,31 @@ public final class SheetData {
         }
         Element sfs = child(root, "sonderfertigkeiten");
         if (sfs != null) for (Element e : children(sfs)) {
+            // Rituale und Liturgien bekommen eigene Abschnitte (mit Probe, Dauer, Kosten, Wirkung und Kommentar)
+            java.util.Set<String> bereiche = new java.util.HashSet<>();
+            for (Element b : children(e)) if ("bereich".equals(b.getNodeName())) bereiche.add(b.getTextContent().trim());
+            boolean liturgie = bereiche.contains("Liturgie"), ritual = !liturgie && bereiche.contains("Ritual");
+            if (liturgie || ritual) {
+                Ritual r = new Ritual();
+                r.name = text(e, "name");
+                if (r.name.isEmpty()) r.name = text(e, "nameausfuehrlich");
+                r.probe = text(e, "probe");
+                r.dauer = text(e, "dauer");
+                r.kosten = text(e, "kosten");
+                r.wirkung = text(e, "wirkung");
+                r.kommentar = text(e, "kommentar");
+                r.grad = text(e, "grad");
+                r.vollName = text(e, "nameausfuehrlich");
+                if (r.vollName.isEmpty()) r.vollName = r.name;
+                if (!r.name.isEmpty()) (liturgie ? d.liturgien : d.rituale).add(r);
+                continue;
+            }
             Eintrag x = new Eintrag();
-            x.name = text(e, "namemitkommentar");
+            x.name = text(e, "name");
             if (x.name.isEmpty()) x.name = text(e, "nameausfuehrlich");
+            x.kommentar = text(e, "kommentar");
+            x.vollName = text(e, "nameausfuehrlich");
+            if (x.vollName.isEmpty()) x.vollName = x.name;
             x.bereich = text(e, "bereich");
             d.sf.add(x);
         }
@@ -377,6 +420,24 @@ public final class SheetData {
                         || !String.valueOf(kampfset - 1).equals(e.getAttribute("set"))) continue;
                 String h = e.getAttribute("hand");
                 n.hand = "links".equals(h) ? "L" : "rechts".equals(h) ? "R" : "";
+            }
+        }
+    }
+
+    /**
+     * Ergänzt die Zauberkommentare aus den Heldendaten („exportHeld“): Einträge „zauber“ tragen dort
+     * „zauberkommentar“. Die Druckdaten enthalten nur die Anmerkungen.
+     */
+    public void zauberKommentareAusExport(Document export) {
+        if (export == null) return;
+        org.w3c.dom.NodeList nl = export.getElementsByTagName("zauber");
+        for (Zauber z : zauber) {
+            for (int i = 0; i < nl.getLength(); i++) {
+                Element e = (Element) nl.item(i);
+                String n = e.getAttribute("name");
+                if (n.isEmpty() || !(z.name.equals(n) || z.name.startsWith(n + " "))) continue;
+                String k = e.getAttribute("zauberkommentar").trim();
+                if (!k.isEmpty()) { z.kommentar = k; break; }
             }
         }
     }
