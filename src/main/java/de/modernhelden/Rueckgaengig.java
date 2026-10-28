@@ -94,6 +94,39 @@ public final class Rueckgaengig {
         }
     }
 
+    /**
+     * Zeitpunkt der jüngsten „Eigenschaft steigern“ für diese Eigenschaft (z. B. „Mut“), oder -1, wenn es keine gibt.
+     * Ob sie sich noch zurücknehmen lässt, prüft die Undo-Logik der Helden-Software beim Ausführen selbst.
+     */
+    public static long letzteEigenschaftsSteigerung(Frame frame, String eigenschaft) {
+        Object action = undoAction(frame);
+        if (action == null) return -1;
+        try {
+            Object gui = feldVomTyp(action, "helden.gui.A");
+            Object held = gui == null ? null : methodeMitRueckgabe(gui, "helden.framework.held.H");
+            List<Object> liste = held == null ? null : ereignisListe(held);
+            if (liste == null) return -1;
+            long beste = -1;
+            for (Object e : liste) {
+                if (!hatText(e, "Eigenschaft steigern")) continue;
+                Field f = objektFeld(e);
+                Object o = f == null ? null : f.get(e);
+                String n = o == null ? "" : String.valueOf(o).trim();
+                if (!n.equals(eigenschaft) && !n.startsWith(eigenschaft + " ")) continue;
+                beste = Math.max(beste, zeitVon(e));
+            }
+            return beste;
+        } catch (Exception ex) {
+            return -1;
+        }
+    }
+
+    /** Die passende Hauptfenster-Instanz für {@link #ausfuehren}. */
+    public static Frame hauptfenster() {
+        for (Frame f : Frame.getFrames()) if (f.isDisplayable() && undoAction(f) != null) return f;
+        return null;
+    }
+
     // ------------------------------------------------------------------ Voraussetzungen von SF
 
     /**

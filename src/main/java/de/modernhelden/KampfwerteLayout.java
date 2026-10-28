@@ -276,18 +276,27 @@ final class KampfwerteLayout {
         public boolean getScrollableTracksViewportHeight() {
             return getParent() instanceof JViewport && getParent().getHeight() > getPreferredSize().height;
         }
+        /**
+         * Wie im Reiter „Eigenschaften“: Die Seite folgt der Fensterbreite (erst unter MIN_BREITE wird gescrollt);
+         * die Karten ordnen sich nach der tatsächlichen Breite an. Eine zu breite Nahkampf-Tabelle scrollt in ihrer Karte.
+         */
+        static final int MIN_BREITE = 700;
+        @Override public Dimension getMinimumSize() { return new Dimension(MIN_BREITE, super.getMinimumSize().height); }
+        @Override public Dimension getPreferredSize() { return new Dimension(MIN_BREITE, super.getPreferredSize().height); }
 
         void aufbauen(Daten d, HeroData h) {
             removeAll();
-            add(links(basiswerte(d, h)));
             if (!d.nah.isEmpty()) {
-                add(Box.createVerticalStrut(14));
                 add(links(nahkampf(d, h)));
-            }
-            if (!d.fern.isEmpty()) {
                 add(Box.createVerticalStrut(14));
-                add(links(fernkampf(d, h)));
             }
+            // Basiswerte und Fernkampf: im großen Fenster nebeneinander (gleich hoch), sonst untereinander
+            JPanel reihe = new JPanel(new EigenschaftenLayout.Spalten(14, d.fern.isEmpty() ? new double[]{1} : new double[]{1, 1}));
+            reihe.setOpaque(false);
+            InventarLayout.eigen(reihe);
+            reihe.add(EigenschaftenLayout.mindestens(basiswerte(d, h), 460));
+            if (!d.fern.isEmpty()) reihe.add(EigenschaftenLayout.mindestens(fernkampf(d, h), 440));
+            add(links(reihe));
             add(Box.createVerticalStrut(14));
             add(links(regeln()));
             revalidate();
@@ -342,24 +351,118 @@ final class KampfwerteLayout {
     // ------------------------------------------------------------------ Basiswerte
 
     private static JComponent basiswerte(Daten d, HeroData h) {
-        JPanel k = karte("Basiswerte");
-        JPanel reihe = new Kacheln(10);
-        reihe.setOpaque(false);
-        reihe.add(basis("AT-Basis", d.atBasis, h, new String[]{"MU", "GE", "KK"}, "Grundlage aller Attacke-Werte im Nahkampf"));
-        reihe.add(basis("PA-Basis", d.paBasis, h, new String[]{"IN", "GE", "KK"}, "Grundlage aller Parade-Werte und des Ausweichens"));
-        reihe.add(basis("FK-Basis", d.fkBasis, h, new String[]{"IN", "FF", "KK"}, "Grundlage aller Fernkampfwerte"));
-        reihe.add(basis("INI-Basis", h == null ? null : h.abgeleitet.get("INI"), h, new String[]{"MU", "MU", "IN", "GE"},
-                "Initiative-Basiswert: Grundlage der Reihenfolge im Kampf; dazu kommen 1W6 sowie Waffen- und Rüstungsmodifikatoren"));
-        k.add(reihe, BorderLayout.CENTER);
-        if (!d.rs.isEmpty()) {
-            // bricht im kleinen Fenster um, statt die Seite zu verbreitern
-            JLabel hin = new HtmlText("<html>Rüstungsschutz wird berechnet nach: " + d.rs
-                    + " · Waffen- und Rüstungsmodifikatoren stehen im Reiter „Ausrüstung“</html>");
-            hin.setForeground(Theme.muted());
-            hin.setFont(hin.getFont().deriveFont(hin.getFont().getSize2D() - 1f));
-            k.add(hin, BorderLayout.SOUTH);
-        }
-        return k;
+        String fuss = "Waffen- und Rüstungsmodifikatoren stehen im Reiter „Ausrüstung“."
+                + (d.rs.isEmpty() ? "" : " Rüstungsschutz wird berechnet nach: " + d.rs + ".");
+        return EigenschaftenLayout.kampfBasisKarte("rechnen", "Basiswerte", d.atBasis, d.paBasis, d.fkBasis,
+                h == null ? null : h.abgeleitet.get("INI"), h, fuss);
+    }
+
+    /** Tabelle im Stil der Druckvorschau: Kopfzeile in zartem Akzent, feine Linien zwischen den Zeilen. */
+    static JPanel streifen() {
+        JPanel t = new JPanel(new GridBagLayout()) {
+            @Override public Dimension getMinimumSize() { return super.getMinimumSize(); }
+            @Override protected void addImpl(Component comp, Object constraints, int index) {
+                if (comp instanceof JLabel && ((JLabel) comp).getBorder() == null)
+                    ((JLabel) comp).setBorder(new EmptyBorder(0, 0, 0, 4));
+                super.addImpl(comp, constraints, index);
+            }
+            @Override protected void paintComponent(Graphics g0) {
+                // Zeilengrenzen aus dem Layout selbst (Ursprung + Zeilenhöhen) – unabhängig davon, wie hoch die Zellen sind
+                GridBagLayout gb = (GridBagLayout) getLayout();
+                int[] hoehen = gb.getLayoutDimensions()[1];
+                Point o = gb.getLayoutOrigin();
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int w = getWidth();
+                g.clip(new java.awt.geom.RoundRectangle2D.Float(0, 0, w, getHeight(), 12, 12));
+                g.setColor(Theme.kachel());
+                g.fillRect(0, 0, w, getHeight());
+                int y = o.y;
+                for (int z = 0; z < hoehen.length; z++) {
+                    if (z == 0) {
+                        g.setColor(EigenschaftenLayout.mische(Theme.kachel(), Theme.accent(), Theme.isDark() ? 0.2 : 0.11));
+                        g.fillRect(0, 0, w, y + hoehen[0]);
+                    } else {
+                        g.setColor(Theme.trenner());
+                        g.fillRect(0, y, w, 1);   // ganze Pixel – geglättete Linien wirken sonst mal doppelt, mal blass
+                    }
+                    y += hoehen[z];
+                }
+                g.dispose();
+            }
+        };
+        t.setOpaque(false);
+        t.setBorder(new EmptyBorder(8, 12, 6, 6));
+        InventarLayout.eigen(t);
+        return t;
+    }
+
+    /** Rahmen mit runden Ecken um eine Streifen-Tabelle. */
+    static JComponent tabellenRahmen(JPanel t) {
+        EigenschaftenLayout.Rund r = new EigenschaftenLayout.Rund(new BorderLayout(), null, Theme.trenner(), 12) {
+            @Override protected void paintChildren(Graphics g) { super.paintChildren(g); paintBorder(g); }
+            @Override protected void paintBorder(Graphics g0) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setColor(Theme.trenner());
+                g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g.dispose();
+            }
+        };
+        r.rand = null;
+        r.add(t, BorderLayout.CENTER);
+        return r;
+    }
+
+    /**
+     * Inhalt, der im schmalen Fenster waagerecht in seiner Karte scrollt (statt die ganze Seite zu verbreitern).
+     * Im breiten Fenster füllt er die Breite; das Mausrad scrollt weiter die Seite.
+     */
+    static JComponent waagerecht(JComponent inhalt) {
+        JScrollPane sp = new JScrollPane(inhalt, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED) {
+            @Override public Dimension getPreferredSize() {
+                Dimension d = inhalt.getPreferredSize();
+                boolean leiste = getWidth() > 0 && d.width > getWidth();
+                return new Dimension(d.width, d.height + (leiste ? getHorizontalScrollBar().getPreferredSize().height + 2 : 0));
+            }
+            @Override public Dimension getMinimumSize() { return new Dimension(200, getPreferredSize().height); }
+            @Override public void setBounds(int x, int y, int w, int h) {
+                boolean vorher = getWidth() > 0 && inhalt.getPreferredSize().width > getWidth();
+                super.setBounds(x, y, w, h);
+                boolean jetzt = w > 0 && inhalt.getPreferredSize().width > w;
+                // Leiste kommt oder geht: Höhe neu berechnen lassen
+                if (vorher != jetzt) SwingUtilities.invokeLater(this::revalidate);
+            }
+        };
+        sp.setBorder(BorderFactory.createEmptyBorder());
+        sp.setViewportBorder(null);
+        sp.setOpaque(false);
+        sp.getViewport().setOpaque(false);
+        sp.getHorizontalScrollBar().setUnitIncrement(20);
+        InventarLayout.eigen(sp);
+        // Mausrad an die Seite weitergeben (sonst bliebe sie über der Tabelle stehen)
+        for (java.awt.event.MouseWheelListener l : sp.getMouseWheelListeners()) sp.removeMouseWheelListener(l);
+        sp.addMouseWheelListener(e -> {
+            Container p = sp.getParent();
+            if (p != null) p.dispatchEvent(SwingUtilities.convertMouseEvent(sp, e, p));
+        });
+        return sp;
+    }
+
+    /** Kleiner Hinweis als Pille (z. B. „4 TaP frei“). */
+    static JComponent pille(String text, boolean betont) {
+        Color a = Theme.accent();
+        EigenschaftenLayout.Rund r = new EigenschaftenLayout.Rund(new BorderLayout(),
+                betont ? EigenschaftenLayout.mische(Theme.kachel(), a, Theme.isDark() ? 0.25 : 0.12) : EigenschaftenLayout.mische(Theme.kachel(), Theme.muted(), 0.12),
+                betont ? EigenschaftenLayout.mische(Theme.kachel(), a, 0.45) : Theme.trenner(), 999);
+        r.setBorder(new EmptyBorder(1, 9, 2, 9));
+        JLabel l = new JLabel(text);
+        l.setFont(l.getFont().deriveFont(betont ? Font.BOLD : Font.PLAIN, l.getFont().getSize2D() - 1f));
+        l.setForeground(betont ? (Theme.isDark() ? EigenschaftenLayout.mische(a, Color.WHITE, 0.4) : a) : Theme.muted());
+        InventarLayout.eigen(l);
+        r.add(l);
+        return r;
     }
 
     /**
@@ -561,30 +664,41 @@ final class KampfwerteLayout {
     // ------------------------------------------------------------------ Nahkampf
 
     private static JComponent nahkampf(Daten d, HeroData h) {
-        JPanel k = karte("Nahkampf");
-        JPanel t = tabelle(true);
-        t.setOpaque(false);
-        InventarLayout.eigen(t);
+        int freiGesamt = 0;
+        for (Nahkampf n : d.nah) {
+            if (n.tap == null) continue;
+            Matcher m = TAP.matcher(String.valueOf(n.tap.getText()));
+            if (m.find()) freiGesamt += Math.max(0, Integer.parseInt(m.group(1)));
+        }
+        JComponent frei = freiGesamt > 0 ? pille(freiGesamt + " TaP frei zu verteilen", true) : null;
+        EigenschaftenLayout.Rund k = EigenschaftenLayout.karte("kampf", "Nahkampf", d.nah.size() + " Talente", frei);
+        JPanel t = streifen();
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0;
-        c.insets = new Insets(0, 0, 4, 8);
+        c.insets = new Insets(2, 0, 6, 6);
         c.anchor = GridBagConstraints.WEST;
         // „Hinweis“ so breit wie sein längster Text, „Zurücksetzen“ direkt dahinter, der Rest bleibt frei
-        String[] kopf = {"Talent", "TaW", "AT", "", "PA", "", "Verteilung", "AT | PA", "Hinweis", "<html><center>Zurück-<br>setzen</center></html>", ""};
+        String[] kopf = {"Talent", "TaW", "AT", "", "PA", "", "Verteilung", "AT | PA", "Hinweis", "", ""};
         for (int i = 0; i < kopf.length; i++) {
             c.gridx = i;
             c.weightx = i == 10 ? 1 : 0;
             c.fill = GridBagConstraints.NONE;
             // Zahlenspalten rechtsbündig wie ihr Inhalt, „Zurücksetzen“ mittig über dem Knopf
             c.anchor = i == 1 || i == 2 || i == 4 ? GridBagConstraints.EAST : i == 9 ? GridBagConstraints.CENTER : GridBagConstraints.WEST;
-            t.add(kopfzelle(kopf[i], c.anchor == GridBagConstraints.EAST), c);
+            JLabel kz = akzentKopf(kopf[i], c.anchor == GridBagConstraints.EAST);
+            if (i == 9) {
+                // Kopf über „Zurücksetzen“: nur das Symbol (spart Breite im kleinen Fenster)
+                kz.setIcon(new SymbolIcon(Symbol.ZURUECK, 14));
+                TooltipHook.infoTip(kz, "Zurücksetzen: gibt alle verteilten TaP eines Talents wieder frei");
+            }
+            t.add(kz, c);
         }
         c.anchor = GridBagConstraints.WEST;
         for (Nahkampf n : d.nah) {
             c.gridy++;
             zeile(t, c, n, d, h);
         }
-        k.add(t, BorderLayout.CENTER);
+        k.add(waagerecht(tabellenRahmen(t)), BorderLayout.CENTER);
         return k;
     }
 
@@ -605,7 +719,7 @@ final class KampfwerteLayout {
                 && atA >= 0 && paA >= 0;
         String rechenweg = rechenweg(n.name, at, pa, atA, paA, frei, taw, d, stimmig);
 
-        c.insets = new Insets(3, 0, 3, 8);
+        c.insets = new Insets(5, 0, 5, 6);
         c.fill = GridBagConstraints.NONE;
         c.weightx = 0;
         c.gridx = 0;
@@ -638,20 +752,16 @@ final class KampfwerteLayout {
         t.add(b, c);
 
         c.gridx = 7;
-        JLabel anteile = klein(stimmig ? "+" + atA + " | +" + paA + (frei > 0 ? " | " + frei + " frei" : "") : "");
+        // freie TaP stehen in der Pille daneben
+        JLabel anteile = klein(stimmig ? "+" + atA + " | +" + paA : "");
         TooltipHook.infoTip(anteile, rechenweg);
         InventarLayout.eigen(anteile);
         t.add(anteile, c);
 
         c.gridx = 8;
-        // zweizeilig („3 TaP / frei“, „AT/PA- / Grenze“) – so bleibt die Spalte schmal und alles passt ins Fenster
+        // als Pille: „4 TaP frei“ betont, „AT/PA-Grenze“ zurückhaltend
         String hw = hinweis(frei, atA, paA, stimmig);
-        int lz = hw.lastIndexOf(' ');
-        if (hw.startsWith("AT/PA-")) hw = "<html>AT/PA-<br>Grenze</html>";
-        else if (lz > 0) hw = "<html>" + hw.substring(0, lz) + "<br>" + hw.substring(lz + 1) + "</html>";
-        JLabel hinweis = new JLabel(hw);
-        hinweis.setFont(hinweis.getFont().deriveFont(hinweis.getFont().getSize2D() - 1f));
-        if (frei != null && frei > 0) hinweis.setForeground(Theme.accent()); else hinweis.setForeground(Theme.muted());
+        JComponent hinweis = hw.isEmpty() ? new JLabel("") : pille(hw.startsWith("AT/PA") ? "Grenze" : hw, frei != null && frei > 0);
         TooltipHook.infoTip(hinweis, rechenweg);
         InventarLayout.eigen(hinweis);
         t.add(hinweis, c);
@@ -669,6 +779,13 @@ final class KampfwerteLayout {
         }
         t.add(reset, c);
         c.anchor = GridBagConstraints.WEST;
+    }
+
+    /** Spaltenkopf in der Akzentfarbe (wie die Tabellenköpfe der Druckvorschau). */
+    static JLabel akzentKopf(String text, boolean rechts) {
+        JLabel l = kopfzelle(text, rechts);
+        l.setForeground(Theme.isDark() ? EigenschaftenLayout.mische(Theme.accent(), Color.WHITE, 0.4) : Theme.accent());
+        return l;
     }
 
     /** Spaltenkopf; Zahlenspalten mit demselben rechten Rand wie die Werte darunter. */
@@ -904,7 +1021,7 @@ final class KampfwerteLayout {
 
         Balken(int at, int pa, int frei) {
             this.at = at; this.pa = pa; this.frei = frei;
-            setPreferredSize(new Dimension(80, 16));
+            setPreferredSize(new Dimension(70, 16));
             setMinimumSize(new Dimension(50, 16));
             putClientProperty("modernhelden.own", true);
         }
@@ -949,25 +1066,23 @@ final class KampfwerteLayout {
     // ------------------------------------------------------------------ Fernkampf
 
     private static JComponent fernkampf(Daten d, HeroData h) {
-        JPanel k = karte("Fernkampf");
-        JPanel t = tabelle();
-        t.setOpaque(false);
-        InventarLayout.eigen(t);
+        EigenschaftenLayout.Rund k = EigenschaftenLayout.karte("bogen", "Fernkampf", d.fern.size() + " Talente", null);
+        JPanel t = streifen();
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0;
-        c.insets = new Insets(0, 0, 4, 12);
+        c.insets = new Insets(2, 0, 6, 12);
         c.anchor = GridBagConstraints.WEST;
         String[] kopf = {"Talent", "TaW", "FK", "Rechenweg"};
         for (int i = 0; i < kopf.length; i++) {
             c.gridx = i;
             c.weightx = i == 3 ? 1 : 0;
             c.anchor = i == 1 || i == 2 ? GridBagConstraints.EAST : GridBagConstraints.WEST;
-            t.add(kopfzelle(kopf[i], c.anchor == GridBagConstraints.EAST), c);
+            t.add(akzentKopf(kopf[i], c.anchor == GridBagConstraints.EAST), c);
         }
         c.anchor = GridBagConstraints.WEST;
         for (Fernkampf f : d.fern) {
             c.gridy++;
-            c.insets = new Insets(3, 0, 3, 12);
+            c.insets = new Insets(5, 0, 5, 12);
             Integer fk = zahl(f.wert.getText());
             Integer taw = null;
             if (h != null) {
@@ -1002,7 +1117,8 @@ final class KampfwerteLayout {
             InventarLayout.eigen(w);
             t.add(w, c);
         }
-        k.add(t, BorderLayout.CENTER);
+        // oben halten, wenn die Karte neben den Basiswerten höher wird
+        k.add(EigenschaftenLayout.oben(tabellenRahmen(t)), BorderLayout.CENTER);
         return k;
     }
 
@@ -1010,21 +1126,19 @@ final class KampfwerteLayout {
 
     // ------------------------------------------------------------------ Regeln
 
+    private static boolean regelnOffen = true;
+
     private static JComponent regeln() {
-        JPanel k = karte("So wird gerechnet");
-        JLabel l = new HtmlText("<html>"
-                + "• <b>Nahkampf:</b> Der TaW eines Kampftalents wird auf Attacke und Parade verteilt. "
-                + "AT = AT-Basis + AT-Anteil, PA = PA-Basis + PA-Anteil.<br>"
-                + "• <b>Grenze:</b> AT- und PA-Anteil dürfen sich um höchstens " + MAX_DIFFERENZ + " unterscheiden.<br>"
-                + "• <b>Freie TaP:</b> Nach dem Steigern im Reiter „Talente“ ist der neue Punkt zunächst frei und wird hier "
-                + "mit + auf AT oder PA gelegt.<br>"
-                + "• <b>Zurücknehmen:</b> − nimmt nur Punkte zurück, die seit dem Laden des Helden verteilt wurden; "
-                + "\u21ba gibt alle verteilten TaP eines Talents wieder frei.<br>"
-                + "• <b>Fernkampf:</b> FK = FK-Basis + TaW; hier wird nichts verteilt.<br>"
-                + "• Waffen, Schilde und Rüstung verändern die Werte zusätzlich – siehe Reiter „Ausrüstung“."
-                + "</html>");
-        InventarLayout.eigen(l);
-        k.add(l, BorderLayout.CENTER);
-        return k;
+        String[][] punkte = {
+                {"kampf", "Nahkampf", "Der TaW eines Kampftalents wird auf Attacke und Parade verteilt: AT = AT-Basis + AT-Anteil, "
+                        + "PA = PA-Basis + PA-Anteil."},
+                {"grenze", "Grenze", "AT- und PA-Anteil dürfen sich um höchstens " + MAX_DIFFERENZ + " unterscheiden."},
+                {"ap", "Freie TaP", "Nach dem Steigern im Reiter „Talente“ ist der neue Punkt zunächst frei und wird hier mit + "
+                        + "auf AT oder PA gelegt."},
+                {"minus", "Zurücknehmen", "− nimmt nur Punkte zurück, die seit dem Laden des Helden verteilt wurden; \u21ba gibt "
+                        + "alle verteilten TaP eines Talents wieder frei."},
+                {"bogen", "Fernkampf", "FK = FK-Basis + TaW; hier wird nichts verteilt."},
+                {"MR", "Ausrüstung", "Waffen, Schilde und Rüstung verändern die Werte zusätzlich – siehe Reiter „Ausrüstung“."}};
+        return EigenschaftenLayout.hilfeKarte("So wird gerechnet", punkte, 300, 2, () -> regelnOffen, v -> regelnOffen = v);
     }
 }

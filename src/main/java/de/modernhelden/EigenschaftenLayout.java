@@ -90,6 +90,8 @@ final class EigenschaftenLayout {
 
     private static final class Daten {
         final Map<String, Zeile> zeilen = new LinkedHashMap<>();
+        /** Zeitpunkt der letzten „Eigenschaft steigern“ je Eigenschaft (für „−“), -1 = keine. */
+        final Map<String, Long> zurueck = new HashMap<>();
         JComboBox<?> gilde;
 
         Zeile z(String name) { return zeilen.get(name); }
@@ -205,6 +207,10 @@ final class EigenschaftenLayout {
             if (!aktiv) return;
             Daten d = lesen(original);
             anbinden(d);
+            Window w = SwingUtilities.getWindowAncestor(original);
+            Frame f = w instanceof Frame ? (Frame) w : Rueckgaengig.hauptfenster();
+            for (String[] e : EIGENSCHAFTEN)
+                d.zurueck.put(e[0], f == null ? -1L : Rueckgaengig.letzteEigenschaftsSteigerung(f, e[0]));
             HeroData h = InventarLayout.held();
             String stand = stand(d, h);
             if (stand.equals(letzterStand) && ansicht.getComponentCount() > 0) return;
@@ -221,7 +227,9 @@ final class EigenschaftenLayout {
     private static String stand(Daten d, HeroData h) {
         StringBuilder sb = new StringBuilder();
         sb.append(h == null ? "" : h.name).append('|').append(Theme.current());
-        if (h != null) sb.append('|').append(h.eig).append(h.eigStart).append(h.abgeleitet).append(h.energieMod).append(h.energieKauf);
+        if (h != null) sb.append('|').append(h.eig).append(h.eigStart).append(h.abgeleitet).append(h.energieMod).append(h.energieKauf)
+                .append('|').append(h.ap).append('/').append(h.freieAp);
+        sb.append('|').append(d.zurueck);
         for (Zeile z : d.zeilen.values()) {
             sb.append('|').append(z.name).append(':').append(z.feld == null ? "" : z.feld.getText());
             if (z.se != null) sb.append(z.se.isSelected() ? 'S' : 's').append(z.se.isEnabled() ? '1' : '0');
@@ -232,7 +240,11 @@ final class EigenschaftenLayout {
         return sb.toString();
     }
 
+
     // ------------------------------------------------------------------ Ansicht
+
+    /** Aufklappzustand der Hinweis-Bereiche (bleibt beim Neuaufbau erhalten). */
+    private static boolean rechenwegOffen = true, hilfeOffen = true;
 
     private static final class Ansicht extends JPanel implements Scrollable {
         Ansicht() {
@@ -245,120 +257,511 @@ final class EigenschaftenLayout {
         public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
         public int getScrollableUnitIncrement(Rectangle r, int o, int d) { return 20; }
         public int getScrollableBlockIncrement(Rectangle r, int o, int d) { return 200; }
+        /** Unterhalb dieser Breite scrollt die Ansicht waagerecht, darüber ordnen sich die Karten um. */
+        static final int MIN_BREITE = 700;
         public boolean getScrollableTracksViewportWidth() {
-            return !(getParent() instanceof JViewport) || getParent().getWidth() >= getMinimumSize().width;
+            return !(getParent() instanceof JViewport) || getParent().getWidth() >= MIN_BREITE;
         }
+        /**
+         * Die Hülle im Viewport folgt der Fensterbreite, solange sie mindestens so breit ist; erst darunter wird
+         * waagerecht gescrollt. Die gewünschte Breite ist die Mindestbreite – die Karten ordnen sich nach der
+         * tatsächlichen Breite an (nebeneinander oder untereinander).
+         */
+        @Override public Dimension getMinimumSize() { return new Dimension(MIN_BREITE, super.getMinimumSize().height); }
+        @Override public Dimension getPreferredSize() { return new Dimension(MIN_BREITE, super.getPreferredSize().height); }
         public boolean getScrollableTracksViewportHeight() {
             return getParent() instanceof JViewport && getParent().getHeight() > getPreferredSize().height;
         }
 
         void aufbauen(Daten d, HeroData h) {
             removeAll();
+            if (h != null && h.ap > 0) {
+                add(KampfwerteLayout.links(abenteuerpunkte(h)));
+                add(Box.createVerticalStrut(12));
+            }
             add(KampfwerteLayout.links(eigenschaften(d, h)));
-            add(Box.createVerticalStrut(14));
-            add(KampfwerteLayout.links(energien(d, h)));
-            add(Box.createVerticalStrut(14));
-            add(KampfwerteLayout.links(kampfBasis(d, h)));
-            add(Box.createVerticalStrut(14));
-            add(KampfwerteLayout.links(stand(d)));
-            add(Box.createVerticalStrut(14));
-            add(KampfwerteLayout.links(regeln()));
+            add(Box.createVerticalStrut(12));
+            JPanel rechts = new JPanel();
+            rechts.setOpaque(false);
+            rechts.setLayout(new BoxLayout(rechts, BoxLayout.Y_AXIS));
+            InventarLayout.eigen(rechts);
+            rechts.add(KampfwerteLayout.links(stand(d)));
+            rechts.add(Box.createVerticalStrut(12));
+            JComponent hilfe = KampfwerteLayout.links(regeln());
+            rechts.add(hilfe);
+            JPanel unten = new JPanel(new Spalten(12, new double[]{1, 1, 0.9}));
+            unten.setOpaque(false);
+            InventarLayout.eigen(unten);
+            unten.add(energien(d, h));
+            unten.add(kampfBasis(d, h));
+            unten.add(mindestens(rechts, 360));
+            add(KampfwerteLayout.links(unten));
             revalidate();
             repaint();
         }
     }
 
+    // ------------------------------------------------------------------ Bausteine
+
+    /** Fläche mit runden Ecken (Füllung und Rand), Inhalt per Layout. */
+    static class Rund extends JPanel {
+        Color fuellung, rand;
+        final int bogen;
+        Rund(LayoutManager l, Color fuellung, Color rand, int bogen) {
+            super(l);
+            this.fuellung = fuellung;
+            this.rand = rand;
+            this.bogen = bogen;
+            setOpaque(false);
+            InventarLayout.eigen(this);
+        }
+        @Override protected void paintComponent(Graphics g0) {
+            Graphics2D g = (Graphics2D) g0.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (fuellung != null) { g.setColor(fuellung); g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, bogen, bogen); }
+            if (rand != null) { g.setColor(rand); g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, bogen, bogen); }
+            g.dispose();
+            super.paintComponent(g0);
+        }
+    }
+
+    /** Runde Plakette mit Symbol. */
+    static final class Plakette implements Icon {
+        final int groesse;
+        final Color grund, farbe;
+        final String symbol;
+        Plakette(String symbol, int groesse, Color grund, Color farbe) {
+            this.symbol = symbol; this.groesse = groesse; this.grund = grund; this.farbe = farbe;
+        }
+        public int getIconWidth() { return groesse; }
+        public int getIconHeight() { return groesse; }
+        public void paintIcon(Component c, Graphics g0, int x, int y) {
+            Graphics2D g = (Graphics2D) g0.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (grund != null) { g.setColor(grund); g.fillOval(x, y, groesse - 1, groesse - 1); }
+            int s = Math.round(groesse * (grund == null ? 1f : 0.58f));
+            g.translate(x + (groesse - s) / 2.0, y + (groesse - s) / 2.0);
+            EigenschaftenSymbole.zeichne(g, symbol, s, farbe);
+            g.dispose();
+        }
+    }
+
+    static Color mische(Color a, Color b, double t) {
+        return new Color((int) Math.round(a.getRed() + (b.getRed() - a.getRed()) * t),
+                (int) Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t),
+                (int) Math.round(a.getBlue() + (b.getBlue() - a.getBlue()) * t));
+    }
+
+    /** Hervorhebung wie in der Druckvorschau: überall dieselbe Akzentfarbe (Rostbraun). */
+    static Color farbe(String k) { return Theme.accent(); }
+
+    static Color vordergrund() {
+        Color c = UIManager.getColor("Label.foreground");
+        return c != null ? c : Color.DARK_GRAY;
+    }
+
+    /** Kachel wie in der Druckvorschau: warmes Beige, feiner Rand, Akzentbalken unten. */
+    static Rund kachel(Color f, LayoutManager l) {
+        Color basis = Theme.kachel();
+        Rund r = new Rund(l, mische(basis, Theme.accent(), Theme.isDark() ? 0.07 : 0.045), Theme.trenner(), 12) {
+            @Override protected void paintComponent(Graphics g0) {
+                super.paintComponent(g0);
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setColor(Theme.accent());
+                g.fillRoundRect(14, getHeight() - 5, getWidth() - 28, 3, 3, 3);
+                g.dispose();
+            }
+        };
+        r.setBorder(new EmptyBorder(10, 12, 16, 12));
+        return r;
+    }
+
+    /** Karte mit runden Ecken, Plakette, Titel und optionalem Zähler-Chip; Inhalt kommt in die Mitte. */
+    static Rund karte(String symbol, String titel, String chip, JComponent rechts) {
+        Rund k = new Rund(new BorderLayout(0, 12), Theme.card(), Theme.trenner(), 16) {
+            @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+        };
+        k.setBorder(new EmptyBorder(14, 16, 16, 16));
+        k.add(kopf(symbol, titel, chip, rechts), BorderLayout.NORTH);
+        return k;
+    }
+
+    static JComponent kopf(String symbol, String titel, String chip, JComponent rechts) {
+        JPanel kopf = new JPanel(new BorderLayout(12, 0));
+        kopf.setOpaque(false);
+        InventarLayout.eigen(kopf);
+        JPanel l = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        l.setOpaque(false);
+        InventarLayout.eigen(l);
+        JLabel t = InventarLayout.titel(titel);
+        t.setFont(t.getFont().deriveFont(t.getFont().getSize2D() + 2f));
+        t.setIcon(new Plakette(symbol, 34, Theme.accent(), Color.WHITE));
+        t.setIconTextGap(12);
+        InventarLayout.eigen(t);
+        l.add(t);
+        if (chip != null) {
+            l.add(Box.createHorizontalStrut(12));
+            l.add(chip(chip));
+        }
+        JPanel mitte = new JPanel(new GridBagLayout());   // Titelzeile senkrecht mittig
+        mitte.setOpaque(false);
+        InventarLayout.eigen(mitte);
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST;
+        c.weightx = 1;
+        mitte.add(l, c);
+        kopf.add(mitte, BorderLayout.CENTER);
+        if (rechts != null) kopf.add(rechts, BorderLayout.EAST);
+        return kopf;
+    }
+
+    static JComponent chip(String text) {
+        Rund r = new Rund(new BorderLayout(), mische(Theme.kachel(), Theme.accent(), 0.08), mische(Theme.kachel(), Theme.accent(), 0.3), 999);
+        r.setBorder(new EmptyBorder(2, 10, 3, 10));
+        JLabel l = new JLabel(text);
+        l.setFont(l.getFont().deriveFont(l.getFont().getSize2D() - 1f));
+        InventarLayout.eigen(l);
+        r.add(l);
+        JPanel h = new JPanel(new GridBagLayout());
+        h.setOpaque(false);
+        InventarLayout.eigen(h);
+        h.add(r);
+        return h;
+    }
+
+    static JLabel fett(String t, float plus) {
+        JLabel l = new JLabel(t);
+        l.setFont(l.getFont().deriveFont(Font.BOLD, l.getFont().getSize2D() + plus));
+        InventarLayout.eigen(l);
+        return l;
+    }
+
+    static JLabel leise(String t) {
+        JLabel l = KampfwerteLayout.klein(t);
+        InventarLayout.eigen(l);
+        return l;
+    }
+
+    /** Runder Knopf (−/+). */
+    static JButton rundknopf(String text) {
+        JButton b = new JButton(text);
+        b.setFocusable(false);
+        b.setMargin(new Insets(0, 0, 0, 0));
+        b.setPreferredSize(new Dimension(36, 30));
+        b.setFont(b.getFont().deriveFont(Font.BOLD, b.getFont().getSize2D() + 3f));
+        b.putClientProperty("FlatLaf.style", "arc: 999");
+        InventarLayout.eigen(b);
+        return b;
+    }
+
+    /** Knopf wie die Tabellenköpfe der Druckvorschau: zartes Akzent-Beige mit Akzentschrift. */
+    static JButton farbknopf(String text, Color f) {
+        JButton b = new JButton(text);
+        b.setFocusable(false);
+        Color a = Theme.accent();
+        Color grund = mische(Theme.kachel(), a, Theme.isDark() ? 0.22 : 0.12), rand = mische(Theme.kachel(), a, 0.45);
+        Color schrift = Theme.isDark() ? mische(a, Color.WHITE, 0.45) : a;
+        b.putClientProperty("FlatLaf.style", String.format("arc: 10; background: %s; borderColor: %s; foreground: %s; hoverBackground: %s; font: bold",
+                hex(grund), hex(rand), hex(schrift), hex(mische(grund, a, 0.12))));
+        InventarLayout.eigen(b);
+        return b;
+    }
+
+    private static String hex(Color c) { return String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue()); }
+
+    /**
+     * Ordnet Kinder in Spalten an (spaltenweise gefüllt): {@code max} Spalten, solange jede mindestens
+     * {@code minBreite} breit ist, sonst weniger. Alle Zellen einer Zeile sind gleich hoch.
+     */
+    static final class Raster implements LayoutManager {
+        final int max, minBreite, luecke;
+        final boolean spaltenweise;
+        Raster(int max, int minBreite, int luecke, boolean spaltenweise) {
+            this.max = max; this.minBreite = minBreite; this.luecke = luecke; this.spaltenweise = spaltenweise;
+        }
+        int spalten(Container p) {
+            int b = p.getWidth() - p.getInsets().left - p.getInsets().right;
+            if (b <= 0) return max;
+            int n = max;
+            while (n > 1 && (b - (n - 1) * luecke) / n < minBreite) n--;
+            return n;
+        }
+        int zeilenhoehe(Container p) {
+            int h = 0;
+            for (Component k : p.getComponents()) if (k.isVisible()) h = Math.max(h, k.getPreferredSize().height);
+            return h;
+        }
+        public void addLayoutComponent(String n, Component c) { }
+        public void removeLayoutComponent(Component c) { }
+        public Dimension preferredLayoutSize(Container p) {
+            int n = p.getComponentCount(), sp = spalten(p), zeilen = (n + sp - 1) / Math.max(1, sp);
+            int w = 0;
+            for (Component k : p.getComponents()) w = Math.max(w, k.getPreferredSize().width);
+            Insets i = p.getInsets();
+            return new Dimension(sp * w + (sp - 1) * luecke + i.left + i.right,
+                    zeilen * zeilenhoehe(p) + Math.max(0, zeilen - 1) * luecke + i.top + i.bottom);
+        }
+        public Dimension minimumLayoutSize(Container p) {
+            Insets i = p.getInsets();
+            int w = 0;
+            for (Component k : p.getComponents()) w = Math.max(w, k.getMinimumSize().width);
+            int n = p.getComponentCount();
+            return new Dimension(w + i.left + i.right, n * zeilenhoehe(p) + Math.max(0, n - 1) * luecke + i.top + i.bottom);
+        }
+        public void layoutContainer(Container p) {
+            int n = p.getComponentCount();
+            if (n == 0) return;
+            Insets i = p.getInsets();
+            int sp = spalten(p), zeilen = (n + sp - 1) / sp;
+            int b = p.getWidth() - i.left - i.right, zw = (b - (sp - 1) * luecke) / sp, zh = zeilenhoehe(p);
+            for (int k = 0; k < n; k++) {
+                int s = spaltenweise ? k / zeilen : k % sp, z = spaltenweise ? k % zeilen : k / sp;
+                int breite = zw;
+                // letzte Kachel allein in ihrer Zeile: volle Breite
+                if (!spaltenweise && k == n - 1 && n % sp != 0 && s == 0) breite = b;
+                p.getComponent(k).setBounds(i.left + s * (zw + luecke), i.top + z * (zh + luecke), breite, zh);
+            }
+            Object alt = ((JComponent) p).getClientProperty("modernhelden.spalten");
+            if (!Integer.valueOf(sp).equals(alt)) {
+                ((JComponent) p).putClientProperty("modernhelden.spalten", sp);
+                SwingUtilities.invokeLater(p::revalidate);
+            }
+        }
+    }
+
+    /**
+     * Karten nebeneinander (Breite nach Gewicht, alle gleich hoch), wenn jede ihre Mindestbreite bekommt –
+     * sonst untereinander.
+     */
+    static final class Spalten implements LayoutManager {
+        final int luecke;
+        final double[] gewicht;
+        Spalten(int luecke, double[] gewicht) { this.luecke = luecke; this.gewicht = gewicht; }
+        boolean nebeneinander(Container p) {
+            int b = p.getWidth() - p.getInsets().left - p.getInsets().right;
+            if (b <= 0) return true;
+            int n = p.getComponentCount();
+            double summe = 0;
+            for (int k = 0; k < n; k++) summe += gewicht[k];
+            for (int k = 0; k < n; k++) {
+                int w = (int) ((b - (n - 1) * luecke) * gewicht[k] / summe);
+                if (w < p.getComponent(k).getMinimumSize().width) return false;
+            }
+            return true;
+        }
+        public void addLayoutComponent(String n, Component c) { }
+        public void removeLayoutComponent(Component c) { }
+        public Dimension preferredLayoutSize(Container p) {
+            Insets i = p.getInsets();
+            boolean neben = nebeneinander(p);
+            int w = 0, h = 0, n = p.getComponentCount();
+            for (Component k : p.getComponents()) {
+                Dimension d = k.getPreferredSize();
+                if (neben) { w += d.width; h = Math.max(h, d.height); }
+                else { w = Math.max(w, d.width); h += d.height; }
+            }
+            if (n > 1) { if (neben) w += (n - 1) * luecke; else h += (n - 1) * luecke; }
+            return new Dimension(w + i.left + i.right, h + i.top + i.bottom);
+        }
+        public Dimension minimumLayoutSize(Container p) {
+            int w = 0;
+            for (Component k : p.getComponents()) w = Math.max(w, k.getMinimumSize().width);
+            return new Dimension(w, 0);
+        }
+        public void layoutContainer(Container p) {
+            Insets i = p.getInsets();
+            int n = p.getComponentCount();
+            if (n == 0) return;
+            int b = p.getWidth() - i.left - i.right;
+            boolean neben = nebeneinander(p);
+            if (neben) {
+                double summe = 0;
+                for (int k = 0; k < n; k++) summe += gewicht[k];
+                int x = i.left, h = 0, rest = b - (n - 1) * luecke;
+                for (Component k : p.getComponents()) h = Math.max(h, k.getPreferredSize().height);
+                for (int k = 0; k < n; k++) {
+                    int w = k == n - 1 ? i.left + b - x : (int) (rest * gewicht[k] / summe);
+                    p.getComponent(k).setBounds(x, i.top, w, h);
+                    x += w + luecke;
+                }
+            } else {
+                int y = i.top;
+                for (Component k : p.getComponents()) {
+                    int h = k.getPreferredSize().height;
+                    k.setBounds(i.left, y, b, h);
+                    y += h + luecke;
+                }
+            }
+            Object alt = ((JComponent) p).getClientProperty("modernhelden.neben");
+            if (!Boolean.valueOf(neben).equals(alt)) {
+                ((JComponent) p).putClientProperty("modernhelden.neben", neben);
+                SwingUtilities.invokeLater(p::revalidate);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ Abenteuerpunkte
+
+    private static JComponent abenteuerpunkte(HeroData h) {
+        int gesamt = h.ap, frei = h.freieAp, aus = Math.max(0, gesamt - frei);
+        Rund k = new Rund(new GridBagLayout(), Theme.card(), Theme.trenner(), 16) {
+            @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+        };
+        k.setBorder(new EmptyBorder(10, 16, 10, 16));
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(0, 0, 0, 28);
+        JLabel t = fett("Abenteuerpunkte", 1);
+        t.setIcon(new Plakette("ap", 30, Theme.accent(), Color.WHITE));
+        t.setIconTextGap(10);
+        k.add(t, c);
+        k.add(apZahl(gesamt, "Gesamt", null), c);
+        k.add(apZahl(aus, "Ausgegeben", null), c);
+        k.add(apZahl(frei, "Verfügbar", farbe("AU")), c);
+        c.weightx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.insets = new Insets(0, 0, 0, 10);
+        double anteil = gesamt <= 0 ? 0 : Math.min(1, aus / (double) gesamt);
+        JComponent balken = new JComponent() {
+            @Override public Dimension getPreferredSize() { return new Dimension(160, 10); }
+            @Override public Dimension getMinimumSize() { return new Dimension(60, 10); }
+            @Override protected void paintComponent(Graphics g0) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int y = (getHeight() - 10) / 2;
+                g.setColor(mische(Theme.kachel(), vordergrund(), 0.12));
+                g.fillRoundRect(0, y, getWidth(), 10, 10, 10);
+                g.setColor(farbe("AU"));
+                g.fillRoundRect(0, y, (int) Math.round(getWidth() * anteil), 10, 10, 10);
+                g.dispose();
+            }
+        };
+        TooltipHook.infoTip(balken, Math.round(anteil * 100) + " % der Abenteuerpunkte sind ausgegeben.");
+        k.add(balken, c);
+        c.weightx = 0;
+        c.fill = GridBagConstraints.NONE;
+        c.insets = new Insets(0, 0, 0, 0);
+        k.add(leise(Math.round(anteil * 100) + " % ausgegeben"), c);
+        return k;
+    }
+
+    private static JComponent apZahl(int wert, String text, Color f) {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setOpaque(false);
+        InventarLayout.eigen(p);
+        JLabel z = fett(String.format(Locale.GERMAN, "%,d", wert), 4);
+        if (f != null) z.setForeground(f);
+        p.add(z);
+        JLabel l = leise(text);
+        if (f != null) l.setForeground(f);
+        p.add(l);
+        return p;
+    }
+
     // ------------------------------------------------------------------ Eigenschaften
 
     private static JComponent eigenschaften(Daten d, HeroData h) {
-        JPanel k = KampfwerteLayout.karte("Eigenschaften");
-        JPanel t = KampfwerteLayout.tabelle();
-        t.setOpaque(false);
-        InventarLayout.eigen(t);
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 0;
-        c.insets = new Insets(0, 0, 4, 8);
-        String[] kopf = {"Eigenschaft", "", "Wert", "Start", "SE", "Steigern", "Kosten", "Fließt ein in", ""};
-        for (int i = 0; i < kopf.length; i++) {
-            c.gridx = i;
-            c.weightx = i == kopf.length - 1 ? 1 : 0;
-            boolean rechts = i == 2 || i == 3 || i == 6;
-            c.anchor = rechts ? GridBagConstraints.EAST : i == 4 || i == 5 ? GridBagConstraints.CENTER : GridBagConstraints.WEST;
-            t.add(KampfwerteLayout.kopfzelle(kopf[i], rechts), c);
-        }
+        int anzahl = 0;
+        for (String[] e : EIGENSCHAFTEN) if (d.z(e[0]) != null) anzahl++;
+        Rund k = karte("stern", "Eigenschaften", anzahl + " Eigenschaften", null);
+        JPanel raster = new JPanel(new Raster(2, 560, 10, true));
+        raster.setOpaque(false);
+        InventarLayout.eigen(raster);
         for (String[] e : EIGENSCHAFTEN) {
             Zeile z = d.z(e[0]);
             if (z == null) continue;
-            c.gridy++;
             Integer wert = d.zahl(e[0]);
             Integer start = null;
             if (h != null && h.eigStart.get(e[1]) != null)
                 start = h.eigStart.get(e[1]) + (h.eigMod.get(e[1]) == null ? 0 : h.eigMod.get(e[1]));
-            String wirkung = wirkung(e[1]);
-            String tip = "<html><b>" + e[0] + " (" + e[1] + ")</b><br>Wert " + (wert == null ? "–" : wert)
-                    + (start == null ? "" : " · Startwert " + start + (wert != null && wert > start ? " · seit der Erschaffung +" + (wert - start) : ""))
-                    + "<br>Fließt ein in: " + wirkung + "</html>";
-            zeile(t, c, e[0], e[1], z, wert, start, wirkung, tip);
+            Long zeit = d.zurueck.get(e[0]);
+            raster.add(eigenschaft(e[0], e[1], z, wert, start, zeit == null ? -1 : zeit));
         }
-        k.add(t, BorderLayout.CENTER);
+        k.add(raster, BorderLayout.CENTER);
         return k;
     }
 
-    private static void zeile(JPanel t, GridBagConstraints c, String name, String kuerzel, Zeile z, Integer wert,
-                              Integer start, String spalteText, String tip) {
-        c.insets = new Insets(3, 0, 3, 8);
+    private static JComponent eigenschaft(String name, String kuerzel, Zeile z, Integer wert, Integer start, long zeit) {
+        Rund r = new Rund(new GridBagLayout(), Theme.kachel(), Theme.trenner(), 12);
+        r.setBorder(new EmptyBorder(8, 12, 8, 12));
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(0, 0, 0, 12);
+
+        JLabel sym = new JLabel(new Plakette(kuerzel, 40, mische(Theme.kachel(), vordergrund(), Theme.isDark() ? 0.14 : 0.07),
+                mische(vordergrund(), Theme.kachel(), 0.1)));
+        InventarLayout.eigen(sym);
+        r.add(sym, c);
+
+        JPanel text = new JPanel();
+        text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
+        text.setOpaque(false);
+        InventarLayout.eigen(text);
+        JLabel n = fett(name, 1);
+        text.add(n);
+        String wirkung = wirkung(kuerzel);
+        JLabel s = leise((start == null ? kuerzel : "Start: " + start) + "  ·  " + wirkung);
+        text.add(s);
+        // Name und Startwert dürfen im kleinen Fenster gekürzt werden, Wert und Knöpfe nicht
+        text.setMinimumSize(new Dimension(90, text.getPreferredSize().height));
+        text.setPreferredSize(new Dimension(Math.min(text.getPreferredSize().width, 150), text.getPreferredSize().height));
+        c.weightx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        r.add(text, c);
         c.weightx = 0;
-        c.gridx = 0;
-        c.anchor = GridBagConstraints.WEST;
-        JLabel n = new JLabel(name);
-        n.setFont(n.getFont().deriveFont(Font.BOLD));
-        InventarLayout.eigen(n);
-        t.add(n, c);
+        c.fill = GridBagConstraints.NONE;
 
-        c.gridx = 1;
-        JLabel kz = KampfwerteLayout.klein(kuerzel);
-        InventarLayout.eigen(kz);
-        t.add(kz, c);
+        Rund feld = new Rund(new GridBagLayout(), mische(Theme.kachel(), Theme.card(), 0.5), Theme.trenner(), 10);
+        feld.setPreferredSize(new Dimension(60, 42));
+        JLabel w = fett(wert == null ? "–" : String.valueOf(wert), 7);
+        feld.add(w);
+        r.add(feld, c);
 
-        c.gridx = 2;
-        c.anchor = GridBagConstraints.EAST;
-        JLabel wl = KampfwerteLayout.wert(wert == null ? "–" : String.valueOf(wert), true, null);
-        t.add(wl, c);
+        JComponent se = seHaken(z, name);
+        r.add(se, c);
 
-        c.gridx = 3;
-        JLabel st = KampfwerteLayout.wert(start == null ? "" : String.valueOf(start), false, tip);
-        // ohne Startwert (LE, AU …) belegt die Spalte keinen Platz
-        if (start == null) st.setVisible(false);
-        st.setForeground(Theme.muted());
-        t.add(st, c);
+        JLabel ko = kosten(z);
+        ko.setPreferredSize(new Dimension(Math.max(78, ko.getPreferredSize().width), ko.getPreferredSize().height));
+        r.add(ko, c);
 
-        c.gridx = 4;
-        c.anchor = GridBagConstraints.CENTER;
-        t.add(seHaken(z, name), c);
+        c.insets = new Insets(0, 0, 0, 8);
+        r.add(senken(name, wert, start, zeit), c);
+        c.insets = new Insets(0, 0, 0, 0);
+        JButton plus = rundknopf("+");
+        steigernAnbinden(plus, z, name, wert);
+        r.add(plus, c);
 
-        c.gridx = 5;
-        t.add(steigern(z, name, wert), c);
-
-        c.gridx = 6;
-        c.anchor = GridBagConstraints.EAST;
-        t.add(kosten(z), c);
-
-        c.gridx = 7;
-        c.anchor = GridBagConstraints.WEST;
-        // Rechenweg in zwei Zeilen (Formel / Modifikatoren), damit er auch im kleinen Fenster ganz sichtbar ist
-        int teil = spalteText.indexOf(" · ");
-        String zeigen = teil > 0
-                ? "<html>" + esc(spalteText.substring(0, teil)) + "<br>" + esc(spalteText.substring(teil + 3)) + "</html>"
-                : spalteText;
-        JLabel w = KampfwerteLayout.klein(zeigen);
-        InventarLayout.eigen(w);
-        t.add(w, c);
-        // dieselben Tooltips wie in der Kompaktansicht und in der Ansicht der Helden-Software
-        TooltipHook.tooltipFuer(name, n, kz, wl, st);
-        // „Fließt ein in“ und „Rechenweg“ bleiben ohne Tooltip
+        String tip = "<html><b>" + name + " (" + kuerzel + ")</b><br>Wert " + (wert == null ? "–" : wert)
+                + (start == null ? "" : " · Startwert " + start + (wert != null && wert > start ? " · seit der Erschaffung +" + (wert - start) : ""))
+                + "<br>Fließt ein in: " + wirkung + "</html>";
+        TooltipHook.tooltipFuer(name, n, sym, w);
+        TooltipHook.infoTip(s, tip);
+        return r;
     }
 
-    private static String esc(String t) { return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"); }
+    /** „−“: nimmt die letzte Steigerung dieser Eigenschaft mit der Undo-Logik der Helden-Software zurück. */
+    private static JComponent senken(String name, Integer wert, Integer start, long zeit) {
+        JButton b = rundknopf("−");
+        boolean geht = zeit > 0 && (start == null || wert == null || wert > start);
+        b.setEnabled(geht);
+        TooltipHook.infoTip(b, geht
+                ? "Letzte Steigerung von " + name + " zurücknehmen" + (wert == null ? "" : " (" + wert + " → " + (wert - 1) + ")")
+                  + " – die AP werden erstattet."
+                : name + " wurde noch nicht gesteigert – nichts zurückzunehmen.");
+        b.addActionListener(e -> {
+            Window win = SwingUtilities.getWindowAncestor(b);
+            Frame f = win instanceof Frame ? (Frame) win : Rueckgaengig.hauptfenster();
+            if (f == null) return;
+            long t = Rueckgaengig.letzteEigenschaftsSteigerung(f, name);
+            if (t <= 0) return;
+            String fehler = Rueckgaengig.ausfuehren(f, t, "Eigenschaft steigern");
+            if (fehler != null) JOptionPane.showMessageDialog(b, fehler, "Zurücknehmen nicht möglich", JOptionPane.WARNING_MESSAGE);
+            for (Zustand z : alle.values()) if (z.aktiv) z.spaeter();
+        });
+        return b;
+    }
 
     /** Wofür eine Eigenschaft gebraucht wird – aus den Formeln der Grundwerte. */
     static String wirkung(String k) {
@@ -379,9 +782,10 @@ final class EigenschaftenLayout {
     }
 
     private static JComponent seHaken(Zeile z, String name) {
-        JCheckBox b = new JCheckBox();
+        JCheckBox b = new JCheckBox("SE");
         b.setOpaque(false);
         b.setFocusable(false);
+        b.setForeground(Theme.muted());
         InventarLayout.eigen(b);
         if (z.se == null) { b.setVisible(false); return b; }
         b.setSelected(z.se.isSelected());
@@ -397,13 +801,9 @@ final class EigenschaftenLayout {
         return b;
     }
 
-    private static JComponent steigern(Zeile z, String name, Integer wert) {
-        JButton b = new JButton("Steigern");
-        b.setFocusable(false);
-        b.putClientProperty("JButton.buttonType", "roundRect");
-        InventarLayout.eigen(b);
-        if (z.knopf == null && "Karmaenergie".equals(name)) return karmalqueste(b);
-        if (z.knopf == null) { b.setVisible(false); return b; }
+    /** Verbindet einen eigenen Knopf mit „Steigern“ der Helden-Software (Zustand, Tooltip, Klick). */
+    private static boolean steigernAnbinden(AbstractButton b, Zeile z, String name, Integer wert) {
+        if (z.knopf == null) { b.setVisible(false); return false; }
         b.setEnabled(z.knopf.isEnabled());
         String grund = z.knopf.getToolTipText();
         String kosten = z.kosten == null ? "" : String.valueOf(z.kosten.getText()).trim();
@@ -416,7 +816,7 @@ final class EigenschaftenLayout {
             TooltipHook.infoTip(b, name + (wert == null ? "" : " von " + wert + " auf " + (wert + 1)) + " steigern"
                     + (kosten.isEmpty() ? "" : " (" + kosten + ")"));
         b.addActionListener(e -> z.knopf.doClick(0));
-        return b;
+        return true;
     }
 
     /**
@@ -424,7 +824,6 @@ final class EigenschaftenLayout {
      * Der Knopf löst genau diesen Menüpunkt aus und ist nur aktiv, wenn er es auch ist.
      */
     private static JComponent karmalqueste(JButton b) {
-        b.setText("Karmalqueste …");
         JMenuItem m = null;
         for (Frame f : Frame.getFrames()) {
             if (!f.isDisplayable()) continue;
@@ -441,9 +840,13 @@ final class EigenschaftenLayout {
         return b;
     }
 
+    private static boolean maximum(Zeile z) {
+        return z.knopf != null && !z.knopf.isEnabled() && "Maximum erreicht".equals(z.knopf.getToolTipText());
+    }
+
     private static JLabel kosten(Zeile z) {
         String text = z.kosten == null ? "" : String.valueOf(z.kosten.getText()).trim();
-        boolean max = z.knopf != null && !z.knopf.isEnabled() && "Maximum erreicht".equals(z.knopf.getToolTipText());
+        boolean max = maximum(z);
         JLabel l = new JLabel(max ? "Maximum" : text, SwingConstants.RIGHT);
         if (max) l.setForeground(Theme.muted());
         l.setBorder(new EmptyBorder(0, 2, 0, 4));
@@ -451,86 +854,158 @@ final class EigenschaftenLayout {
         return l;
     }
 
-    // ------------------------------------------------------------------ Energien und MR
+    // ------------------------------------------------------------------ Abgeleitete Werte
 
     private static JComponent energien(Daten d, HeroData h) {
-        // Überschrift nach den vorhandenen Werten (AE und KE nur bei Helden, die sie haben)
-        List<String> titel = new ArrayList<>(Arrays.asList("Lebensenergie", "Ausdauer"));
-        if (d.zahl("Astralenergie") != null) titel.add("Astralenergie");
-        if (d.zahl("Karmaenergie") != null) titel.add("Karmaenergie");
-        JPanel k = KampfwerteLayout.karte(String.join(", ", titel) + " und Magieresistenz");
-        JPanel t = KampfwerteLayout.tabelle();
-        t.setOpaque(false);
-        InventarLayout.eigen(t);
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 0;
-        c.insets = new Insets(0, 0, 4, 8);
-        String[] kopf = {"Name", "", "Wert", "", "SE", "Zukaufen", "Kosten", "Rechenweg", ""};
-        for (int i = 0; i < kopf.length; i++) {
-            c.gridx = i;
-            c.weightx = i == kopf.length - 1 ? 1 : 0;
-            boolean rechts = i == 2 || i == 6;
-            c.anchor = rechts ? GridBagConstraints.EAST : i == 4 || i == 5 ? GridBagConstraints.CENTER : GridBagConstraints.WEST;
-            t.add(KampfwerteLayout.kopfzelle(kopf[i], rechts), c);
-        }
+        List<JComponent> kacheln = new ArrayList<>();
+        JComponent karma = null;
+        int werte = 0;
         for (Energie e : ENERGIEN) {
             Zeile z = d.z(e.name);
             if (z == null) continue;
             Integer wert = d.zahl(e.name);
             // AE und KE nur bei Helden, die sie haben
             if (wert == null && (e.kuerzel.equals("AE") || e.kuerzel.equals("KE"))) continue;
-            c.gridy++;
-            String weg = rechenweg(e, h, wert, e.kuerzel.equals("AE") ? verlorenAe(d) : null);
-            String tip = "<html><div style='width:340px'><b>" + e.name + " (" + e.kuerzel + ")</b><br>" + e.zweck + ".<br><br>"
-                    + (weg.isEmpty() ? "" : weg + "<br>")
-                    + (e.kuerzel.equals("KE") ? "Wird nicht direkt gesteigert, sondern über eine Karmalqueste erhöht."
-                    : e.eig == null ? "Wird nicht mit AP gesteigert."
-                    : "Steigt eine der Eigenschaften, steigt der Grundwert mit. Zukaufen ist nur begrenzt möglich.")
-                    + "</div></html>";
-            zeile(t, c, e.name, e.kuerzel, z, wert, null, weg, tip);
-            if (e.kuerzel.equals("AE")) verloreneAe(t, c, d);
+            if (e.kuerzel.equals("KE")) { karma = karmaKachel(e, z, wert, h); continue; }
+            werte++;
+            kacheln.add(energieKachel(e, z, wert, h, d));
         }
-        k.add(t, BorderLayout.CENTER);
-        return k;
+        Rund k = karte("LE", "Abgeleitete Werte", werte + " Werte" + (karma != null ? " + Karma" : ""), null);
+        k.setMinimumSize(null);
+        JPanel raster = new JPanel(new Raster(2, 190, 10, false));
+        raster.setOpaque(false);
+        InventarLayout.eigen(raster);
+        for (JComponent c : kacheln) raster.add(c);
+        JPanel inhalt = new JPanel(new BorderLayout(0, 10));
+        inhalt.setOpaque(false);
+        InventarLayout.eigen(inhalt);
+        inhalt.add(raster, BorderLayout.CENTER);
+        if (karma != null) inhalt.add(karma, BorderLayout.SOUTH);
+        k.add(oben(inhalt), BorderLayout.CENTER);
+        return mindestens(k, 400);
     }
 
-    /** Zeile für dauerhaft verlorene Astralenergie mit „Zurückkaufen“ – bei Helden mit AE immer (ohne Verlust ausgegraut). */
-    private static void verloreneAe(JPanel t, GridBagConstraints c, Daten d) {
+    /** Inhalt oben halten, wenn die Karte höher ist als nötig (gleich hohe Karten nebeneinander). */
+    static JComponent oben(JComponent c) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setOpaque(false);
+        InventarLayout.eigen(p);
+        p.add(c, BorderLayout.NORTH);
+        return p;
+    }
+
+    /** Karte mit fester Mindestbreite (für die Entscheidung „nebeneinander oder untereinander“). */
+    static JComponent mindestens(JComponent k, int breite) {
+        JPanel p = new JPanel(new BorderLayout()) {
+            @Override public Dimension getMinimumSize() { return new Dimension(breite, super.getMinimumSize().height); }
+        };
+        p.setOpaque(false);
+        InventarLayout.eigen(p);
+        p.add(k, BorderLayout.CENTER);
+        return p;
+    }
+
+    private static JComponent energieKachel(Energie e, Zeile z, Integer wert, HeroData h, Daten d) {
+        Color f = farbe(e.kuerzel);
+        Rund r = kachel(f, new BorderLayout(0, 6));
+        JPanel oben = new JPanel(new BorderLayout(8, 0));
+        oben.setOpaque(false);
+        InventarLayout.eigen(oben);
+        JLabel n = fett(e.name, 0);
+        n.setIcon(new EigenschaftenSymbole(e.kuerzel, 20, f));
+        n.setIconTextGap(8);
+        oben.add(n, BorderLayout.CENTER);
+        JComponent se = seHaken(z, e.name);
+        if (se.isVisible()) oben.add(se, BorderLayout.EAST);
+        r.add(oben, BorderLayout.NORTH);
+
+        JPanel mitte = new JPanel();
+        mitte.setLayout(new BoxLayout(mitte, BoxLayout.Y_AXIS));
+        mitte.setOpaque(false);
+        InventarLayout.eigen(mitte);
+        JLabel w = fett(wert == null ? "–" : String.valueOf(wert), 10);
+        mitte.add(w);
+        String kosten = z.kosten == null ? "" : String.valueOf(z.kosten.getText()).trim();
+        mitte.add(leise(maximum(z) ? "Maximum erreicht" : kosten.isEmpty() ? " " : "Nächster Schritt: " + kosten));
+        String weg = rechenweg(e, h, wert, e.kuerzel.equals("AE") ? verlorenAe(d) : null);
+        if (!weg.isEmpty()) {
+            JLabel rw = leise("<html><div style='width:170px'>" + esc(weg) + "</div></html>");
+            rw.setBorder(new EmptyBorder(3, 0, 0, 0));
+            mitte.add(rw);
+        }
+        if (e.kuerzel.equals("AE")) verloreneAe(mitte, d);
+        r.add(mitte, BorderLayout.CENTER);
+
+        JButton b = farbknopf("+  Steigern", f);
+        if (!steigernAnbinden(b, z, e.name, wert)) b.setVisible(false);
+        r.add(b, BorderLayout.SOUTH);
+
+        String tip = "<html><div style='width:340px'><b>" + e.name + " (" + e.kuerzel + ")</b><br>" + e.zweck + ".<br><br>"
+                + (weg.isEmpty() ? "" : esc(weg) + "<br>")
+                + "Steigt eine der Eigenschaften, steigt der Grundwert mit. Zukaufen ist nur begrenzt möglich.</div></html>";
+        TooltipHook.tooltipFuer(e.name, n, w);
+        TooltipHook.infoTip(r, tip);
+        return r;
+    }
+
+    private static JComponent karmaKachel(Energie e, Zeile z, Integer wert, HeroData h) {
+        Color f = farbe("KE");
+        Rund r = kachel(f, new BorderLayout(12, 0));
+        JPanel l = new JPanel();
+        l.setLayout(new BoxLayout(l, BoxLayout.Y_AXIS));
+        l.setOpaque(false);
+        InventarLayout.eigen(l);
+        JLabel n = fett(e.name, 0);
+        n.setIcon(new EigenschaftenSymbole("KE", 20, f));
+        n.setIconTextGap(8);
+        l.add(n);
+        JLabel w = fett(wert == null ? "–" : String.valueOf(wert), 10);
+        l.add(w);
+        String weg = rechenweg(e, h, wert, null);
+        if (!weg.isEmpty()) l.add(leise(weg));
+        r.add(l, BorderLayout.CENTER);
+        JButton b = farbknopf("Karmalqueste …", f);
+        JComponent knopf = karmalqueste(b);
+        JPanel halter = new JPanel(new GridBagLayout());
+        halter.setOpaque(false);
+        InventarLayout.eigen(halter);
+        halter.add(knopf);
+        r.add(halter, BorderLayout.EAST);
+        TooltipHook.tooltipFuer(e.name, n, w);
+        TooltipHook.infoTip(r, "<html><b>Karmaenergie (KE)</b><br>" + e.zweck
+                + ".<br>Wird nicht direkt gesteigert, sondern über eine Karmalqueste erhöht.</html>");
+        return r;
+    }
+
+    /** Dauerhaft verlorene Astralenergie mit „Zurückkaufen“ – bei Helden mit AE immer (ohne Verlust ausgegraut). */
+    private static void verloreneAe(JPanel p, Daten d) {
         Zeile z = d.z("Astralenergie-permanent");
         if (z == null || z.feld == null) return;
         String v = String.valueOf(z.feld.getText()).trim();
-        c.gridy++;
-        c.insets = new Insets(0, 0, 3, 12);
-        c.gridx = 0;
-        c.weightx = 0;
-        c.anchor = GridBagConstraints.WEST;
-        String tip = "Dauerhaft verlorene Astralenergie (z. B. durch bestimmte Rituale) kann mit AP zurückgekauft werden.";
-        JLabel n = KampfwerteLayout.klein("dauerhaft verloren");
-        TooltipHook.infoTip(n, tip);
-        InventarLayout.eigen(n);
-        c.gridwidth = 2;
-        t.add(n, c);
-        c.gridwidth = 1;
-        c.gridx = 2;
-        c.anchor = GridBagConstraints.EAST;
-        t.add(KampfwerteLayout.wert(v.isEmpty() ? "0" : v, false, tip), c);
-        c.gridx = 5;
-        c.anchor = GridBagConstraints.CENTER;
+        JPanel zeile = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        zeile.setOpaque(false);
+        zeile.setAlignmentX(0);
+        zeile.setBorder(new EmptyBorder(4, 0, 0, 0));
+        InventarLayout.eigen(zeile);
+        JLabel n = leise("dauerhaft verloren: " + (v.isEmpty() ? "0" : v) + "   ");
+        TooltipHook.infoTip(n, "Dauerhaft verlorene Astralenergie (z. B. durch bestimmte Rituale) kann mit AP zurückgekauft werden.");
+        zeile.add(n);
         JButton b = new JButton("Zurückkaufen");
         b.setFocusable(false);
         b.putClientProperty("JButton.buttonType", "roundRect");
+        b.setMargin(new Insets(0, 6, 0, 6));
+        b.setFont(b.getFont().deriveFont(b.getFont().getSize2D() - 1f));
         InventarLayout.eigen(b);
         if (z.knopf == null) b.setVisible(false);
         else {
             b.setEnabled(z.knopf.isEnabled());
-            TooltipHook.infoTip(b, z.knopf.isEnabled() ? "Einen Punkt dauerhaft verlorener AE zurückkaufen" : "Keine dauerhaft verlorene AE.");
+            String k = z.kosten == null ? "" : String.valueOf(z.kosten.getText()).trim();
+            TooltipHook.infoTip(b, z.knopf.isEnabled() ? "Einen Punkt dauerhaft verlorener AE zurückkaufen" + (k.isEmpty() ? "" : " (" + k + ")")
+                    : "Keine dauerhaft verlorene AE.");
             b.addActionListener(e -> z.knopf.doClick(0));
         }
-        t.add(b, c);
-        c.gridx = 6;
-        c.anchor = GridBagConstraints.EAST;
-        t.add(kosten(z), c);
-        c.anchor = GridBagConstraints.WEST;
+        zeile.add(b);
+        p.add(zeile);
     }
 
     /** Dauerhaft verlorene AE laut Feld der Helden-Software (leer = 0); null, wenn es das Feld nicht gibt. */
@@ -576,88 +1051,209 @@ final class EigenschaftenLayout {
 
     private static String vz(int v) { return v >= 0 ? "+" + v : "−" + (-v); }
 
+    static String esc(String t) { return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"); }
+
     // ------------------------------------------------------------------ Kampf-Basiswerte
 
     private static JComponent kampfBasis(Daten d, HeroData h) {
-        JPanel k = KampfwerteLayout.karte("Kampf-Basiswerte");
-        JPanel reihe = new KampfwerteLayout.Kacheln(10);
-        reihe.add(KampfwerteLayout.basis("AT-Basis", d.zahl("Attacke"), h, new String[]{"MU", "GE", "KK"}, "Grundlage aller Attacke-Werte im Nahkampf"));
-        reihe.add(KampfwerteLayout.basis("PA-Basis", d.zahl("Parade"), h, new String[]{"IN", "GE", "KK"}, "Grundlage aller Parade-Werte und des Ausweichens"));
-        reihe.add(KampfwerteLayout.basis("FK-Basis", d.zahl("Fernkampf-Basis"), h, new String[]{"IN", "FF", "KK"}, "Grundlage aller Fernkampfwerte"));
-        reihe.add(KampfwerteLayout.basis("INI-Basis", d.zahl("Initiative"), h, new String[]{"MU", "MU", "IN", "GE"},
-                "Initiative-Basiswert: Grundlage der Reihenfolge im Kampf; dazu kommen 1W6 sowie Waffen- und Rüstungsmodifikatoren"));
-        k.add(reihe, BorderLayout.CENTER);
-        k.add(KampfwerteLayout.klein("Die Verteilung der Kampftalente auf Attacke und Parade steht im Reiter „Kampfwerte“."), BorderLayout.SOUTH);
+        return mindestens(kampfBasisKarte("kampf", "Kampf-Basiswerte", d.zahl("Attacke"), d.zahl("Parade"), d.zahl("Fernkampf-Basis"),
+                d.zahl("Initiative"), h, "Die Verteilung der Kampftalente auf Attacke und Parade steht im Reiter „Kampfwerte“."), 420);
+    }
+
+    /** Karte mit den vier Kampf-Basiswerten als Kacheln und aufklappbaren Berechnungsgrundlagen (auch im Reiter „Kampfwerte“). */
+    static Rund kampfBasisKarte(String symbol, String titel, Integer at, Integer pa, Integer fk, Integer ini, HeroData h, String fussText) {
+        Integer[] werte = {at, pa, fk, ini};
+        Rund k = karte(symbol, titel, null, null);
+        String[][] b = {
+                {"AT", "Attacke", "0", "AT-Basis", "MU,GE,KK", "Grundlage aller Attacke-Werte im Nahkampf"},
+                {"PA", "Parade", "1", "PA-Basis", "IN,GE,KK", "Grundlage aller Parade-Werte und des Ausweichens"},
+                {"FK", "Fernkampf", "2", "FK-Basis", "IN,FF,KK", "Grundlage aller Fernkampfwerte"},
+                {"INI", "Initiative", "3", "INI-Basis", "MU,MU,IN,GE",
+                        "Grundlage der Reihenfolge im Kampf; dazu kommen 1W6 sowie Waffen- und Rüstungsmodifikatoren"}};
+        JPanel reihe = new JPanel(new Raster(4, 88, 10, false));
+        reihe.setOpaque(false);
+        InventarLayout.eigen(reihe);
+        JPanel formeln = new JPanel(new GridBagLayout());
+        formeln.setOpaque(false);
+        InventarLayout.eigen(formeln);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = 0;
+        c.anchor = GridBagConstraints.WEST;
+        for (String[] x : b) {
+            Integer wert = werte[Integer.parseInt(x[2])];
+            String[] eig = x[4].split(",");
+            Color f = farbe(x[0]);
+            Rund t = kachel(f, new GridBagLayout());
+            t.setBorder(new EmptyBorder(10, 6, 10, 6));
+            GridBagConstraints tc = new GridBagConstraints();
+            tc.gridx = 0;
+            JLabel w = fett(wert == null ? "–" : String.valueOf(wert), 14);
+            t.add(w, tc);
+            tc.gridy = 1;
+            JLabel kz = fett(x[0], 0);
+            kz.setForeground(f);
+            t.add(kz, tc);
+            tc.gridy = 2;
+            t.add(leise("(" + x[1] + ")"), tc);
+            String formel = KampfwerteLayout.formel(eig, h, wert);
+            TooltipHook.infoTip(t, "<html><b>" + x[3] + "</b><br>" + x[5] + ".<br>Formel: (" + String.join(" + ", eig)
+                    + ") / 5, kaufmännisch gerundet.</html>");
+            reihe.add(t);
+
+            // Zeile der Berechnungsgrundlagen: Farbstrich, Name, Formel
+            c.gridx = 0;
+            c.insets = new Insets(4, 0, 4, 10);
+            JComponent strich = new JComponent() {
+                @Override public Dimension getPreferredSize() { return new Dimension(3, 18); }
+                @Override protected void paintComponent(Graphics g) { g.setColor(f); g.fillRoundRect(0, 0, 3, getHeight(), 3, 3); }
+            };
+            formeln.add(strich, c);
+            c.gridx = 1;
+            c.insets = new Insets(4, 0, 4, 14);
+            JLabel n = fett(x[3], 0);
+            formeln.add(n, c);
+            c.gridx = 2;
+            c.weightx = 1;
+            c.insets = new Insets(4, 0, 4, 0);
+            formeln.add(leise("<html><div style='width:230px'>" + esc(formel) + "</div></html>"), c);
+            c.weightx = 0;
+            c.gridy++;
+        }
+        JPanel inhalt = new JPanel(new BorderLayout(0, 12));
+        inhalt.setOpaque(false);
+        InventarLayout.eigen(inhalt);
+        inhalt.add(reihe, BorderLayout.NORTH);
+        inhalt.add(aufklapper("info", "Berechnungsgrundlagen", formeln,
+                fussText == null ? null : leise("<html><div style='width:300px'>" + esc(fussText) + "</div></html>"),
+                () -> rechenwegOffen, v -> rechenwegOffen = v, false), BorderLayout.CENTER);
+        k.add(oben(inhalt), BorderLayout.CENTER);
         return k;
+    }
+
+    /**
+     * Aufklappbarer Bereich in einer Kachel: Kopfzeile mit Symbol, Titel und „Details anzeigen/ausblenden“,
+     * darunter der Inhalt und ein optionaler Fußhinweis (immer sichtbar).
+     */
+    static JComponent aufklapper(String symbol, String titel, JComponent inhalt, JComponent fuss,
+                                         java.util.function.BooleanSupplier offen, java.util.function.Consumer<Boolean> setzen,
+                                         boolean grossTitel) {
+        Rund r = new Rund(new BorderLayout(0, 8), grossTitel ? null : Theme.kachel(), grossTitel ? null : Theme.trenner(), 12);
+        r.setBorder(grossTitel ? new EmptyBorder(0, 0, 0, 0) : new EmptyBorder(8, 12, 10, 12));
+        JPanel kopf = new JPanel(new BorderLayout(10, 0));
+        kopf.setOpaque(false);
+        InventarLayout.eigen(kopf);
+        JLabel t = grossTitel ? InventarLayout.titel(titel) : fett(titel, 0);
+        t.setIcon(grossTitel ? new Plakette(symbol, 34, Theme.accent(), Color.WHITE) : new EigenschaftenSymbole(symbol, 18, Theme.muted()));
+        t.setIconTextGap(grossTitel ? 12 : 8);
+        InventarLayout.eigen(t);
+        kopf.add(t, BorderLayout.CENTER);
+        JButton knopf = new JButton();
+        knopf.setFocusable(false);
+        knopf.putClientProperty("JButton.buttonType", "borderless");
+        InventarLayout.eigen(knopf);
+        kopf.add(knopf, BorderLayout.EAST);
+        r.add(kopf, BorderLayout.NORTH);
+        JPanel koerper = new JPanel(new BorderLayout(0, 8));
+        koerper.setOpaque(false);
+        InventarLayout.eigen(koerper);
+        koerper.add(inhalt, BorderLayout.CENTER);
+        r.add(koerper, BorderLayout.CENTER);
+        if (fuss != null) {
+            JLabel l = fuss instanceof JLabel ? (JLabel) fuss : null;
+            if (l != null) { l.setIcon(new EigenschaftenSymbole("info", 16, Theme.muted())); l.setIconTextGap(8); }
+            JPanel f = new JPanel(new BorderLayout());
+            f.setOpaque(false);
+            f.setBorder(new EmptyBorder(4, 0, 0, 0));
+            InventarLayout.eigen(f);
+            f.add(fuss, BorderLayout.CENTER);
+            r.add(f, BorderLayout.SOUTH);
+        }
+        Runnable zeigen = () -> {
+            boolean o = offen.getAsBoolean();
+            koerper.setVisible(o);
+            knopf.setText(grossTitel ? (o ? "▴" : "▾") : (o ? "Details ausblenden  ▴" : "Details anzeigen  ▾"));
+            TooltipHook.infoTip(knopf, o ? "Zuklappen" : "Aufklappen");
+        };
+        zeigen.run();
+        knopf.addActionListener(e -> {
+            setzen.accept(!offen.getAsBoolean());
+            zeigen.run();
+            r.revalidate();
+            r.repaint();
+            for (Container q = r.getParent(); q != null; q = q.getParent()) { q.revalidate(); if (q instanceof JViewport) break; }
+        });
+        return r;
     }
 
     // ------------------------------------------------------------------ Sozialstatus und Gilde
 
     private static JComponent stand(Daten d) {
-        JPanel k = KampfwerteLayout.karte("Stand");
-        JPanel t = KampfwerteLayout.tabelle();
+        Rund k = karte("person", "Sozialstatus & Gildenzugehörigkeit", null, null);
+        JPanel t = KampfwerteLayout.tabelle(true);
         t.setOpaque(false);
         InventarLayout.eigen(t);
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = 0;
-        c.insets = new Insets(3, 0, 3, 12);
+        c.insets = new Insets(4, 0, 4, 12);
         c.anchor = GridBagConstraints.WEST;
 
         Zeile so = d.z("Sozialstatus");
         if (so != null && so.feld != null) {
             c.gridx = 0;
-            JLabel n = new JLabel("Sozialstatus");
-            n.setFont(n.getFont().deriveFont(Font.BOLD));
-            InventarLayout.eigen(n);
+            JLabel n = fett("Sozialstatus", 0);
             TooltipHook.tooltipFuer("Sozialstatus", n);
             t.add(n, c);
             c.gridx = 1;
             t.add(sozialstatus(so.feld), c);
             c.gridx = 2;
             c.weightx = 1;
-            t.add(KampfwerteLayout.klein("Höchstens 21, kostet keine AP"), c);
+            t.add(leise("<html><div style='width:130px'>Höchstens 21, kostet keine AP.</div></html>"), c);
             c.weightx = 0;
             c.gridy++;
         }
         if (d.gilde != null) {
             c.gridx = 0;
-            JLabel n = new JLabel("Gildenzugehörigkeit");
-            n.setFont(n.getFont().deriveFont(Font.BOLD));
-            InventarLayout.eigen(n);
-            t.add(n, c);
+            t.add(fett("Gildenzugehörigkeit", 0), c);
             c.gridx = 1;
+            c.gridwidth = 2;
+            c.fill = GridBagConstraints.HORIZONTAL;
             t.add(gilde(d.gilde), c);
-            c.gridx = 2;
-            c.weightx = 1;
-            t.add(KampfwerteLayout.klein(d.gilde.isEnabled() ? "Weiße, graue oder schwarze Gilde"
-                    : "Nur für Gildenmagier und Lehrmeister wählbar."), c);
-            c.weightx = 0;
+            c.fill = GridBagConstraints.NONE;
+            c.gridy++;
+            c.gridx = 1;
+            t.add(leise("<html><div style='width:180px'>" + (d.gilde.isEnabled() ? "Weiße, graue oder schwarze Gilde."
+                    : "Nur für Gildenmagier und Lehrmeister wählbar.") + "</div></html>"), c);
+            c.gridwidth = 1;
         }
         k.add(t, BorderLayout.CENTER);
         return k;
     }
 
-    /** Eigenes Feld; übernommen wird über das Feld der Helden-Software (Enter oder Verlassen des Feldes). */
+    /** Eigenes Zahlenfeld; übernommen wird über das Feld der Helden-Software (wie Enter dort). */
     private static JComponent sozialstatus(JTextField orig) {
-        JTextField f = new JTextField(String.valueOf(orig.getText()), 3) {
+        int wert;
+        try { wert = Integer.parseInt(String.valueOf(orig.getText()).trim()); } catch (NumberFormatException e) { wert = 1; }
+        SpinnerNumberModel m = new SpinnerNumberModel(wert, Math.min(1, wert), Math.max(21, wert), 1);
+        JSpinner s = new JSpinner(m) {
             @Override public Dimension getMinimumSize() { return getPreferredSize(); }
         };
-        f.setHorizontalAlignment(SwingConstants.RIGHT);
-        TooltipHook.infoTip(f, "Sozialstatus eingeben und mit Enter übernehmen");
-        InventarLayout.eigen(f);
-        Runnable uebernehmen = () -> {
-            String neu = f.getText().trim();
+        ((JSpinner.DefaultEditor) s.getEditor()).getTextField().setColumns(3);
+        TooltipHook.infoTip(s, "Sozialstatus (1–21); wird sofort übernommen");
+        InventarLayout.eigen(s);
+        s.addChangeListener(e -> {
+            String neu = String.valueOf(s.getValue());
             if (neu.equals(String.valueOf(orig.getText()).trim())) return;
             orig.setText(neu);
             orig.postActionEvent();
             // die Helden-Software setzt bei ungültiger Eingabe den alten Wert zurück
-            SwingUtilities.invokeLater(() -> f.setText(String.valueOf(orig.getText())));
-        };
-        f.addActionListener(e -> uebernehmen.run());
-        f.addFocusListener(new FocusAdapter() {
-            @Override public void focusLost(FocusEvent e) { uebernehmen.run(); }
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    int ist = Integer.parseInt(String.valueOf(orig.getText()).trim());
+                    if (!Integer.valueOf(ist).equals(s.getValue())) s.setValue(ist);
+                } catch (IllegalArgumentException ignore) { }
+            });
         });
-        return f;
+        return s;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -667,6 +1263,13 @@ final class EigenschaftenLayout {
         JComboBox b = new JComboBox(m);
         b.setSelectedItem(orig.getSelectedItem());
         b.setEnabled(orig.isEnabled());
+        b.setRenderer(new DefaultListCellRenderer() {
+            @Override public Component getListCellRendererComponent(JList l, Object v, int i, boolean s, boolean f) {
+                String t = v == null || String.valueOf(v).trim().isEmpty() ? "– Keine Auswahl –" : String.valueOf(v);
+                return super.getListCellRendererComponent(l, t, i, s, f);
+            }
+        });
+        b.setPrototypeDisplayValue("– Keine Auswahl –    ");
         InventarLayout.eigen(b);
         b.addActionListener(e -> {
             Object neu = b.getSelectedItem();
@@ -675,22 +1278,53 @@ final class EigenschaftenLayout {
         return b;
     }
 
-    // ------------------------------------------------------------------ Regeln
+    // ------------------------------------------------------------------ Hilfe
 
     private static JComponent regeln() {
-        JPanel k = KampfwerteLayout.karte("So wird gerechnet");
-        JLabel l = new HtmlText("<html>"
-                + "• <b>Steigern:</b> Jeder Schritt erhöht den Wert um 1; die Kosten zeigt die Spalte „Kosten“. "
-                + "Höhere Werte werden teurer.<br>"
-                + "• <b>SE:</b> Eine Spezielle Erfahrung macht den nächsten Schritt günstiger und wird danach verbraucht.<br>"
-                + "• <b>Grenzen:</b> Eigenschaften lassen sich nur bis zu einem Höchstwert steigern, LE, AU, AE und MR "
-                + "nur begrenzt zukaufen – dann steht dort „Maximum“.<br>"
-                + "• <b>Grundwerte:</b> LE, AU, AE, MR und die Kampf-Basiswerte werden aus den Eigenschaften berechnet "
-                + "(kaufmännisch gerundet) und steigen mit ihnen.<br>"
-                + "• Gesteigert wird über die Helden-Software; dauerhaft wird die Änderung erst beim Speichern des Helden."
-                + "</html>");
-        InventarLayout.eigen(l);
-        k.add(l, BorderLayout.CENTER);
+        String[][] punkte = {
+                {"kosten", "Steigerungskosten", "Jeder Schritt erhöht den Wert um 1 und kostet AP – höhere Werte werden teurer."},
+                {"ap", "Spezielle Erfahrung (SE)", "Macht den nächsten Schritt günstiger und wird danach verbraucht."},
+                {"grenze", "Grenzen", "Eigenschaften steigen nur bis zum Höchstwert; LE, AU, AE und MR lassen sich nur begrenzt zukaufen."},
+                {"rechnen", "Berechnung der Grundwerte", "LE, AU, AE, MR und die Kampf-Basiswerte entstehen aus den Eigenschaften und steigen mit."},
+                {"minus", "Zurücknehmen", "„−“ nimmt die letzte Steigerung einer Eigenschaft zurück und erstattet die AP."},
+                {"speichern", "Speichern", "Dauerhaft wird jede Änderung erst beim Speichern des Helden."}};
+        return hilfeKarte("Wie funktioniert die Steigerung?", punkte, 260, 1, () -> hilfeOffen, v -> hilfeOffen = v);
+    }
+
+    /** Aufklappbare Hilfe-Karte: je Punkt Symbol, fetter Titel und kurze Erklärung. */
+    static JComponent hilfeKarte(String titel, String[][] punkte, int textBreite, int spalten,
+                                 java.util.function.BooleanSupplier offen, java.util.function.Consumer<Boolean> setzen) {
+        Rund k = new Rund(new BorderLayout(), Theme.card(), Theme.trenner(), 16) {
+            @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+        };
+        k.setBorder(new EmptyBorder(14, 16, 16, 16));
+        // Punkte in Spalten, die sich der Breite anpassen; der Text bricht nach der tatsächlichen Breite um
+        JPanel liste = new JPanel(new Raster(spalten, textBreite, 10, false));
+        liste.setOpaque(false);
+        InventarLayout.eigen(liste);
+        for (String[] p : punkte) {
+            JPanel punkt = new JPanel(new BorderLayout(12, 0));
+            punkt.setOpaque(false);
+            punkt.setBorder(new EmptyBorder(4, 0, 4, 0));
+            InventarLayout.eigen(punkt);
+            JLabel sym = new JLabel(new Plakette(p[0], 32, mische(Theme.kachel(), vordergrund(), Theme.isDark() ? 0.14 : 0.07),
+                    mische(vordergrund(), Theme.kachel(), 0.15)));
+            sym.setVerticalAlignment(SwingConstants.TOP);
+            InventarLayout.eigen(sym);
+            punkt.add(sym, BorderLayout.WEST);
+            JPanel t = new JPanel(new BorderLayout());
+            t.setOpaque(false);
+            InventarLayout.eigen(t);
+            t.add(fett(p[1], 0), BorderLayout.NORTH);
+            HtmlText text = new HtmlText("<html>" + p[2] + "</html>");
+            text.setForeground(Theme.muted());
+            text.setFont(text.getFont().deriveFont(text.getFont().getSize2D() - 1f));
+            InventarLayout.eigen(text);
+            t.add(text, BorderLayout.CENTER);
+            punkt.add(t, BorderLayout.CENTER);
+            liste.add(punkt);
+        }
+        k.add(aufklapper("liste", titel, liste, null, offen, setzen, true), BorderLayout.CENTER);
         return k;
     }
 }
