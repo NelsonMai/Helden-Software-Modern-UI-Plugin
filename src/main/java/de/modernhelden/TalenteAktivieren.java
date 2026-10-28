@@ -109,8 +109,21 @@ final class TalenteAktivieren {
                 @Override public void rowsDeleted(int a, int b) {
                     try { super.rowsDeleted(a, b); } catch (IndexOutOfBoundsException e) { allRowsChanged(); }
                 }
+                // Klick 1: aufsteigend, Klick 2: absteigend, Klick 3: ursprüngliche Reihenfolge
+                @Override public void toggleSortOrder(int column) {
+                    if (!isSortable(column)) return;
+                    List<? extends SortKey> k = getSortKeys();
+                    if (!k.isEmpty() && k.get(0).getColumn() == column && k.get(0).getSortOrder() == javax.swing.SortOrder.DESCENDING) setSortKeys(null);
+                    else super.toggleSortOrder(column);
+                }
             };
-            for (int i = 0; i < tab.getModel().getColumnCount(); i++) sortierer.setSortable(i, false);
+            // sortierbar: Talent, Probe, Lern(-Spalte), AP; nicht: SE-Kästchen und „+“
+            sortierer.setMaxSortKeys(1);
+            for (int i = 0; i < tab.getModel().getColumnCount(); i++) {
+                boolean ja = i >= 1 && i <= 4;
+                sortierer.setSortable(i, ja);
+                if (ja) sortierer.setComparator(i, TalenteSortierung::vergleiche);
+            }
             tab.setRowSorter(sortierer);
             suche.putClientProperty("JTextField.placeholderText", "Talente suchen …");
             suche.putClientProperty("JTextField.leadingIcon", new com.formdev.flatlaf.icons.FlatSearchIcon());
