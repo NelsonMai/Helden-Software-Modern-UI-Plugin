@@ -37,7 +37,8 @@ Steckbrief, Abenteuerpunkte mit Herkunft und *AP hinzufügen …*, Vor-/Nachteil
 
 ### Eigenschaften
 
-Eigenschaften mit Kosten und Verwendung, LE/AU/AE/MR mit Rechenweg, Kampf-Basiswerte, Sozialstatus und Gilde.
+Abenteuerpunkte, Eigenschaften als Kacheln mit Steigern und Zurücknehmen, LE/AU/AE/MR mit Rechenweg, Kampf-Basiswerte,
+Sozialstatus und Gilde.
 
 ![Reiter „Eigenschaften“ im modernen Design](docs/bilder/eigenschaften.png)
 
@@ -63,7 +64,7 @@ beidhändig und Jagdwaffe per Schalter, „Werte …“ und Ablegen direkt; *Bea
 
 ### Kampfwerte
 
-Basiswerte mit Formel, AT/PA-Verteilung als Balken samt Regeln, Fernkampf mit Rechenweg.
+AT/PA-Verteilung als Balken mit freien TaP, Basiswerte mit Formel, Fernkampf mit Rechenweg; ordnet sich nach Fensterbreite an.
 
 ![Reiter „Kampfwerte“ im modernen Design](docs/bilder/kampfwerte.png)
 
