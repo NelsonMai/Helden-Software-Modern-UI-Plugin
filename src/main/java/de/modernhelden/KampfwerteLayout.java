@@ -286,21 +286,102 @@ final class KampfwerteLayout {
 
         void aufbauen(Daten d, HeroData h) {
             removeAll();
-            if (!d.nah.isEmpty()) {
-                add(links(nahkampf(d, h)));
-                add(Box.createVerticalStrut(14));
-            }
-            // Basiswerte und Fernkampf: im großen Fenster nebeneinander (gleich hoch), sonst untereinander
-            JPanel reihe = new JPanel(new EigenschaftenLayout.Spalten(14, d.fern.isEmpty() ? new double[]{1} : new double[]{1, 1}));
-            reihe.setOpaque(false);
-            InventarLayout.eigen(reihe);
-            reihe.add(EigenschaftenLayout.mindestens(basiswerte(d, h), 460));
-            if (!d.fern.isEmpty()) reihe.add(EigenschaftenLayout.mindestens(fernkampf(d, h), 440));
-            add(links(reihe));
-            add(Box.createVerticalStrut(14));
-            add(links(regeln()));
+            Fluss f = new Fluss(d.nah.isEmpty() ? null : nahkampf(d, h), basiswerte(d, h),
+                    d.fern.isEmpty() ? null : fernkampf(d, h), regeln());
+            JPanel p = new JPanel(f);
+            p.setOpaque(false);
+            InventarLayout.eigen(p);
+            for (JComponent c : new JComponent[]{f.nah, f.basis, f.fern, f.hilfe}) if (c != null) p.add(c);
+            add(links(p));
             revalidate();
             repaint();
+        }
+    }
+
+    /**
+     * Anordnung der Karten nach Fensterbreite:
+     * <ul>
+     * <li>sehr breit: links Nahkampf in seiner natürlichen Breite und darunter Fernkampf, rechts Basiswerte und Hilfe;</li>
+     * <li>breit: Nahkampf über die volle Breite, darunter Basiswerte und Fernkampf nebeneinander, dann die Hilfe;</li>
+     * <li>schmal: alles untereinander.</li>
+     * </ul>
+     */
+    static final class Fluss implements LayoutManager {
+        static final int LUECKE = 14, RECHTS_MIN = 480, BASIS_MIN = 460, FERN_MIN = 440;
+        final JComponent nah, basis, fern, hilfe;
+        Fluss(JComponent nah, JComponent basis, JComponent fern, JComponent hilfe) {
+            this.nah = nah; this.basis = basis; this.fern = fern; this.hilfe = hilfe;
+        }
+        private static int breite(Container p) {
+            Insets i = p.getInsets();
+            return p.getWidth() - i.left - i.right;
+        }
+        private int nahBreite() { return nah == null ? 0 : nah.getPreferredSize().width; }
+        /** 2 = Nahkampf mit rechter Spalte, 1 = Basiswerte und Fernkampf nebeneinander, 0 = untereinander. */
+        int modus(Container p) {
+            int b = breite(p);
+            if (b <= 0) return 1;
+            if (nah != null && b - nahBreite() - LUECKE >= RECHTS_MIN) return 2;
+            if (fern == null || b >= BASIS_MIN + FERN_MIN + LUECKE) return 1;
+            return 0;
+        }
+        private static int h(JComponent c) { return c == null ? 0 : c.getPreferredSize().height; }
+        /** Höhen der Karten, die untereinander stehen (ohne fehlende). */
+        private static int stapel(JComponent... cs) {
+            int y = 0, n = 0;
+            for (JComponent c : cs) if (c != null) { y += h(c); n++; }
+            return y + Math.max(0, n - 1) * LUECKE;
+        }
+        public void addLayoutComponent(String n, Component c) { }
+        public void removeLayoutComponent(Component c) { }
+        public Dimension preferredLayoutSize(Container p) {
+            Insets i = p.getInsets();
+            int m = modus(p), hoehe;
+            if (m == 2) hoehe = Math.max(stapel(nah, fern), stapel(basis, hilfe));
+            else if (m == 1) hoehe = stapel(nah, fern == null ? basis : (JComponent) null, hilfe)
+                    + (fern == null ? 0 : Math.max(h(basis), h(fern)) + LUECKE);
+            else hoehe = stapel(nah, basis, fern, hilfe);
+            return new Dimension(Math.max(1, breite(p)) + i.left + i.right, hoehe + i.top + i.bottom);
+        }
+        public Dimension minimumLayoutSize(Container p) { return new Dimension(1, preferredLayoutSize(p).height); }
+        public void layoutContainer(Container p) {
+            Insets i = p.getInsets();
+            int b = breite(p), x = i.left, y = i.top, m = modus(p);
+            if (m == 2) {
+                // links Nahkampf und darunter Fernkampf, rechts Basiswerte und Hilfe
+                int wn = Math.min(nahBreite(), b - LUECKE - RECHTS_MIN);
+                nah.setBounds(x, y, wn, h(nah));
+                if (fern != null) fern.setBounds(x, y + h(nah) + LUECKE, wn, h(fern));
+                int xr = x + wn + LUECKE, wr = b - wn - LUECKE, yr = y;
+                for (JComponent c : new JComponent[]{basis, hilfe}) {
+                    if (c == null) continue;
+                    c.setBounds(xr, yr, wr, h(c));
+                    yr += h(c) + LUECKE;
+                }
+            } else if (m == 1) {
+                if (nah != null) { nah.setBounds(x, y, b, h(nah)); y += h(nah) + LUECKE; }
+                if (fern == null) { basis.setBounds(x, y, b, h(basis)); y += h(basis) + LUECKE; }
+                else {
+                    int w1 = (b - LUECKE) / 2, zh = Math.max(h(basis), h(fern));
+                    basis.setBounds(x, y, w1, zh);
+                    fern.setBounds(x + w1 + LUECKE, y, b - w1 - LUECKE, zh);
+                    y += zh + LUECKE;
+                }
+                hilfe.setBounds(x, y, b, h(hilfe));
+            } else {
+                for (JComponent c : new JComponent[]{nah, basis, fern, hilfe}) {
+                    if (c == null) continue;
+                    c.setBounds(x, y, b, h(c));
+                    y += h(c) + LUECKE;
+                }
+            }
+            // Modus oder Höhe ändern sich mit der Breite: einmal neu anordnen lassen
+            JComponent jp = (JComponent) p;
+            String stand = m + ":" + b + ":" + preferredLayoutSize(p).height;
+            if (!stand.equals(jp.getClientProperty("modernhelden.fluss"))) {
+                jp.putClientProperty("modernhelden.fluss", stand);
+                SwingUtilities.invokeLater(p::revalidate);
+            }
         }
     }
 
