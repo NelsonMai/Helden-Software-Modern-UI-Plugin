@@ -168,6 +168,7 @@ final class KampfwerteLayout {
             original.setVisible(false);
             huelle.add(original, BorderLayout.SOUTH);
             viewport.setView(huelle);
+            KampfwerteLayout.rahmen(viewport, true);
             SwingUtilities.updateComponentTreeUI(ansicht);
             neuAufbauen();
         }
@@ -179,6 +180,7 @@ final class KampfwerteLayout {
             huelle.remove(original);
             original.setVisible(true);
             viewport.setView(original);
+            KampfwerteLayout.rahmen(viewport, false);
             viewport.revalidate();
             viewport.repaint();
         }
@@ -307,7 +309,7 @@ final class KampfwerteLayout {
      * </ul>
      */
     static final class Fluss implements LayoutManager {
-        static final int LUECKE = 14, RECHTS_MIN = 480, BASIS_MIN = 460, FERN_MIN = 440;
+        static final int LUECKE = 10, RECHTS_MIN = 480, BASIS_MIN = 460, FERN_MIN = 440;
         final JComponent nah, basis, fern, hilfe;
         Fluss(JComponent nah, JComponent basis, JComponent fern, JComponent hilfe) {
             this.nah = nah; this.basis = basis; this.fern = fern; this.hilfe = hilfe;
@@ -385,6 +387,20 @@ final class KampfwerteLayout {
         }
     }
 
+    /**
+     * Rahmen des Scrollbereichs der Helden-Software: in den modernen Designs ausblenden (wie im Reiter „Allgemein“,
+     * die Karten haben eigene Ränder), im Design „Original“ wieder den Standard des Designs setzen.
+     */
+    static void rahmen(JViewport vp, boolean modern) {
+        if (!(vp.getParent() instanceof JScrollPane)) return;
+        JScrollPane sp = (JScrollPane) vp.getParent();
+        if (modern) sp.setBorder(BorderFactory.createEmptyBorder());
+        else {
+            sp.setBorder(null);
+            sp.updateUI();
+        }
+    }
+
     static JComponent links(JComponent c) {
         c.setAlignmentX(0);
         return c;
@@ -395,9 +411,7 @@ final class KampfwerteLayout {
         JPanel k = new JPanel(new BorderLayout(0, 8)) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
         };
-        k.setBackground(Theme.card());
-        k.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(10, 12, 12, 12)));
+        AusruestungLayout.rund(k, Theme.card(), 16, new Insets(10, 12, 12, 12));
         if (titel != null) k.add(InventarLayout.titel(titel), BorderLayout.NORTH);
         InventarLayout.eigen(k);
         return k;
@@ -538,7 +552,7 @@ final class KampfwerteLayout {
                 betont ? EigenschaftenLayout.mische(Theme.kachel(), a, Theme.isDark() ? 0.25 : 0.12) : EigenschaftenLayout.mische(Theme.kachel(), Theme.muted(), 0.12),
                 betont ? EigenschaftenLayout.mische(Theme.kachel(), a, 0.45) : Theme.trenner(), 999);
         r.setBorder(new EmptyBorder(1, 9, 2, 9));
-        JLabel l = new JLabel(text);
+        JLabel l = EigenschaftenLayout.breiter(new JLabel(text, SwingConstants.CENTER));
         l.setFont(l.getFont().deriveFont(betont ? Font.BOLD : Font.PLAIN, l.getFont().getSize2D() - 1f));
         l.setForeground(betont ? (Theme.isDark() ? EigenschaftenLayout.mische(a, Color.WHITE, 0.4) : a) : Theme.muted());
         InventarLayout.eigen(l);

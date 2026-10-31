@@ -132,9 +132,7 @@ final class HinzufuegenLayout {
             aktion.add(kaufen);
             aktion.add(rueckmeldung);
             JPanel karte = new JPanel(new BorderLayout(0, 6));
-            karte.setBackground(Theme.card());
-            karte.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(10, 12, 10, 12)));
+            AusruestungLayout.rund(karte, Theme.card(), 14, new Insets(10, 12, 10, 12));
             karte.add(name, BorderLayout.NORTH);
             JScrollPane angabenScroll = new JScrollPane(angaben);
             angabenScroll.setBorder(null);
@@ -276,7 +274,7 @@ final class HinzufuegenLayout {
 
         private void ziehenUndAblegen(final JScrollPane ziel) {
             final javax.swing.border.Border normal = ziel.getBorder();
-            final javax.swing.border.Border markiert = BorderFactory.createLineBorder(Theme.accent(), 2);
+            final javax.swing.border.Border markiert = new AusruestungLayout.RundRahmen(null, 12, new Insets(2, 2, 2, 2), Theme.accent(), 2f, false);
             // Rahmen nur bei echtem Wechsel setzen; beim Verlassen kurz warten, ob das Ziehen gleich wieder
             // über einem Teil der Tabelle weitergeht (Kopf, Zeilen, leere Fläche) – sonst flackert es
             final Timer aus = new Timer(150, e -> { if (ziel.getBorder() != normal) ziel.setBorder(normal); });

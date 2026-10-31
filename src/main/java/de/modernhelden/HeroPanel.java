@@ -232,10 +232,11 @@ public final class HeroPanel extends JPanel {
 
     private JComponent tile(String key, String value, String tip, boolean derived) {
         JPanel t = new JPanel(new BorderLayout());
-        t.setBackground(Theme.kachel());
-        t.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.trenner()),
-                new MatteBorder(0, 0, 3, 0, derived ? Theme.muted() : Theme.accent())), new EmptyBorder(6, 4, 4, 4)));
+        // runde Kachel mit Balken unten (wie die Kacheln in „Eigenschaften“ und in der Druckvorschau)
+        AusruestungLayout.RundRahmen r = new AusruestungLayout.RundRahmen(Theme.kachel(), 10, new Insets(6, 4, 8, 4));
+        r.balken = derived ? Theme.muted() : Theme.accent();
+        t.setOpaque(false);
+        t.setBorder(r);
         JLabel k = new JLabel(key, SwingConstants.CENTER);
         k.setForeground(Theme.muted());
         k.setFont(k.getFont().deriveFont(Font.BOLD, k.getFont().getSize2D() * 0.85f));
@@ -427,7 +428,7 @@ public final class HeroPanel extends JPanel {
         JPanel innen = new JPanel(new BorderLayout(0, 8));
         innen.setOpaque(false);
         innen.add(suchfeld("Sonderfertigkeiten filtern …", q -> list.setListData(gefiltert(h.sf, q))), BorderLayout.NORTH);
-        innen.add(scroll(list), BorderLayout.CENTER);
+        innen.add(rundScroll(list), BorderLayout.CENTER);
         p.add(innen);
         return p;
     }
@@ -436,8 +437,8 @@ public final class HeroPanel extends JPanel {
         JPanel p = new JPanel(new GridLayout(1, 2, 12, 0));
         p.setOpaque(false);
         final JList<HeroData.Item> vor = itemList(h.vorteile, true), nach = itemList(h.nachteile, true);
-        p.add(titled("Vorteile (" + h.vorteile.size() + ")", scroll(vor)));
-        p.add(titled("Nachteile (" + h.nachteile.size() + ")", scroll(nach)));
+        p.add(titled("Vorteile (" + h.vorteile.size() + ")", rundScroll(vor)));
+        p.add(titled("Nachteile (" + h.nachteile.size() + ")", rundScroll(nach)));
         JPanel aussen = new JPanel(new BorderLayout(0, 8));
         aussen.setBorder(new EmptyBorder(10, 10, 10, 10));
         aussen.add(suchfeld("Vor- und Nachteile filtern …", q -> {
@@ -1030,8 +1031,7 @@ public final class HeroPanel extends JPanel {
                 SwingConstants.CENTER);
         l.setForeground(Theme.muted());
         JPanel p = new JPanel(new BorderLayout());
-        p.setBorder(BorderFactory.createLineBorder(Theme.trenner()));
-        p.setBackground(UIManager.getColor("Table.background"));
+        AusruestungLayout.rund(p, UIManager.getColor("Table.background"), 12, new Insets(1, 1, 1, 1));
         p.add(l, BorderLayout.CENTER);
         return p;
     }
@@ -1110,6 +1110,35 @@ public final class HeroPanel extends JPanel {
                 menu.show(c, e.getX(), e.getY());
             }
         });
+    }
+
+    /**
+     * Liste in einer Fläche mit runden Ecken (Sonderfertigkeiten, Vor- und Nachteile) – wie die Listen im Reiter
+     * „Allgemein“. Der Inhalt wird an den Ecken abgeschnitten.
+     */
+    private static JComponent rundScroll(JComponent c) {
+        JScrollPane s = new JScrollPane(c);
+        s.setBorder(BorderFactory.createEmptyBorder());
+        s.setOpaque(false);
+        s.getViewport().setOpaque(true);
+        s.getViewport().setBackground(UIManager.getColor("List.background"));
+        EigenschaftenLayout.Rund r = new EigenschaftenLayout.Rund(new BorderLayout(), UIManager.getColor("List.background"), Theme.trenner(), 12) {
+            @Override protected void paintChildren(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.clip(new java.awt.geom.RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 11, 11));
+                super.paintChildren(g2);
+                g2.dispose();
+                // Rand über dem Inhalt nachziehen
+                Graphics2D g3 = (Graphics2D) g.create();
+                g3.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g3.setColor(Theme.trenner());
+                g3.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g3.dispose();
+            }
+        };
+        r.setBorder(new EmptyBorder(1, 1, 1, 1));
+        r.add(s, BorderLayout.CENTER);
+        return r;
     }
 
     private static JScrollPane scroll(JComponent c) {

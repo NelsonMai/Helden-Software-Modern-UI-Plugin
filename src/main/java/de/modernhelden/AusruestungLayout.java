@@ -121,6 +121,7 @@ final class AusruestungLayout {
             original.setVisible(false);
             huelle.add(original, BorderLayout.SOUTH);
             viewport.setView(huelle);
+            KampfwerteLayout.rahmen(viewport, true);
             SwingUtilities.updateComponentTreeUI(ansicht);
             neuAufbauen();
         }
@@ -132,6 +133,7 @@ final class AusruestungLayout {
             huelle.remove(original);
             original.setVisible(true);
             viewport.setView(original);
+            KampfwerteLayout.rahmen(viewport, false);
             viewport.revalidate();
             viewport.repaint();
         }
@@ -259,7 +261,7 @@ final class AusruestungLayout {
             removeAll();
             Map<Integer, Element> sets = sets(d);
             Seite s = new Seite(z, sets, gewichte(d), export);
-            SetLayout obenLayout = new SetLayout(12, 470);
+            SetLayout obenLayout = new SetLayout(10, 470);
             obenLayout.eigeneHoehe = true;
             JPanel oben = new JPanel(obenLayout);
             oben.setOpaque(false);
@@ -268,7 +270,7 @@ final class AusruestungLayout {
             oben.add(s.uebersicht());
             oben.add(s.waffenKarte());
             add(oben);
-            add(Box.createVerticalStrut(12));
+            add(Box.createVerticalStrut(10));
             JComponent r = s.ruestungKarte();
             r.setAlignmentX(0);
             add(r);
@@ -986,21 +988,36 @@ final class AusruestungLayout {
     }
 
     static final class RundRahmen implements javax.swing.border.Border {
-        final Color fuellung;
+        /** null: Hintergrund der Fläche; Rand null: Trennlinien-Farbe */
+        final Color fuellung, rand;
+        final float dicke;
+        final boolean gestrichelt;
         final int bogen;
         final Insets abstand;
-        RundRahmen(Color fuellung, int bogen, Insets abstand) { this.fuellung = fuellung; this.bogen = bogen; this.abstand = abstand; }
+        /** Akzentbalken unten (z. B. Wert-Kacheln), null: keiner */
+        Color balken;
+        RundRahmen(Color fuellung, int bogen, Insets abstand) { this(fuellung, bogen, abstand, null, 1f, false); }
+        RundRahmen(Color fuellung, int bogen, Insets abstand, Color rand, float dicke, boolean gestrichelt) {
+            this.fuellung = fuellung; this.bogen = bogen; this.abstand = abstand; this.rand = rand; this.dicke = dicke; this.gestrichelt = gestrichelt;
+        }
         @Override public void paintBorder(Component c, Graphics g0, int x, int y, int w, int h) {
             Graphics2D g = (Graphics2D) g0.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            Color f = fuellung;
-            if (c instanceof AbstractButton && ((AbstractButton) c).getModel().isRollover())
-                f = EigenschaftenLayout.mische(fuellung, Theme.accent(), Theme.isDark() ? 0.15 : 0.08);
-            // um einen halben Pixel eingerückt: sonst schneidet die Bildschirmskalierung (z. B. 125 %) den Rand ab
-            RoundRectangle2D form = new RoundRectangle2D.Float(x + 0.5f, y + 0.5f, w - 1.5f, h - 1.5f, bogen, bogen);
-            g.setColor(f);
-            g.fill(form);
-            g.setColor(Theme.trenner());
+            Color f = fuellung != null ? fuellung : c.isOpaque() ? null : c.getBackground();
+            if (f != null && c instanceof AbstractButton && ((AbstractButton) c).getModel().isRollover())
+                f = EigenschaftenLayout.mische(f, Theme.accent(), Theme.isDark() ? 0.15 : 0.08);
+            // um eine halbe Linienbreite eingerückt: sonst schneidet die Bildschirmskalierung (z. B. 125 %) den Rand ab
+            float e = dicke / 2f;
+            RoundRectangle2D form = new RoundRectangle2D.Float(x + e, y + e, w - 2 * e - 1f, h - 2 * e - 1f, bogen, bogen);
+            if (f != null) { g.setColor(f); g.fill(form); }
+            if (balken != null) {
+                g.setColor(balken);
+                g.fillRoundRect(x + 10, y + h - 5, w - 20, 3, 3, 3);
+            }
+            g.setColor(rand != null ? rand : Theme.trenner());
+            g.setStroke(gestrichelt
+                    ? new BasicStroke(dicke, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 1f, new float[]{4f, 3f}, 0f)
+                    : new BasicStroke(dicke));
             g.draw(form);
             g.dispose();
         }

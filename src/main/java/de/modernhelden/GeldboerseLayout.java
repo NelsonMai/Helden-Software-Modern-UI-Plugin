@@ -181,9 +181,7 @@ final class GeldboerseLayout {
 
             JPanel karte = new JPanel();
             karte.setLayout(new BoxLayout(karte, BoxLayout.Y_AXIS));
-            karte.setBackground(Theme.card());
-            karte.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(10, 12, 10, 12)));
+            AusruestungLayout.rund(karte, Theme.card(), 14, new Insets(10, 12, 10, 12));
             for (JComponent c : new JComponent[]{titel, zeile1, zeile2, hinweis, gesamt}) {
                 c.setAlignmentX(0);
                 karte.add(c);

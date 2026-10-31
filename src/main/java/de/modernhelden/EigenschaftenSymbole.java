@@ -65,6 +65,8 @@ final class EigenschaftenSymbole implements Icon {
             case "speichern": speichern(g); break;
             case "minus": minus(g); break;
             case "bogen": bogen(g); break;
+            case "vorteil": kreisZeichen(g, true); break;
+            case "nachteil": kreisZeichen(g, false); break;
             default: break;
         }
     }
@@ -365,6 +367,14 @@ final class EigenschaftenSymbole implements Icon {
         g.fill(pfad(22, 12, 17.5, 9.2, 17.5, 14.8));
         g.draw(new Line2D.Double(3, 12, 1.5, 9.5));
         g.draw(new Line2D.Double(3, 12, 1.5, 14.5));
+    }
+
+    /** Kreis mit Plus (Vorteil) oder Minus (Nachteil). */
+    private static void kreisZeichen(Graphics2D g, boolean plus) {
+        g.draw(new Ellipse2D.Double(3, 3, 18, 18));
+        g.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.draw(new Line2D.Double(7.5, 12, 16.5, 12));
+        if (plus) g.draw(new Line2D.Double(12, 7.5, 12, 16.5));
     }
 
     private static void minus(Graphics2D g) {

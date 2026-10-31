@@ -164,6 +164,7 @@ final class EigenschaftenLayout {
             original.setVisible(false);
             huelle.add(original, BorderLayout.SOUTH);
             viewport.setView(huelle);
+            KampfwerteLayout.rahmen(viewport, true);
             SwingUtilities.updateComponentTreeUI(ansicht);
             letzterStand = null;
             neuAufbauen();
@@ -176,6 +177,7 @@ final class EigenschaftenLayout {
             huelle.remove(original);
             original.setVisible(true);
             viewport.setView(original);
+            KampfwerteLayout.rahmen(viewport, false);
             viewport.revalidate();
             viewport.repaint();
         }
@@ -277,19 +279,19 @@ final class EigenschaftenLayout {
             removeAll();
             if (h != null && h.ap > 0) {
                 add(KampfwerteLayout.links(abenteuerpunkte(h)));
-                add(Box.createVerticalStrut(12));
+                add(Box.createVerticalStrut(10));
             }
             add(KampfwerteLayout.links(eigenschaften(d, h)));
-            add(Box.createVerticalStrut(12));
+            add(Box.createVerticalStrut(10));
             JPanel rechts = new JPanel();
             rechts.setOpaque(false);
             rechts.setLayout(new BoxLayout(rechts, BoxLayout.Y_AXIS));
             InventarLayout.eigen(rechts);
             rechts.add(KampfwerteLayout.links(stand(d)));
-            rechts.add(Box.createVerticalStrut(12));
+            rechts.add(Box.createVerticalStrut(10));
             JComponent hilfe = KampfwerteLayout.links(regeln());
             rechts.add(hilfe);
-            JPanel unten = new JPanel(new Spalten(12, new double[]{1, 1, 0.9}));
+            JPanel unten = new JPanel(new Spalten(10, new double[]{1, 1, 0.9}));
             unten.setOpaque(false);
             InventarLayout.eigen(unten);
             unten.add(energien(d, h));
@@ -416,10 +418,16 @@ final class EigenschaftenLayout {
         return kopf;
     }
 
+    /** Etwas Reserve rechts: Segoe UI (Windows) ragt sonst über die berechnete Breite und wird abgeschnitten. */
+    static JLabel breiter(JLabel l) {
+        l.setBorder(new EmptyBorder(0, 0, 0, 3));
+        return l;
+    }
+
     static JComponent chip(String text) {
         Rund r = new Rund(new BorderLayout(), mische(Theme.kachel(), Theme.accent(), 0.08), mische(Theme.kachel(), Theme.accent(), 0.3), 999);
         r.setBorder(new EmptyBorder(2, 10, 3, 10));
-        JLabel l = new JLabel(text);
+        JLabel l = breiter(new JLabel(text, SwingConstants.CENTER));
         l.setFont(l.getFont().deriveFont(l.getFont().getSize2D() - 1f));
         InventarLayout.eigen(l);
         r.add(l);
@@ -620,8 +628,14 @@ final class EigenschaftenLayout {
         int gesamt = h.ap, frei = h.freieAp, aus = Math.max(0, gesamt - frei);
         Rund k = new Rund(new GridBagLayout(), Theme.card(), Theme.trenner(), 16) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+            // gleich hoch wie die Leiste in „Allgemein“ (dort mit Eingabefeld und Knopf)
+            @Override public Dimension getPreferredSize() {
+                Dimension d = super.getPreferredSize();
+                Insets i = getInsets();
+                return new Dimension(d.width, Math.max(d.height, AllgemeinLayout.apLeisteHoehe() + i.top + i.bottom));
+            }
         };
-        k.setBorder(new EmptyBorder(10, 16, 10, 16));
+        k.setBorder(new EmptyBorder(8, 16, 8, 16));
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(0, 0, 0, 28);

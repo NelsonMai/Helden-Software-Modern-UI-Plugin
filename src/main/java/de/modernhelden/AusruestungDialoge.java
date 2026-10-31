@@ -581,8 +581,8 @@ final class AusruestungDialoge {
             if (z.add == null) continue;
             final AbstractButton add = z.add;
             final JPanel zp = z.panel;
-            final javax.swing.border.Border markiert = BorderFactory.createCompoundBorder(
-                    BorderFactory.createDashedBorder(Theme.accent(), 2, 4, 3, true), new EmptyBorder(5, 7, 5, 7));
+            final javax.swing.border.Border markiert = new AusruestungLayout.RundRahmen(Theme.kachel(), 12, new Insets(7, 8, 7, 8),
+                    Theme.accent(), 2f, true);
             final Runnable aus = () -> { if (zp.getBorder() == markiert) zp.setBorder(gewaehlt[0] == z ? rahmenGewaehlt() : rahmenNormal()); };
             TransferHandler ablegen = annehmen(tabelle, () -> { aus.run(); waehlen.accept(z); add.doClick();
                         SwingUtilities.invokeLater(() -> { naechsterFreier.run(); tabelle.repaint(); }); },
@@ -642,7 +642,7 @@ final class AusruestungDialoge {
         JPanel p = new JPanel(new BorderLayout(10, 0)) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
         };
-        p.setBackground(Theme.kachel());
+        p.setOpaque(false);
         p.setBorder(rahmenNormal());
         p.setAlignmentX(0);
         p.add(AusruestungLayout.symbolKachel(symbol(art), 46), BorderLayout.WEST);
@@ -747,12 +747,13 @@ final class AusruestungDialoge {
         return p;
     }
 
+    // runde Ecken wie in den Reitern; die Fläche (nicht deckend) malt ihr Rahmen
     private static javax.swing.border.Border rahmenNormal() {
-        return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(7, 8, 7, 8));
+        return new AusruestungLayout.RundRahmen(Theme.kachel(), 12, new Insets(7, 8, 7, 8));
     }
 
     private static javax.swing.border.Border rahmenGewaehlt() {
-        return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.accent(), 2), new EmptyBorder(6, 7, 6, 7));
+        return new AusruestungLayout.RundRahmen(Theme.kachel(), 12, new Insets(7, 8, 7, 8), Theme.accent(), 2f, false);
     }
 
     /** Klick-Hörer an die Karte und alle Teile, die selbst nicht bedienbar sind (Knöpfe/Listen behalten ihre Funktion). */
@@ -932,8 +933,7 @@ final class AusruestungDialoge {
         neu.add(kopf(symbol(art), titel, "Bruchfaktor und Kampftalent dieser Waffe"), BorderLayout.NORTH);
 
         JPanel karte = new JPanel(new GridBagLayout());
-        karte.setBackground(Theme.kachel());
-        karte.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(10, 12, 10, 12)));
+        AusruestungLayout.rund(karte, Theme.kachel(), 12, new Insets(10, 12, 10, 12));
         GridBagConstraints g = new GridBagConstraints();
         g.anchor = GridBagConstraints.WEST;
         g.insets = new Insets(4, 0, 4, 10);

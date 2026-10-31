@@ -360,10 +360,10 @@ final class AllgemeinLayout {
         final Liste sonder = new Liste("Sonderfertigkeiten", "Keine Sonderfertigkeiten");
 
         Ansicht(Zustand z) {
-            super(new BorderLayout(0, 8));
+            super(new BorderLayout(0, 10));
             this.z = z;
             setOpaque(true);
-            setBorder(new EmptyBorder(8, 8, 8, 8));
+            setBorder(new EmptyBorder(12, 12, 12, 12));
             putClientProperty("modernhelden.own", true);
         }
 
@@ -380,7 +380,7 @@ final class AllgemeinLayout {
 
         void aufbauen(Daten d, HeroData h) {
             removeAll();
-            JPanel oben = new JPanel(new BorderLayout(0, 8));
+            JPanel oben = new JPanel(new BorderLayout(0, 10));
             oben.setOpaque(false);
             InventarLayout.eigen(oben);
             oben.add(steckbrief(d, h), BorderLayout.CENTER);
@@ -393,9 +393,12 @@ final class AllgemeinLayout {
             sonder.eintraege.clear();
             sonder.eintraege.addAll(zeilen(d.sf));
             sonder.info = d.sf == null || infoSpalte(d.sf) < 0 ? null : name -> infosOeffnen(d.sf, name);
-            JPanel spalten = new JPanel(new GridLayout(1, 3, 8, 0));
+            JPanel spalten = new JPanel(new GridLayout(1, 3, 10, 0));
             spalten.setOpaque(false);
             InventarLayout.eigen(spalten);
+            vorteile.symbol = "vorteil";
+            nachteile.symbol = "nachteil";
+            sonder.symbol = "stern";
             spalten.add(vorteile.karte(null));
             spalten.add(nachteile.karte(knopf(d.senken, "Nachteile senken", "Nachteile mit AP senken (Dialog der Helden-Software)")));
             spalten.add(sonder.karte(knopf(d.hinzufuegen, "Hinzufügen", "Sonderfertigkeit erlernen (Dialog der Helden-Software)")));
@@ -455,7 +458,14 @@ final class AllgemeinLayout {
         java.util.function.Consumer<String> info;
         /** Breite folgt der Spalte (Namen brechen um statt abgeschnitten zu werden), Höhe dem Inhalt. */
         final JPanel inhalt = new ListenInhalt();
-        final JLabel anzahl = new JLabel();
+        /** Anzahl im Chip; etwas breiter als berechnet – Segoe UI (Windows) ragt sonst über den Rand und wird abgeschnitten */
+        final JLabel anzahl = new JLabel() {
+            @Override public Dimension getPreferredSize() {
+                Dimension d = super.getPreferredSize();
+                return new Dimension(d.width + 4, d.height);
+            }
+            @Override public Dimension getMinimumSize() { return getPreferredSize(); }
+        };
 
         Liste(String titel, String leer) {
             this.titel = titel;
@@ -465,42 +475,66 @@ final class AllgemeinLayout {
             InventarLayout.eigen(anzahl);
         }
 
+        /** Symbol der Plakette im Kartenkopf */
+        String symbol = "liste";
+
         JComponent karte(JComponent knopf) {
-            JPanel k = new JPanel(new BorderLayout(0, 4));
-            k.setBackground(Theme.card());
-            k.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(6, 8, 6, 8)));
-            InventarLayout.eigen(k);
-            JPanel kopf = new JPanel(new BorderLayout(6, 0));
+            EigenschaftenLayout.Rund k = new EigenschaftenLayout.Rund(new BorderLayout(0, 10), Theme.card(), Theme.trenner(), 16) {
+                // im schmalen Fenster darf der Kopf gekürzt werden – die Seite soll nicht breiter als das Fenster werden
+                @Override public Dimension getMinimumSize() { return new Dimension(160, super.getMinimumSize().height); }
+            };
+            k.setBorder(new EmptyBorder(12, 14, 14, 14));
+            JPanel kopf = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
             kopf.setOpaque(false);
             InventarLayout.eigen(kopf);
-            JLabel t = new JLabel(titel);
-            t.setFont(t.getFont().deriveFont(Font.BOLD, t.getFont().getSize2D() + 1f));
-            t.setBorder(new EmptyBorder(0, 0, 0, 4));
+            JLabel t = InventarLayout.titel(titel);
+            t.setIcon(new EigenschaftenLayout.Plakette(symbol, 30, Theme.accent(), Color.WHITE));
+            t.setIconTextGap(10);
             InventarLayout.eigen(t);
-            anzahl.setForeground(Theme.muted());
-            anzahl.setBorder(new EmptyBorder(0, 0, 0, 4));
-            JPanel links = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
-            links.setOpaque(false);
-            InventarLayout.eigen(links);
-            links.add(t);
-            links.add(anzahl);
-            kopf.add(links, BorderLayout.CENTER);
+            kopf.add(t);
+            kopf.add(Box.createHorizontalStrut(10));
+            // Anzahl als Chip (bei Suche „n von m“)
+            EigenschaftenLayout.Rund chip = new EigenschaftenLayout.Rund(new BorderLayout(),
+                    EigenschaftenLayout.mische(Theme.kachel(), Theme.accent(), 0.08),
+                    EigenschaftenLayout.mische(Theme.kachel(), Theme.accent(), 0.3), 999);
+            chip.setBorder(new EmptyBorder(2, 10, 3, 10));
+            anzahl.setFont(anzahl.getFont().deriveFont(anzahl.getFont().getSize2D() - 1f));
+            anzahl.setForeground(UIManager.getColor("Label.foreground"));
+            anzahl.setBorder(null);
+            anzahl.setHorizontalAlignment(SwingConstants.CENTER);
+            chip.add(anzahl);
+            JPanel chipHalter = new JPanel(new GridBagLayout());
+            chipHalter.setOpaque(false);
+            InventarLayout.eigen(chipHalter);
+            chipHalter.add(chip);
+            kopf.add(chipHalter);
             k.add(kopf, BorderLayout.NORTH);
             // Knopf unten über die ganze Breite – wie in der Ansicht der Helden-Software
             if (knopf != null) k.add(knopf, BorderLayout.SOUTH);
-            inhalt.setBackground(Theme.card());
-            inhalt.setOpaque(true);
+            inhalt.setOpaque(false);
             JScrollPane sp = new JScrollPane(inhalt, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-            sp.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Theme.trenner()));
+            sp.setBorder(BorderFactory.createEmptyBorder());
+            sp.setOpaque(false);
+            sp.getViewport().setOpaque(false);
             sp.getVerticalScrollBar().setUnitIncrement(16);
-            sp.getViewport().setBackground(Theme.card());
             InventarLayout.eigen(sp);
+            // Einträge in einer hellen Fläche mit runden Ecken (wie die Tabellen in „Kampfwerte“)
+            EigenschaftenLayout.Rund flaeche = new EigenschaftenLayout.Rund(new BorderLayout(), Theme.kachel(), Theme.trenner(), 12) {
+                @Override protected void paintChildren(Graphics g) {
+                    // Inhalt an die runden Ecken anpassen
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.clip(new java.awt.geom.RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 11, 11));
+                    super.paintChildren(g2);
+                    g2.dispose();
+                }
+            };
+            flaeche.setBorder(new EmptyBorder(1, 1, 1, 1));
+            flaeche.add(sp, BorderLayout.CENTER);
             // mindestens ein paar Zeilen hoch, auch bei sehr kleinem Fenster
-            sp.setMinimumSize(new Dimension(80, 120));
-            sp.setPreferredSize(new Dimension(80, 120));
-            k.add(sp, BorderLayout.CENTER);
+            flaeche.setMinimumSize(new Dimension(80, 120));
+            flaeche.setPreferredSize(new Dimension(80, 120));
+            k.add(flaeche, BorderLayout.CENTER);
             return k;
         }
 
@@ -571,43 +605,93 @@ final class AllgemeinLayout {
 
     // ------------------------------------------------------------------ Steckbrief
 
-    /** Eine Karte: Name und Herkunft, Abenteuerpunkte, Aussehen und Daten – nebeneinander oder (schmal) untereinander. */
+    /**
+     * Wie in „Eigenschaften“: oben die Abenteuerpunkte als Leiste, darunter die Karte „Held“ (Name und Herkunft,
+     * Aussehen und Daten daneben oder – im schmalen Fenster – darunter).
+     */
     private static JComponent steckbrief(Daten d, HeroData h) {
-        JPanel k = new JPanel(new BorderLayout()) {
+        // Held kompakt: Kopf mit Plakette, Name (Titel) und „Angaben bearbeiten …“; darunter Herkunft in einer Zeile
+        // und die Daten (im breiten Fenster rechts daneben)
+        EigenschaftenLayout.Rund heldKarte = new EigenschaftenLayout.Rund(new BorderLayout(0, 8), Theme.card(), Theme.trenner(), 16) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
         };
-        k.setBackground(Theme.card());
-        k.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.trenner()), new MatteBorder(0, 3, 0, 0, Theme.accent())),
-                new EmptyBorder(8, 10, 8, 10)));
-        InventarLayout.eigen(k);
-        k.add(new Steckbrief(person(d), daten(d, h), abenteuerpunkte(d)), BorderLayout.CENTER);
-        return k;
+        heldKarte.setBorder(new EmptyBorder(10, 16, 12, 16));
+        JPanel kopf = new JPanel(new BorderLayout(12, 0));
+        kopf.setOpaque(false);
+        InventarLayout.eigen(kopf);
+        kopf.add(name(d), BorderLayout.CENTER);
+        JPanel knopfHalter = new JPanel(new GridBagLayout());
+        knopfHalter.setOpaque(false);
+        InventarLayout.eigen(knopfHalter);
+        knopfHalter.add(menueKnopf("Angaben bearbeiten …", "Angaben bearb",
+                "<html>Öffnet <b>Bearbeiten → Angaben bearbeiten</b>: Geburtstag, Alter, Größe, Gewicht, Haar- und Augenfarbe,<br>"
+                        + "Titel, Stand, Tarnidentität, Aussehen und Familie.</html>"));
+        kopf.add(knopfHalter, BorderLayout.EAST);
+        heldKarte.add(kopf, BorderLayout.NORTH);
+
+        JPanel held = new JPanel(new EigenschaftenLayout.Spalten(12, new double[]{1, 2}));
+        held.setOpaque(false);
+        InventarLayout.eigen(held);
+        JComponent da = daten(d, h);
+        // Daten nur daneben, wenn sie ganz hineinpassen – sonst darunter (nicht abgeschnitten)
+        held.add(EigenschaftenLayout.mindestens(EigenschaftenLayout.oben(herkunft(d)), 260));
+        held.add(EigenschaftenLayout.mindestens(EigenschaftenLayout.oben(da), da.getPreferredSize().width + 8));
+        heldKarte.add(EigenschaftenLayout.oben(held), BorderLayout.CENTER);
+
+        // wie in „Eigenschaften“: Abenteuerpunkte als Leiste oben über die ganze Breite, darunter der Held
+        JPanel stapel = new JPanel(new BorderLayout(0, 10));
+        stapel.setOpaque(false);
+        InventarLayout.eigen(stapel);
+        stapel.add(abenteuerpunkte(d), BorderLayout.NORTH);
+        stapel.add(heldKarte, BorderLayout.CENTER);
+        return stapel;
     }
 
-    private static JComponent person(Daten d) {
-        JPanel p = new JPanel();
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+    /** Plakette und Name des Helden als Titel der Karte (Eingabefeld, Enter übernimmt). */
+    private static JComponent name(Daten d) {
+        JPanel p = new JPanel(new BorderLayout(10, 0));
         p.setOpaque(false);
         InventarLayout.eigen(p);
+        JLabel plakette = new JLabel(new EigenschaftenLayout.Plakette("person", 32, Theme.accent(), Color.WHITE));
+        InventarLayout.eigen(plakette);
+        p.add(plakette, BorderLayout.WEST);
         JTextField orig = d.feld("Name-Field");
-        JTextField name = new JTextField(d.text("Name"), 14);
+        JTextField name = new JTextField(d.text("Name"), 12);
         name.setFont(name.getFont().deriveFont(Font.BOLD, name.getFont().getSize2D() + 5f));
         name.setBorder(new EmptyBorder(0, 0, 0, 0));
         name.setOpaque(false);
         TooltipHook.infoTip(name, "Name des Helden – ändern und mit Enter übernehmen");
-        name.setAlignmentX(0);
-        name.setMaximumSize(new Dimension(Integer.MAX_VALUE, name.getPreferredSize().height));
         InventarLayout.eigen(name);
         if (orig != null) uebernehmen(name, orig); else name.setEditable(false);
-        p.add(name);
-        p.add(Box.createVerticalStrut(2));
+        p.add(name, BorderLayout.CENTER);
+        return p;
+    }
+
+    /** Rasse, Kultur und Profession – je eine Zeile mit Bezeichnung; lange Professionen brechen um. */
+    private static JComponent herkunft(Daten d) {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setOpaque(false);
+        InventarLayout.eigen(p);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = 0;
         for (String[] z : new String[][]{{"Rasse", d.text("Rasse")}, {"Kultur", d.text("Kultur")}, {"Profession", d.text("Profession")}}) {
-            JLabel l = new JLabel("<html><span style='color:" + hex(Theme.muted()) + "'>" + z[0] + "</span>&nbsp; " + esc(z[1]) + "</html>");
-            l.setAlignmentX(0);
-            l.setBorder(new EmptyBorder(1, 0, 1, 4));
+            c.gridx = 0;
+            c.weightx = 0;
+            c.fill = GridBagConstraints.NONE;
+            c.anchor = GridBagConstraints.NORTHWEST;
+            c.insets = new Insets(1, 0, 1, 12);
+            JLabel l = new JLabel(z[0]);
+            l.setForeground(Theme.muted());
             InventarLayout.eigen(l);
-            p.add(l);
+            p.add(l, c);
+            c.gridx = 1;
+            c.weightx = 1;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.insets = new Insets(1, 0, 1, 0);
+            HtmlText w = new HtmlText("<html>" + esc(z[1].isEmpty() ? "–" : z[1]) + "</html>");
+            InventarLayout.eigen(w);
+            p.add(w, c);
+            c.gridy++;
         }
         return p;
     }
@@ -618,51 +702,133 @@ final class AllgemeinLayout {
 
     // ------------------------------------------------------------------ Abenteuerpunkte
 
+    /**
+     * Abenteuerpunkte als Leiste wie in „Eigenschaften“, in einer Zeile: „Gesamt“ bleibt ein Eingabefeld, dazu
+     * „AP hinzufügen …“. Im schmalen Fenster entfällt nur das Wort „Abenteuerpunkte“ neben der Plakette.
+     */
     private static JComponent abenteuerpunkte(Daten d) {
         Integer gesamt = d.zahl("Abenteuerpunkte"), frei = d.zahl("AP Guthaben");
         Integer aus = gesamt != null && frei != null ? gesamt - frei : null;
-        JPanel t = KampfwerteLayout.tabelle();
-        t.setOpaque(false);
-        InventarLayout.eigen(t);
+        JLabel t = new JLabel("Abenteuerpunkte");
+        EigenschaftenLayout.Rund k = new EigenschaftenLayout.Rund(new GridBagLayout(), Theme.card(), Theme.trenner(), 16) {
+            @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
+            @Override public Dimension getMinimumSize() { return new Dimension(200, super.getMinimumSize().height); }
+            @Override public Dimension getPreferredSize() {
+                Dimension d = super.getPreferredSize();
+                Insets i = getInsets();
+                return new Dimension(d.width, Math.max(d.height, apLeisteHoehe() + i.top + i.bottom));
+            }
+            @Override public void setBounds(int x, int y, int w, int h) {
+                super.setBounds(x, y, w, h);
+                String soll = w >= 1000 ? "Abenteuerpunkte" : "";
+                if (!soll.equals(t.getText())) { t.setText(soll); SwingUtilities.invokeLater(this::revalidate); }
+            }
+        };
+        k.setBorder(new EmptyBorder(8, 16, 8, 16));
         GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 0;
         c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(1, 0, 1, 10);
+        c.insets = new Insets(0, 0, 0, 24);
+        t.setFont(t.getFont().deriveFont(Font.BOLD, t.getFont().getSize2D() + 1f));
+        t.setIcon(new EigenschaftenLayout.Plakette("ap", 30, Theme.accent(), Color.WHITE));
+        t.setIconTextGap(10);
+        TooltipHook.infoTip(t, "Abenteuerpunkte");
+        InventarLayout.eigen(t);
+        k.add(t, c);
 
+        // Gesamt: Eingabefeld (neue Zahl oder z. B. „+350“)
         JTextField orig = d.feld("Abenteuerpunkte-Field");
         JTextField g = new JTextField(gesamt == null ? d.text("Abenteuerpunkte") : String.valueOf(gesamt), 5) {
             @Override public Dimension getMinimumSize() { return getPreferredSize(); }
         };
         g.setHorizontalAlignment(SwingConstants.RIGHT);
-        g.setFont(g.getFont().deriveFont(Font.BOLD));
+        g.setFont(g.getFont().deriveFont(Font.BOLD, g.getFont().getSize2D() + 2f));
         TooltipHook.infoTip(g, "<html>Gesamte AP – neue Zahl oder z. B. <b>+350</b> eingeben und mit Enter übernehmen.</html>");
         InventarLayout.eigen(g);
         if (orig != null) uebernehmen(g, orig); else g.setEditable(false);
-        zeile(t, c, "AP gesamt", g);
-        zeile(t, c, "ausgegeben", wert(aus));
-        JLabel fl = wert(frei);
-        if (frei != null && frei > 0) fl.setForeground(Theme.accent());
-        zeile(t, c, "frei", fl);
-        c.gridx = 0;
-        c.gridwidth = 2;
+        k.add(zahlMitText(g, "Gesamt", null), c);
+        k.add(zahlMitText(apZahl(aus), "Ausgegeben", null), c);
+        k.add(zahlMitText(apZahl(frei), "Verfügbar", frei != null && frei > 0 ? Theme.accent() : null), c);
+
+        c.weightx = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.insets = new Insets(4, 0, 2, 0);
-        ApBalken b = new ApBalken(aus == null ? 0 : aus, frei == null ? 0 : frei);
-        t.add(b, c);
-        c.gridy++;
-        c.insets = new Insets(1, 0, 0, 0);
-        JLabel stufe = KampfwerteLayout.klein("Stufe " + d.text("Stufe (DSA 4.1)") + " (4.1) · " + d.text("Stufe (DSA 4.0)") + " (4.0)");
-        InventarLayout.eigen(stufe);
-        t.add(stufe, c);
-        c.gridy++;
-        c.insets = new Insets(6, 0, 0, 0);
+        c.insets = new Insets(0, 0, 0, 12);
+        double anteil = gesamt == null || gesamt <= 0 || aus == null ? 0 : Math.max(0, Math.min(1, aus / (double) gesamt));
+        JComponent balken = new JComponent() {
+            @Override public Dimension getPreferredSize() { return new Dimension(120, 10); }
+            @Override public Dimension getMinimumSize() { return new Dimension(40, 10); }
+            @Override protected void paintComponent(Graphics g0) {
+                Graphics2D g2 = (Graphics2D) g0.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int y = (getHeight() - 10) / 2;
+                g2.setColor(EigenschaftenLayout.mische(Theme.kachel(), UIManager.getColor("Label.foreground"), 0.12));
+                g2.fillRoundRect(0, y, getWidth(), 10, 10, 10);
+                g2.setColor(Theme.accent());
+                g2.fillRoundRect(0, y, (int) Math.round(getWidth() * anteil), 10, 10, 10);
+                g2.dispose();
+            }
+        };
+        k.add(balken, c);
+        c.weightx = 0;
         c.fill = GridBagConstraints.NONE;
-        t.add(apHinzufuegen(), c);
-        // Herkunft der AP wie im Original-Reiter: Tooltip über dem ganzen AP-Block (außer dem Knopf)
-        for (Component k : t.getComponents())
-            if (k instanceof JComponent && !(k instanceof AbstractButton))
-                TooltipHook.tooltipFuer(TooltipHook.AP_HERKUNFT, (JComponent) k);
-        return oben(t);
+        c.insets = new Insets(0, 0, 0, 14);
+        // zwei feste Zeilen (kein Umbruch) – die Leiste bleibt flach
+        JLabel stufe = KampfwerteLayout.klein("<html><nobr>" + Math.round(anteil * 100) + "&nbsp;%&nbsp;ausgegeben</nobr><br><nobr>Stufe&nbsp;"
+                + esc(d.text("Stufe (DSA 4.1)")) + "&nbsp;(4.1)&nbsp;·&nbsp;" + esc(d.text("Stufe (DSA 4.0)")) + "&nbsp;(4.0)</nobr></html>");
+        InventarLayout.eigen(stufe);
+        k.add(stufe, c);
+        c.insets = new Insets(0, 0, 0, 0);
+        k.add(apHinzufuegen(), c);
+        // Herkunft der AP wie im Original-Reiter: Tooltip über der ganzen Leiste (außer Knopf und Eingabefeld)
+        for (Component x : alleIn(k))
+            if (x instanceof JComponent && !(x instanceof AbstractButton) && !(x instanceof JTextField) && x != t)
+                TooltipHook.tooltipFuer(TooltipHook.AP_HERKUNFT, (JComponent) x);
+        return k;
+    }
+
+    /**
+     * Innenhöhe der Abenteuerpunkte-Leiste – in „Allgemein“ und „Eigenschaften“ gleich, auch wenn dort kein
+     * Eingabefeld und kein Knopf steht: die höchste der Zellen (Feld mit Bezeichnung, zweizeiliger Hinweis, Knopf).
+     */
+    static int apLeisteHoehe() {
+        JTextField f = new JTextField("0", 5);
+        f.setFont(f.getFont().deriveFont(Font.BOLD, f.getFont().getSize2D() + 2f));
+        int h = zahlMitText(f, "Gesamt", null).getPreferredSize().height;
+        h = Math.max(h, KampfwerteLayout.klein("<html>x<br>x</html>").getPreferredSize().height);
+        h = Math.max(h, new JButton("AP hinzufügen …").getPreferredSize().height);
+        return h;
+    }
+
+    private static List<Component> alleIn(Container c) {
+        List<Component> l = new ArrayList<>();
+        for (Component k : c.getComponents()) {
+            l.add(k);
+            if (k instanceof Container) l.addAll(alleIn((Container) k));
+        }
+        return l;
+    }
+
+    private static JLabel apZahl(Integer v) {
+        JLabel l = new JLabel(v == null ? "–" : String.format(Locale.GERMAN, "%,d", v));
+        l.setFont(l.getFont().deriveFont(Font.BOLD, l.getFont().getSize2D() + 4f));
+        InventarLayout.eigen(l);
+        return l;
+    }
+
+    /** Große Zahl (oder Eingabefeld), darunter klein die Bezeichnung. */
+    private static JComponent zahlMitText(JComponent zahl, String text, Color farbe) {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setOpaque(false);
+        InventarLayout.eigen(p);
+        zahl.setAlignmentX(0);
+        if (farbe != null) zahl.setForeground(farbe);
+        p.add(zahl);
+        JLabel l = KampfwerteLayout.klein(text);
+        l.setAlignmentX(0);
+        if (farbe != null) l.setForeground(farbe);
+        InventarLayout.eigen(l);
+        p.add(l);
+        return p;
     }
 
     /** „AP hinzufügen“ öffnet „Steigern → Ereignis hinzufügen …“ der Helden-Software (dort ist AP-Hinzugewinn vorgewählt). */
@@ -714,44 +880,6 @@ final class AllgemeinLayout {
         return null;
     }
 
-    /** Inhalt oben halten, auch wenn die Nachbarn höher sind. */
-    private static JComponent oben(JComponent c) {
-        JPanel p = new JPanel(new BorderLayout()) {
-            @Override public Dimension getMinimumSize() { return c.getMinimumSize(); }
-        };
-        p.setOpaque(false);
-        InventarLayout.eigen(p);
-        JPanel links = new JPanel(new BorderLayout());
-        links.setOpaque(false);
-        InventarLayout.eigen(links);
-        links.add(c, BorderLayout.WEST);
-        p.add(links, BorderLayout.NORTH);
-        return p;
-    }
-
-    private static void zeile(JPanel t, GridBagConstraints c, String titel, JComponent wert) {
-        c.gridx = 0;
-        c.gridwidth = 1;
-        c.fill = GridBagConstraints.NONE;
-        JLabel l = new JLabel(titel);
-        l.setForeground(Theme.muted());
-        InventarLayout.eigen(l);
-        t.add(l, c);
-        c.gridx = 1;
-        c.anchor = GridBagConstraints.EAST;
-        t.add(wert, c);
-        c.anchor = GridBagConstraints.WEST;
-        c.gridy++;
-    }
-
-    private static JLabel wert(Integer v) {
-        JLabel l = new JLabel(v == null ? "–" : String.valueOf(v), SwingConstants.RIGHT);
-        l.setFont(l.getFont().deriveFont(Font.BOLD));
-        l.setBorder(new EmptyBorder(0, 2, 0, 6));
-        InventarLayout.eigen(l);
-        return l;
-    }
-
     /** Eigenes Feld; übernommen wird über das Feld der Helden-Software (Enter oder Verlassen des Feldes). */
     private static void uebernehmen(JTextField f, JTextField orig) {
         Runnable r = () -> {
@@ -777,41 +905,6 @@ final class AllgemeinLayout {
         return sb.toString();
     }
 
-    /** Ausgegebene (Akzent) und freie AP (Rahmen) als Balken. */
-    private static final class ApBalken extends JComponent {
-        final int aus, frei;
-        ApBalken(int aus, int frei) {
-            this.aus = Math.max(0, aus);
-            this.frei = Math.max(0, frei);
-            setPreferredSize(new Dimension(160, 14));
-            putClientProperty("modernhelden.own", true);
-        }
-        @Override protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            int w = getWidth(), h = 10, y = (getHeight() - h) / 2;
-            java.awt.geom.RoundRectangle2D form = new java.awt.geom.RoundRectangle2D.Float(0, y, w, h, h, h);
-            g2.setColor(Theme.trenner());
-            g2.fill(form);
-            int summe = aus + frei;
-            if (summe > 0 && aus > 0) {
-                int wa = Math.round(w * aus / (float) summe);
-                java.awt.geom.Area a = new java.awt.geom.Area(form);
-                a.intersect(new java.awt.geom.Area(new Rectangle(0, y - 1, wa, h + 2)));
-                Color m = Theme.muted();
-                g2.setColor(new Color(m.getRed(), m.getGreen(), m.getBlue(), 200));
-                g2.fill(a);
-                if (frei > 0) {
-                    java.awt.geom.Area f = new java.awt.geom.Area(form);
-                    f.intersect(new java.awt.geom.Area(new Rectangle(wa, y - 1, w - wa, h + 2)));
-                    g2.setColor(Theme.accent());
-                    g2.fill(f);
-                }
-            }
-            g2.dispose();
-        }
-    }
-
     // ------------------------------------------------------------------ Aussehen und Daten
 
     private static JComponent daten(Daten d, HeroData h) {
@@ -823,22 +916,24 @@ final class AllgemeinLayout {
         List<String[]> felder = new ArrayList<>();
         for (String[] f : new String[][]{
                 {"Geschlecht", "Geschlecht"}, {"Alter", "Alter"}, {"Geburtstag", "Geburtsdatum"},
-                {"Größe", "Größe"}, {"Gewicht", "Gewicht"}, {"Haare", "Haarfarbe"}, {"Augen", "Augenfarbe"}})
+                {"Größe", "Größe"}, {"Gewicht", "Gewicht"}, {"Haare", "Haarfarbe"}})
             felder.add(new String[]{f[0], d.text(f[1]), null});
         // statt der RS-Berechnung: Stand, Titel, Sozialstatus und Tarnidentität (aus „Angaben bearbeiten“ bzw. „Eigenschaften“),
         // bei Gildenmagiern zusätzlich die Gilde
         Integer so = h == null ? null : h.eig.get("SO");
+        felder.add(new String[]{"Augen", d.text("Augenfarbe"), null});
         felder.add(new String[]{"Stand", h == null ? "" : h.stand, null});
         felder.add(new String[]{"Titel", h == null ? "" : h.titel, null});
         felder.add(new String[]{"Sozialstatus", so == null ? "" : String.valueOf(so), "Sozialstatus"});
         felder.add(new String[]{"Tarnidentität", h == null ? "" : h.tarnidentitaet, null});
-        // immer neben der Tarnidentität; „–“ bei Helden ohne Gilde (wählbar nur für Gildenmagier und Lehrmeister)
-        felder.add(new String[]{"Gildenzugehörigkeit", h == null || h.gilde == null ? "" : h.gilde, null});
+        // „–“ bei Helden ohne Gilde (wählbar nur für Gildenmagier und Lehrmeister)
+        felder.add(new String[]{"Gilde", h == null || h.gilde == null ? "" : h.gilde, null});
+        // drei Paare je Zeile (vier Zeilen) – so bleibt die Karte flach
         for (int i = 0; i < felder.size(); i++) {
             String[] f = felder.get(i);
-            c.gridy = i / 2;
-            c.gridx = (i % 2) * 2;
-            c.insets = new Insets(1, 0, 1, 8);
+            c.gridy = i / 3;
+            c.gridx = (i % 3) * 2;
+            c.insets = new Insets(1, 0, 1, 10);
             JLabel l = new JLabel(f[0]);
             l.setForeground(Theme.muted());
             InventarLayout.eigen(l);
@@ -846,26 +941,22 @@ final class AllgemeinLayout {
             c.gridx++;
             JLabel w = new JLabel(f[1].isEmpty() ? "–" : f[1]);
             InventarLayout.eigen(w);
-            c.insets = new Insets(1, 0, 1, i % 2 == 0 ? 20 : 4);
+            c.insets = new Insets(1, 0, 1, i % 3 < 2 ? 22 : 4);
             t.add(w, c);
             if (f[2] != null) TooltipHook.tooltipFuer(f[2], l, w);
         }
-        c.gridy = (felder.size() + 1) / 2;
-        c.gridx = 0;
-        c.gridwidth = 4;
-        c.insets = new Insets(6, 0, 0, 0);
-        t.add(menueKnopf("Angaben bearbeiten …", "Angaben bearb",
-                "<html>Öffnet <b>Bearbeiten → Angaben bearbeiten</b>: Geburtstag, Alter, Größe, Gewicht, Haar- und Augenfarbe,<br>"
-                        + "Titel, Stand, Tarnidentität, Aussehen und Familie.</html>"), c);
-        return oben(t);
+        // linksbündig, auch wenn die Karte breiter ist
+        JPanel links = new JPanel(new BorderLayout());
+        links.setOpaque(false);
+        InventarLayout.eigen(links);
+        links.add(t, BorderLayout.WEST);
+        return links;
     }
 
     // ------------------------------------------------------------------ Listen
 
     private static JComponent knopf(AbstractButton orig, String text, String tip) {
-        JButton b = new JButton(text);
-        b.setFocusable(false);
-        b.putClientProperty("JButton.buttonType", "roundRect");
+        JButton b = EigenschaftenLayout.farbknopf(text, Theme.accent());
         TooltipHook.infoTip(b, tip);
         InventarLayout.eigen(b);
         if (orig == null) b.setVisible(false);
@@ -881,9 +972,9 @@ final class AllgemeinLayout {
         JPanel z = new JPanel(new BorderLayout(0, 0)) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
         };
-        z.setBackground(i % 2 == 0 ? Theme.card() : Theme.zeile(1));
+        z.setBackground(i % 2 == 0 ? Theme.kachel() : EigenschaftenLayout.mische(Theme.kachel(), Theme.accent(), Theme.isDark() ? 0.06 : 0.035));
         z.setOpaque(true);
-        z.setBorder(new EmptyBorder(2, 6, 2, 6));
+        z.setBorder(new EmptyBorder(4, 10, 4, 8));
         z.setAlignmentX(0);
         InventarLayout.eigen(z);
         // Name bricht bei schmaler Spalte in eine zweite Zeile um, statt gekürzt zu werden
@@ -918,105 +1009,18 @@ final class AllgemeinLayout {
             // [i] rechts neben dem Eintrag über die ganze Zeilenhöhe – wie der i-Knopf in der Tabelle der Helden-Software
             JPanel text = new JPanel(new BorderLayout(0, 0));
             text.setOpaque(false);
-            text.setBorder(new EmptyBorder(2, 0, 2, 6));
+            text.setBorder(new EmptyBorder(4, 0, 4, 6));
             InventarLayout.eigen(text);
             for (Component c : z.getComponents()) {
                 Object lage = ((BorderLayout) z.getLayout()).getConstraints(c);
                 z.remove(c);
                 text.add(c, lage);
             }
-            z.setBorder(new EmptyBorder(0, 6, 0, 0));
+            z.setBorder(new EmptyBorder(0, 10, 0, 0));
             z.add(text, BorderLayout.CENTER);
             z.add(iKnopf(name, () -> info.accept(name)), BorderLayout.EAST);
         }
         return z;
-    }
-
-    /**
-     * Zwei Spalten: links Person und Daten untereinander, rechts die Abenteuerpunkte; nur bei sehr schmalem
-     * Fenster alles untereinander.
-     */
-    private static final class Steckbrief extends JPanel {
-        static final int ABSTAND = 24, ZEILE = 8;
-        final JComponent person, daten, ap;
-
-        Steckbrief(JComponent person, JComponent daten, JComponent ap) {
-            super(null);
-            this.person = person;
-            this.daten = daten;
-            this.ap = ap;
-            setOpaque(false);
-            putClientProperty("modernhelden.own", true);
-            add(person);
-            add(daten);
-            add(ap);
-        }
-
-        private int breite() {
-            if (getWidth() > 0) return getWidth();
-            Container p = getParent();
-            while (p != null && p.getWidth() <= 0) p = p.getParent();
-            return p == null ? Integer.MAX_VALUE : p.getWidth() - 40;
-        }
-
-        /** 3 = nebeneinander, 2 = zwei Spalten, 1 = untereinander. */
-        private int modus(int b) {
-            Dimension p = person.getPreferredSize(), d = daten.getPreferredSize(), a = ap.getPreferredSize();
-            // immer zwei Spalten: links alles zur Person, rechts die Abenteuerpunkte
-            if (Math.max(p.width, d.width) + a.width + ABSTAND <= b) return 2;
-            return 1;
-        }
-
-        @Override public Dimension getPreferredSize() {
-            Dimension p = person.getPreferredSize(), d = daten.getPreferredSize(), a = ap.getPreferredSize();
-            int h;
-            switch (modus(breite())) {
-                case 3: h = Math.max(p.height, Math.max(d.height, a.height)); break;
-                case 2: h = Math.max(p.height + ZEILE + d.height, a.height); break;
-                default: h = p.height + d.height + a.height + 2 * ZEILE;
-            }
-            return new Dimension(p.width + d.width + a.width + 2 * ABSTAND, h);
-        }
-
-        @Override public Dimension getMinimumSize() {
-            int w = Math.max(person.getMinimumSize().width, Math.max(daten.getMinimumSize().width, ap.getMinimumSize().width));
-            return new Dimension(w, getPreferredSize().height);
-        }
-
-        @Override public void doLayout() {
-            int b = getWidth(), h = getHeight();
-            Dimension p = person.getPreferredSize(), d = daten.getPreferredSize(), a = ap.getPreferredSize();
-            switch (modus(b)) {
-                case 3: {
-                    // Person bekommt den übrigen Platz, Abenteuerpunkte und Daten stehen rechts
-                    int wp = b - a.width - d.width - 2 * ABSTAND;
-                    person.setBounds(0, 0, wp, h);
-                    ap.setBounds(wp + ABSTAND, 0, a.width, h);
-                    daten.setBounds(wp + a.width + 2 * ABSTAND, 0, d.width, h);
-                    break;
-                }
-                case 2: {
-                    // linke Spalte nur so breit wie ihr Inhalt – die AP stehen direkt daneben, nicht am rechten Rand
-                    int wl = Math.min(Math.max(p.width, d.width), b - a.width - ABSTAND);
-                    person.setBounds(0, 0, wl, p.height);
-                    daten.setBounds(0, p.height + ZEILE, wl, d.height);
-                    ap.setBounds(wl + ABSTAND, 0, a.width, h);
-                    break;
-                }
-                default: {
-                    person.setBounds(0, 0, b, p.height);
-                    daten.setBounds(0, p.height + ZEILE, b, d.height);
-                    ap.setBounds(0, p.height + d.height + 2 * ZEILE, b, a.height);
-                }
-            }
-            // nur einmal je Größe neu anordnen lassen (sonst Endlosschleife, falls der Bereich die Höhe nicht hergibt)
-            int soll = getPreferredSize().height;
-            String stand = b + "x" + h + ">" + soll;
-            if (h != soll && !stand.equals(getClientProperty("modernhelden.umbruch"))) {
-                putClientProperty("modernhelden.umbruch", stand);
-                SwingUtilities.invokeLater(this::revalidate);
-            }
-        }
     }
 
     /** Spalteninhalt: so breit wie der sichtbare Bereich, nie breiter. */

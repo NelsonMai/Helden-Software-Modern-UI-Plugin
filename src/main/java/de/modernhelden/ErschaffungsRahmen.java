@@ -575,9 +575,7 @@ final class ErschaffungsRahmen {
                 @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
             };
             k.setAlignmentX(0);
-            k.setBackground(Theme.card());
-            k.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(8, 10, 10, 10)));
+            AusruestungLayout.rund(k, Theme.card(), 14, new Insets(8, 10, 10, 10));
             JLabel t = new JLabel(titel);
             t.setFont(t.getFont().deriveFont(Font.BOLD, t.getFont().getSize2D() + 1f));
             InventarLayout.eigen(t);
