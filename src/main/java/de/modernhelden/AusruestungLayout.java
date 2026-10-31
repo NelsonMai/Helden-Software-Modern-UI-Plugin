@@ -141,9 +141,43 @@ final class AusruestungLayout {
             Document d = null, e = null;
             try { d = daten == null ? null : daten.get(); } catch (RuntimeException ignore) { }
             try { e = export == null ? null : export.get(); } catch (RuntimeException ignore) { }
+            // Beim Wechsel auf den Reiter schreibt die Helden-Software ihre Felder neu – ohne geänderte Daten
+            // nicht neu aufbauen (sonst blinkt die Seite kurz)
+            String stand = set + "|" + Theme.current() + "|" + text(d) + "|" + text(e);
+            if (stand.equals(letzterStand) && ansicht.getComponentCount() > 0) return;
+            letzterStand = stand;
             ansicht.aufbauen(d, e, this);
+            // Umbrechende Texte kennen ihre Höhe erst, wenn ihre Breite feststeht: gleich mehrfach anordnen,
+            // damit schon das erste gezeichnete Bild stimmt (sonst springen die Karten kurz danach)
+            if (viewport.getWidth() > 0) {
+                for (int i = 0; i < 3; i++) {
+                    ungueltig(huelle);
+                    viewport.validate();
+                }
+            }
             viewport.revalidate();
             viewport.repaint();
+        }
+
+        private static void ungueltig(Component c) {
+            c.invalidate();
+            if (c instanceof Container) for (Component k : ((Container) c).getComponents()) ungueltig(k);
+        }
+
+        String letzterStand;
+
+        /** Inhalt eines XML-Dokuments als Text (zum Vergleichen). */
+        private static String text(Document doc) {
+            if (doc == null) return "";
+            try {
+                javax.xml.transform.Transformer t = javax.xml.transform.TransformerFactory.newInstance().newTransformer();
+                java.io.StringWriter w = new java.io.StringWriter();
+                t.transform(new javax.xml.transform.dom.DOMSource(doc), new javax.xml.transform.stream.StreamResult(w));
+                // die Signatur der Heldendaten ist bei jedem Abruf anders – für den Vergleich weglassen
+                return w.toString().replaceAll("(?s)<(\\w+:)?Signature[ >].*?</(\\w+:)?Signature>", "");
+            } catch (Exception ex) {
+                return String.valueOf(System.nanoTime());   // im Zweifel neu aufbauen
+            }
         }
     }
 
@@ -417,9 +451,7 @@ final class AusruestungLayout {
             ueber.setBorder(new EmptyBorder(0, 0, 4, 0));
             k.add(ueber);
             JPanel standHuelle = new JPanel(new BorderLayout());
-            standHuelle.setOpaque(true);
-            standHuelle.setBackground(Theme.kachel());
-            standHuelle.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(6, 10, 6, 10)));
+            rund(standHuelle, Theme.kachel(), 12, new Insets(6, 10, 6, 10));
             standHuelle.setAlignmentX(0);
             standHuelle.add(stand, BorderLayout.CENTER);
             standHuelle.setMaximumSize(new Dimension(Integer.MAX_VALUE, standHuelle.getPreferredSize().height));
@@ -565,9 +597,7 @@ final class AusruestungLayout {
             if (g != null) info(info, "Gewicht", stein(g) + " Stein");
 
             JPanel t = new JPanel(new BorderLayout(10, 0));
-            t.setOpaque(true);
-            t.setBackground(Theme.kachel());
-            t.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(8, 8, 8, 8)));
+            rund(t, Theme.kachel(), 12, new Insets(8, 8, 8, 8));
             t.add(symbolKachel(SYMBOL[art], 46), BorderLayout.WEST);
             JPanel mitte = new JPanel();
             mitte.setLayout(new BoxLayout(mitte, BoxLayout.Y_AXIS));
@@ -743,9 +773,7 @@ final class AusruestungLayout {
         private JPanel karte() {
             JPanel k = new JPanel();
             k.setLayout(new BoxLayout(k, BoxLayout.Y_AXIS));
-            k.setBackground(Theme.card());
-            k.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(10, 12, 12, 12)));
+            rund(k, Theme.card(), 16, new Insets(10, 12, 12, 12));
             return k;
         }
 
@@ -807,10 +835,9 @@ final class AusruestungLayout {
             JButton b = new JButton();
             b.setLayout(new BorderLayout(8, 0));
             b.putClientProperty("JButton.buttonType", "borderless");
-            b.setBackground(Theme.kachel());
-            b.setOpaque(true);
-            b.setContentAreaFilled(true);
-            b.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(5, 8, 5, 8)));
+            b.setContentAreaFilled(false);
+            rund(b, Theme.kachel(), 10, new Insets(5, 8, 5, 8));
+            b.getModel().addChangeListener(e -> b.repaint());   // Hover-Farbe
             JLabel l = new JLabel(titel, ModernIcons.icon(symbol, 18, 18), SwingConstants.LEFT);
             l.setIconTextGap(8);
             l.setBorder(new EmptyBorder(0, 0, 0, 4));
@@ -881,10 +908,8 @@ final class AusruestungLayout {
             JPanel z = new JPanel(new BorderLayout(10, 1)) {
                 @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
             };
-            z.setOpaque(true);
-            z.setBackground(Theme.kachel());
+            rund(z, Theme.kachel(), 10, new Insets(5, 6, 5, 6));
             z.setAlignmentX(0);
-            z.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.trenner()), new EmptyBorder(5, 6, 5, 6)));
             z.add(symbolKachel(symbol, 34), BorderLayout.WEST);
             JLabel n = new JLabel(name);
             n.setFont(n.getFont().deriveFont(Font.BOLD));
@@ -950,6 +975,38 @@ final class AusruestungLayout {
     private static final String[] TAGS = {"nahkampfwaffen", "fernkampfwaffen", "schilder", "ruestungen"};
     private static final String[] SYMBOL = {"aus_schwert", "aus_bogen", "aus_schild", "aus_ruestung"};
     private static final String[] ZONEN = {"kopf", "brust", "ruecken", "bauch", "linkerarm", "rechterarm", "linkesbein", "rechtesbein"};
+
+    /**
+     * Fläche mit runden Ecken wie in „Eigenschaften“ und „Kampfwerte“: Der Rahmen malt Hintergrund und Rand selbst
+     * (die Fläche ist dafür nicht deckend); bei Knöpfen wird der Hintergrund beim Überfahren etwas kräftiger.
+     */
+    static void rund(JComponent c, Color fuellung, int bogen, Insets abstand) {
+        c.setOpaque(false);
+        c.setBorder(new RundRahmen(fuellung, bogen, abstand));
+    }
+
+    static final class RundRahmen implements javax.swing.border.Border {
+        final Color fuellung;
+        final int bogen;
+        final Insets abstand;
+        RundRahmen(Color fuellung, int bogen, Insets abstand) { this.fuellung = fuellung; this.bogen = bogen; this.abstand = abstand; }
+        @Override public void paintBorder(Component c, Graphics g0, int x, int y, int w, int h) {
+            Graphics2D g = (Graphics2D) g0.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Color f = fuellung;
+            if (c instanceof AbstractButton && ((AbstractButton) c).getModel().isRollover())
+                f = EigenschaftenLayout.mische(fuellung, Theme.accent(), Theme.isDark() ? 0.15 : 0.08);
+            // um einen halben Pixel eingerückt: sonst schneidet die Bildschirmskalierung (z. B. 125 %) den Rand ab
+            RoundRectangle2D form = new RoundRectangle2D.Float(x + 0.5f, y + 0.5f, w - 1.5f, h - 1.5f, bogen, bogen);
+            g.setColor(f);
+            g.fill(form);
+            g.setColor(Theme.trenner());
+            g.draw(form);
+            g.dispose();
+        }
+        @Override public Insets getBorderInsets(Component c) { return new Insets(abstand.top, abstand.left, abstand.bottom, abstand.right); }
+        @Override public boolean isBorderOpaque() { return false; }
+    }
 
     /** Quadratische Kachel mit Symbol (statt eines Bildes des Gegenstands). */
     static JComponent symbolKachel(String symbol, int groesse) {

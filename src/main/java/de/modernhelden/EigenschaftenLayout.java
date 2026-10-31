@@ -487,40 +487,53 @@ final class EigenschaftenLayout {
             while (n > 1 && (b - (n - 1) * luecke) / n < minBreite) n--;
             return n;
         }
-        int zeilenhoehe(Container p) {
-            int h = 0;
-            for (Component k : p.getComponents()) if (k.isVisible()) h = Math.max(h, k.getPreferredSize().height);
+        private int zeile(int k, int n, int sp) { return spaltenweise ? k % ((n + sp - 1) / sp) : k / sp; }
+        private int spalte(int k, int n, int sp) { return spaltenweise ? k / ((n + sp - 1) / sp) : k % sp; }
+        /** Höhe je Zeile: die höchste Zelle dieser Zeile (nicht der ganzen Liste). */
+        int[] hoehen(Container p, int sp) {
+            int n = p.getComponentCount(), zeilen = (n + sp - 1) / Math.max(1, sp);
+            int[] h = new int[Math.max(0, zeilen)];
+            for (int k = 0; k < n; k++) {
+                Component c = p.getComponent(k);
+                if (c.isVisible()) h[zeile(k, n, sp)] = Math.max(h[zeile(k, n, sp)], c.getPreferredSize().height);
+            }
             return h;
+        }
+        private int summe(int[] h) {
+            int s = 0;
+            for (int x : h) s += x;
+            return s + Math.max(0, h.length - 1) * luecke;
         }
         public void addLayoutComponent(String n, Component c) { }
         public void removeLayoutComponent(Component c) { }
         public Dimension preferredLayoutSize(Container p) {
-            int n = p.getComponentCount(), sp = spalten(p), zeilen = (n + sp - 1) / Math.max(1, sp);
+            int sp = spalten(p);
             int w = 0;
             for (Component k : p.getComponents()) w = Math.max(w, k.getPreferredSize().width);
             Insets i = p.getInsets();
-            return new Dimension(sp * w + (sp - 1) * luecke + i.left + i.right,
-                    zeilen * zeilenhoehe(p) + Math.max(0, zeilen - 1) * luecke + i.top + i.bottom);
+            return new Dimension(sp * w + (sp - 1) * luecke + i.left + i.right, summe(hoehen(p, sp)) + i.top + i.bottom);
         }
         public Dimension minimumLayoutSize(Container p) {
             Insets i = p.getInsets();
             int w = 0;
             for (Component k : p.getComponents()) w = Math.max(w, k.getMinimumSize().width);
-            int n = p.getComponentCount();
-            return new Dimension(w + i.left + i.right, n * zeilenhoehe(p) + Math.max(0, n - 1) * luecke + i.top + i.bottom);
+            return new Dimension(w + i.left + i.right, summe(hoehen(p, 1)) + i.top + i.bottom);
         }
         public void layoutContainer(Container p) {
             int n = p.getComponentCount();
             if (n == 0) return;
             Insets i = p.getInsets();
-            int sp = spalten(p), zeilen = (n + sp - 1) / sp;
-            int b = p.getWidth() - i.left - i.right, zw = (b - (sp - 1) * luecke) / sp, zh = zeilenhoehe(p);
+            int sp = spalten(p);
+            int b = p.getWidth() - i.left - i.right, zw = (b - (sp - 1) * luecke) / sp;
+            int[] h = hoehen(p, sp);
+            int[] y = new int[h.length];
+            for (int z = 0, yy = i.top; z < h.length; z++) { y[z] = yy; yy += h[z] + luecke; }
             for (int k = 0; k < n; k++) {
-                int s = spaltenweise ? k / zeilen : k % sp, z = spaltenweise ? k % zeilen : k / sp;
+                int s = spalte(k, n, sp), z = zeile(k, n, sp);
                 int breite = zw;
                 // letzte Kachel allein in ihrer Zeile: volle Breite
                 if (!spaltenweise && k == n - 1 && n % sp != 0 && s == 0) breite = b;
-                p.getComponent(k).setBounds(i.left + s * (zw + luecke), i.top + z * (zh + luecke), breite, zh);
+                p.getComponent(k).setBounds(i.left + s * (zw + luecke), y[z], breite, h[z]);
             }
             Object alt = ((JComponent) p).getClientProperty("modernhelden.spalten");
             if (!Integer.valueOf(sp).equals(alt)) {
