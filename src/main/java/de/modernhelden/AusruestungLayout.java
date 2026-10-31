@@ -110,6 +110,42 @@ final class AusruestungLayout {
 
         void spaeter() { if (aktiv) spaeter.restart(); }
 
+        /** Änderungen über die versteckten Dialoge der Reihe nach – eine neue erst, wenn die vorige abgeschlossen ist. */
+        private final java.util.ArrayDeque<Runnable> warteschlange = new java.util.ArrayDeque<>();
+        private boolean beschaeftigt;
+
+        /**
+         * Mehrere Klicks kurz hintereinander (z. B. Hand, dann Schild) öffneten sonst den Dialog der Helden-Software,
+         * während der vorige noch offen war. Jetzt wartet jede Änderung, bis der vorige Dialog geschlossen und die
+         * Ansicht mit den neuen Daten aufgebaut ist.
+         */
+        void nacheinander(Runnable r) {
+            warteschlange.add(r);
+            if (!beschaeftigt) naechste();
+        }
+
+        private void naechste() {
+            Runnable r = warteschlange.poll();
+            if (r == null) { beschaeftigt = false; return; }
+            beschaeftigt = true;
+            try { r.run(); } catch (RuntimeException ignore) { }
+            final long start = System.currentTimeMillis();
+            javax.swing.Timer t = new javax.swing.Timer(80, null);
+            t.addActionListener(e -> {
+                boolean offen = AusruestungDialoge.auftrag != null;
+                for (Window w : Window.getWindows()) if (w instanceof JDialog && w.isShowing() && w.getX() < -10000) offen = true;
+                if (offen && System.currentTimeMillis() - start < 5000) return;
+                t.stop();
+                // Daten der Helden-Software neu lesen, bevor die nächste Änderung startet
+                letzterStand = null;
+                spaeter.stop();
+                neuAufbauen();
+                SwingUtilities.invokeLater(this::naechste);
+            });
+            t.setInitialDelay(150);
+            t.start();
+        }
+
         void modern() {
             if (aktiv) return;
             aktiv = true;
@@ -734,12 +770,17 @@ final class AusruestungLayout {
 
         /** Änderung über den versteckten Dialog der Helden-Software, danach „OK“. */
         private void aendern(int platz, String name, AbstractButton stift, java.util.function.Predicate<Map<String, JComponent>> p) {
-            if (!stift.isEnabled()) return;
-            AusruestungDialoge.werteMitte = z.viewport.getTopLevelAncestor() instanceof Window ? (Window) z.viewport.getTopLevelAncestor() : null;
-            AusruestungDialoge.unsichtbarAusfuehren(AusruestungDialoge.Ablegen.aendern(platz, name, p), stift::doClick);
+            z.nacheinander(() -> {
+                if (!stift.isEnabled()) return;
+                AusruestungDialoge.werteMitte = z.viewport.getTopLevelAncestor() instanceof Window ? (Window) z.viewport.getTopLevelAncestor() : null;
+                AusruestungDialoge.unsichtbarAusfuehren(AusruestungDialoge.Ablegen.aendern(platz, name, p), stift::doClick);
+            });
         }
 
         private void menue(JComponent b, String[] texte, boolean[] an, java.util.function.IntConsumer wahl) {
+            // Schnell hintereinander geklickt: die Ansicht wurde gerade neu aufgebaut und dieser Knopf ist nicht mehr
+            // zu sehen – dann kein Menü (sonst Fehler „component must be showing on the screen“)
+            if (!b.isShowing()) return;
             JPopupMenu pm = new JPopupMenu();
             for (int i = 0; i < texte.length; i++) {
                 final int k = i;
