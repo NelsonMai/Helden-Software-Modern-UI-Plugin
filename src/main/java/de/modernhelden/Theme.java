@@ -132,6 +132,8 @@ public final class Theme {
      * das beim ersten Zeichnen aktiv war – dadurch mischten sich mehrere Designs.
      */
     public static void aktualisiereTabellenRenderer() {
+        generation++;
+        beobachten();
         for (Window w : Window.getWindows()) {
             try { tabellenIn(w); } catch (RuntimeException ignore) { }
         }
@@ -144,7 +146,40 @@ public final class Theme {
         }
     }
 
+    /** Zählt die Designwechsel; jede Tabelle merkt sich, für welchen ihre Zellen-Knöpfe angeglichen wurden. */
+    private static int generation;
+    private static final String STAND = "modernhelden.rendererStand";
+
+    private static boolean beobachtet;
+
+    /**
+     * Tabellen, die beim Designwechsel nicht im Fenster hingen (z. B. die Zauberliste, solange ein Held ohne Zauber
+     * gewählt ist), behielten ihre zwischengespeicherten Zellen-Knöpfe im alten Design. Sobald eine Tabelle wieder
+     * sichtbar wird und noch nicht für das aktuelle Design (und ihre jetzige Zeilenzahl) angeglichen ist, wird das
+     * nachgeholt.
+     */
+    private static void beobachten() {
+        if (beobachtet) return;
+        beobachtet = true;
+        Toolkit.getDefaultToolkit().addAWTEventListener(ev -> {
+            if (!(ev instanceof java.awt.event.HierarchyEvent)) return;
+            java.awt.event.HierarchyEvent h = (java.awt.event.HierarchyEvent) ev;
+            if ((h.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) == 0) return;
+            if (!(h.getComponent() instanceof javax.swing.JTable)) return;
+            javax.swing.JTable t = (javax.swing.JTable) h.getComponent();
+            if (!t.isShowing() || stand(t).equals(t.getClientProperty(STAND))) return;
+            SwingUtilities.invokeLater(() -> { try { aktualisiere(t); } catch (RuntimeException ignore) { } });
+        }, AWTEvent.HIERARCHY_EVENT_MASK);
+    }
+
+    /**
+     * Designwechsel und Zeilenzahl: Die Helden-Software hebt Zellen-Knöpfe je Zeile auf. Hatte die Tabelle beim
+     * Wechsel weniger Zeilen (z. B. Zauberliste eines Helden ohne Zauber), kommen später alte Knöpfe hinzu.
+     */
+    private static String stand(javax.swing.JTable t) { return generation + ":" + t.getModel().getRowCount(); }
+
     private static void aktualisiere(javax.swing.JTable t) {
+        t.putClientProperty(STAND, stand(t));
         java.util.Set<Component> erledigt =
                 java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
         javax.swing.table.TableColumnModel cm = t.getColumnModel();
@@ -167,7 +202,12 @@ public final class Theme {
                 r = t.getDefaultRenderer(t.getColumnClass(ci));
                 if (e == null) e = t.getDefaultEditor(t.getColumnClass(ci));
             }
-            // Komponenten-Renderer aktualisiert JTable.updateUI bereits selbst
+            // Komponenten-Renderer aktualisiert JTable.updateUI zwar selbst – aber nur, wenn die Tabelle beim
+            // Designwechsel im Fenster hing; daher auch hier angleichen
+            if (r instanceof Component) {
+                if (erledigt.add((Component) r)) SwingUtilities.updateComponentTreeUI((Component) r);
+                if (e instanceof Component && erledigt.add((Component) e)) SwingUtilities.updateComponentTreeUI((Component) e);
+            }
             if (r == null || r instanceof Component) continue;
             javax.swing.table.TableCellRenderer tr = (javax.swing.table.TableCellRenderer) r;
             boolean auchEditor = e == r;   // gleicher Cache für Anzeige und Bearbeitung
