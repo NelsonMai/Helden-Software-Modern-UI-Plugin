@@ -31,7 +31,7 @@ und Hinweisen der Regelprüfung. Sortierbare Tabellen mit Suche, Vor- und Nachte
 
 ### Allgemein
 
-Steckbrief, Abenteuerpunkte mit Herkunft und *AP hinzufügen …*, Vor-/Nachteile und SF mit Kurzbeschreibung.
+Abenteuerpunkte-Leiste mit *AP hinzufügen …*, Held mit Herkunft und Daten, Vor-/Nachteile und SF als Karten mit Kurzbeschreibung.
 
 ![Reiter „Allgemein“ im modernen Design](docs/bilder/allgemein.png)
 
