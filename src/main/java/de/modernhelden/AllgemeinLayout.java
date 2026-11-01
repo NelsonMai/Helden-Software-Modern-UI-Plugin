@@ -1017,7 +1017,10 @@ final class AllgemeinLayout {
     // ------------------------------------------------------------------ Listen
 
     private static JComponent knopf(AbstractButton orig, String text, String tip) {
-        JButton b = EigenschaftenLayout.farbknopf(text, Theme.accent());
+        // gewöhnlicher Knopf wie „Angaben bearbeiten …“ – passt in Hell und Dunkel zum übrigen Design
+        JButton b = new JButton(text);
+        b.setFocusable(false);
+        b.putClientProperty("JButton.buttonType", "roundRect");
         TooltipHook.infoTip(b, tip);
         InventarLayout.eigen(b);
         if (orig == null) b.setVisible(false);
@@ -1033,7 +1036,10 @@ final class AllgemeinLayout {
         JPanel z = new JPanel(new BorderLayout(0, 0)) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
         };
-        z.setBackground(i % 2 == 0 ? Theme.kachel() : EigenschaftenLayout.mische(Theme.kachel(), Theme.accent(), Theme.isDark() ? 0.06 : 0.035));
+        // Zebra-Streifen in denselben Farben wie die Tabellen in Talente/Zauber
+        Color alt = Theme.isModern() ? UIManager.getColor("Table.alternateRowColor") : null;
+        if (alt == null) alt = EigenschaftenLayout.mische(Theme.kachel(), Theme.accent(), Theme.isDark() ? 0.06 : 0.035);
+        z.setBackground(i % 2 == 0 ? Theme.kachel() : alt);
         z.setOpaque(true);
         z.setBorder(new EmptyBorder(4, 10, 4, 8));
         z.setAlignmentX(0);

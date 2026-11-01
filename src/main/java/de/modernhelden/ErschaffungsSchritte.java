@@ -174,7 +174,7 @@ final class ErschaffungsSchritte {
     }
 
     /** Suchfeld und (bei Talenten) Schalter je Kategorie; filtert alle Tabellen des Schritts. */
-    private static final class Suchleiste extends JPanel {
+    static final class Suchleiste extends JPanel {
         final JPanel huelle;
         final JTextField feld = new JTextField(18);
         final JPanel chips = new JPanel(new TalenteSortierung.Umbruch(4, 4));

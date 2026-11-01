@@ -75,6 +75,8 @@ public final class IconSwap {
                     if (HinzufuegenLayout.TITEL.equals(t)) HinzufuegenLayout.anwenden((JDialog) c);
                     else if (AngabenDialog.TITEL.equalsIgnoreCase(t)) AngabenDialog.anwenden((JDialog) c);
                     else if (TalenteAktivieren.TITEL.equals(t) || TalenteAktivieren.TITEL_ZAUBER.equals(t)) TalenteAktivieren.anwenden((JDialog) c);
+                    else if (NachteileSenken.TITEL.equals(t)) NachteileSenken.anwenden((JDialog) c);
+                    else if (SonderfertigkeitenHinzufuegen.ist((JDialog) c)) SonderfertigkeitenHinzufuegen.anwenden((JDialog) c);
                     else if (!GeldboerseLayout.TITEL.equals(t)) AusruestungDialoge.anwenden((JDialog) c);
                     // Symbole und Tabellen sofort umstellen, nicht erst nach dem ersten Bild
                     if (!GeldboerseLayout.TITEL.equals(t)) baum(c);

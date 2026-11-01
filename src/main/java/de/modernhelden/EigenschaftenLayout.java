@@ -468,15 +468,11 @@ final class EigenschaftenLayout {
         return b;
     }
 
-    /** Knopf wie die Tabellenköpfe der Druckvorschau: zartes Akzent-Beige mit Akzentschrift. */
+    /** Gewöhnlicher abgerundeter Knopf wie „Angaben bearbeiten …“ – passt in Hell und Dunkel zum übrigen Design. */
     static JButton farbknopf(String text, Color f) {
         JButton b = new JButton(text);
         b.setFocusable(false);
-        Color a = Theme.accent();
-        Color grund = mische(Theme.kachel(), a, Theme.isDark() ? 0.22 : 0.12), rand = mische(Theme.kachel(), a, 0.45);
-        Color schrift = Theme.isDark() ? mische(a, Color.WHITE, 0.45) : a;
-        b.putClientProperty("FlatLaf.style", String.format("arc: 10; background: %s; borderColor: %s; foreground: %s; hoverBackground: %s; font: bold",
-                hex(grund), hex(rand), hex(schrift), hex(mische(grund, a, 0.12))));
+        b.putClientProperty("JButton.buttonType", "roundRect");
         InventarLayout.eigen(b);
         return b;
     }
