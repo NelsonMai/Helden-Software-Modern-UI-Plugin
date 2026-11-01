@@ -320,8 +320,12 @@ final class EigenschaftenLayout {
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            if (fuellung != null) { g.setColor(fuellung); g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, bogen, bogen); }
-            if (rand != null) { g.setColor(rand); g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, bogen, bogen); }
+            // um einen halben Pixel eingerückt: bei Bildschirmskalierung (z. B. 125 % unter Windows) fiele der rechte
+            // und untere Rand sonst aus der Fläche und würde abgeschnitten
+            float b = Math.min(bogen, Math.min(getWidth(), getHeight()) - 1);
+            java.awt.geom.RoundRectangle2D form = new java.awt.geom.RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1.5f, getHeight() - 1.5f, b, b);
+            if (fuellung != null) { g.setColor(fuellung); g.fill(form); }
+            if (rand != null) { g.setColor(rand); g.draw(form); }
             g.dispose();
             super.paintComponent(g0);
         }
@@ -365,7 +369,8 @@ final class EigenschaftenLayout {
     /** Kachel wie in der Druckvorschau: warmes Beige, feiner Rand, Akzentbalken unten. */
     static Rund kachel(Color f, LayoutManager l) {
         Color basis = Theme.kachel();
-        Rund r = new Rund(l, mische(basis, Theme.accent(), Theme.isDark() ? 0.07 : 0.045), Theme.trenner(), 12) {
+        // im dunklen Design grau (ohne Akzent-Tönung), im hellen warmes Beige
+        Rund r = new Rund(l, basis, Theme.trenner(), 12) {
             @Override protected void paintComponent(Graphics g0) {
                 super.paintComponent(g0);
                 Graphics2D g = (Graphics2D) g0.create();
@@ -624,8 +629,11 @@ final class EigenschaftenLayout {
 
     // ------------------------------------------------------------------ Abenteuerpunkte
 
-    private static JComponent abenteuerpunkte(HeroData h) {
-        int gesamt = h.ap, frei = h.freieAp, aus = Math.max(0, gesamt - frei);
+    private static JComponent abenteuerpunkte(HeroData h) { return apLeiste(h.ap, h.freieAp); }
+
+    /** Abenteuerpunkte als Leiste (auch in „Talente“ und „Zauber“). */
+    static JComponent apLeiste(int gesamt, int frei) {
+        int aus = Math.max(0, gesamt - frei);
         Rund k = new Rund(new GridBagLayout(), Theme.card(), Theme.trenner(), 16) {
             @Override public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }
             // gleich hoch wie die Leiste in „Allgemein“ (dort mit Eingabefeld und Knopf)
@@ -634,6 +642,8 @@ final class EigenschaftenLayout {
                 Insets i = getInsets();
                 return new Dimension(d.width, Math.max(d.height, AllgemeinLayout.apLeisteHoehe() + i.top + i.bottom));
             }
+            // nie niedriger (in der Kopfzeile von „Talente“/„Zauber“ würde sie sonst unten abgeschnitten)
+            @Override public Dimension getMinimumSize() { return new Dimension(200, getPreferredSize().height); }
         };
         k.setBorder(new EmptyBorder(8, 16, 8, 16));
         GridBagConstraints c = new GridBagConstraints();

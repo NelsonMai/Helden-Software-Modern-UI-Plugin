@@ -33,21 +33,26 @@ final class TalenteAktivieren {
 
     private TalenteAktivieren() {}
 
-    static final String TITEL = "Talente aktivieren";
+    static final String TITEL = "Talente aktivieren", TITEL_ZAUBER = "Zauber aktivieren";
 
     static void anwenden(JDialog d) {
         if (d.getRootPane().getClientProperty("modernhelden.talAkt") != null) return;
         JTable tabelle = null;
         JList<?> liste = null;
         JComboBox<?> gruppe = null;
+        List<JComboBox<?>> auswahl = new ArrayList<>();
         AbstractButton loeschen = null;
         List<JTextField> felder = new ArrayList<>();
         JLabel lGuthaben = null, lEingesetzt = null;
         for (Component k : ErschaffungsSchritte.alle(d.getContentPane(), Component.class)) {
             if (k instanceof JTable && tabelle == null) tabelle = (JTable) k;
             else if (k instanceof JList && liste == null) liste = (JList<?>) k;
-            else if (k instanceof JComboBox && gruppe == null) gruppe = (JComboBox<?>) k;
-            else if (k instanceof AbstractButton && "Letztes Talent löschen".equals(((AbstractButton) k).getText())) loeschen = (AbstractButton) k;
+            else if (k instanceof JComboBox) { if (gruppe == null) gruppe = (JComboBox<?>) k; auswahl.add((JComboBox<?>) k); }
+            // „Letztes Talent löschen“ bzw. „Letzen Zauber löschen“ (so geschrieben in der Helden-Software)
+            else if (k instanceof AbstractButton && String.valueOf(((AbstractButton) k).getText()).startsWith("Letzt")
+                    && String.valueOf(((AbstractButton) k).getText()).endsWith("löschen")) loeschen = (AbstractButton) k;
+            else if (k instanceof AbstractButton && String.valueOf(((AbstractButton) k).getText()).startsWith("Letzen")
+                    && String.valueOf(((AbstractButton) k).getText()).endsWith("löschen")) loeschen = (AbstractButton) k;
             else if (k instanceof JTextField && SwingUtilities.getAncestorOfClass(JComboBox.class, k) == null) felder.add((JTextField) k);
             else if (k instanceof JLabel && "AP-Guthaben".equals(((JLabel) k).getText())) lGuthaben = (JLabel) k;
             else if (k instanceof JLabel && "Eingesetzte AP".equals(((JLabel) k).getText())) lEingesetzt = (JLabel) k;
@@ -66,13 +71,33 @@ final class TalenteAktivieren {
         JTextField guthaben = felder.get(0), eingesetzt = felder.get(1);
         if (mitte.getLayout() instanceof GridBagLayout) {
             GridBagLayout gb = (GridBagLayout) mitte.getLayout();
+            // Feld rechts neben der jeweiligen Beschriftung (Talente und Zauber ordnen sie verschieden an)
+            GridBagConstraints lg = gb.getConstraints(lGuthaben), le = gb.getConstraints(lEingesetzt);
             for (JTextField f : felder) {
-                if (gb.getConstraints(f).gridx == 1) guthaben = f;
-                if (gb.getConstraints(f).gridx == 3) eingesetzt = f;
+                GridBagConstraints fc = gb.getConstraints(f);
+                if (fc.gridy == lg.gridy && fc.gridx == lg.gridx + 1) guthaben = f;
+                if (fc.gridy == le.gridy && fc.gridx == le.gridx + 1) eingesetzt = f;
             }
         }
         d.getRootPane().putClientProperty("modernhelden.talAkt", Boolean.TRUE);
-        new Aufbau(d, mitte, tabelle, tabScroll, liste, gruppe, loeschen, steuerung, guthaben, eingesetzt, lGuthaben, lEingesetzt);
+        boolean zauber = TITEL_ZAUBER.equals(d.getTitle());
+        // Bezeichnungen der Auswahlfelder (Zauber: Repräsentation, Merkmal, Komplexität) – links daneben im Raster
+        Map<JComboBox<?>, String> namen = new LinkedHashMap<>();
+        if (zauber && mitte.getLayout() instanceof GridBagLayout) {
+            GridBagLayout gb = (GridBagLayout) mitte.getLayout();
+            for (JComboBox<?> c : auswahl) {
+                GridBagConstraints cc = gb.getConstraints(c);
+                String n = "";
+                for (Component k : mitte.getComponents()) {
+                    if (!(k instanceof JLabel)) continue;
+                    GridBagConstraints lc = gb.getConstraints(k);
+                    if (lc.gridy == cc.gridy && lc.gridx == cc.gridx - 1) n = String.valueOf(((JLabel) k).getText()).trim();
+                }
+                namen.put(c, n);
+            }
+        }
+        new Aufbau(d, mitte, tabelle, tabScroll, liste, gruppe, loeschen, steuerung, guthaben, eingesetzt, lGuthaben, lEingesetzt,
+                zauber ? namen : null);
     }
 
     private static final class Aufbau {
@@ -89,9 +114,16 @@ final class TalenteAktivieren {
         final TableRowSorter<TableModel> sortierer;
         boolean baueChips;
 
+        /** Zauber: Auswahlfelder der Helden-Software (Repräsentation, Merkmal, Komplexität) statt Gruppen-Knöpfen */
+        final Map<JComboBox<?>, String> filter;
+        final boolean zauber;
+
         Aufbau(JDialog d, JPanel mitte, JTable tab, JScrollPane tabScroll, JList<?> liste, JComboBox<?> grp, AbstractButton loe,
-               Object st, JTextField guthaben, JTextField eingesetzt, JLabel lGuthaben, JLabel lEingesetzt) {
+               Object st, JTextField guthaben, JTextField eingesetzt, JLabel lGuthaben, JLabel lEingesetzt,
+               Map<JComboBox<?>, String> filter) {
             dialog = d; tabelle = tab; gruppe = grp; loeschen = loe; steuerung = st;
+            this.filter = filter;
+            this.zauber = filter != null;
             gewaehlt = (DefaultListModel<?>) liste.getModel();
 
             // ---- Suche in der Tabelle der aktivierbaren Talente (Spalte „Talent“)
@@ -119,13 +151,15 @@ final class TalenteAktivieren {
             };
             // sortierbar: Talent, Probe, Lern(-Spalte), AP; nicht: SE-Kästchen und „+“
             sortierer.setMaxSortKeys(1);
-            for (int i = 0; i < tab.getModel().getColumnCount(); i++) {
-                boolean ja = i >= 1 && i <= 4;
+            // sortierbar: alle Spalten außer dem SE-Kästchen (erste) und „+“ (letzte)
+            int spaltenZahl = tab.getModel().getColumnCount();
+            for (int i = 0; i < spaltenZahl; i++) {
+                boolean ja = i >= 1 && i <= spaltenZahl - 2;
                 sortierer.setSortable(i, ja);
                 if (ja) sortierer.setComparator(i, TalenteSortierung::vergleiche);
             }
             tab.setRowSorter(sortierer);
-            suche.putClientProperty("JTextField.placeholderText", "Talente suchen …");
+            suche.putClientProperty("JTextField.placeholderText", zauber ? "Zauber suchen …" : "Talente suchen …");
             suche.putClientProperty("JTextField.leadingIcon", new com.formdev.flatlaf.icons.FlatSearchIcon());
             suche.putClientProperty("JTextField.showClearButton", true);
             suche.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -174,7 +208,7 @@ final class TalenteAktivieren {
             ap.add(eingesetzt);
 
             aktiviertModell = new AbstractTableModel() {
-                final String[] k = {"Aktiviertes Talent", "Probe", "AP", ""};
+                final String[] k = {zauber ? "Aktivierter Zauber" : "Aktiviertes Talent", "Probe", "AP", ""};
                 @Override public int getRowCount() { return gewaehlt.size(); }
                 @Override public int getColumnCount() { return k.length; }
                 @Override public String getColumnName(int c) { return k[c]; }
@@ -182,7 +216,12 @@ final class TalenteAktivieren {
                     Object t = gewaehlt.get(r);
                     switch (c) {
                         case 0: return String.valueOf(t);
-                        case 1: return String.valueOf(ErschaffungsRahmen.rufe(t, "getTalentprobe"));
+                        case 1: {
+                            Object pr = ErschaffungsRahmen.rufe(t, "getTalentprobe");
+                            if (pr == null) pr = ErschaffungsRahmen.rufe(t, "getProbe");
+                            if (pr == null) pr = ErschaffungsRahmen.rufe(t, "getProbeString");
+                            return pr == null ? "" : String.valueOf(pr);
+                        }
                         case 2: { Integer n = kosten(t); return n == null ? "" : n + " AP"; }
                         default: return "−";
                     }
@@ -211,10 +250,11 @@ final class TalenteAktivieren {
                     if (r >= 0 && c == 3 && SwingUtilities.isLeftMouseButton(e)) entfernen(r);
                 }
             });
-            aktiviert.setToolTipText("„−“ nimmt das Talent wieder zurück (die AP werden erstattet)");
+            aktiviert.setToolTipText(zauber ? "„−“ nimmt den Zauber wieder zurück (die AP werden erstattet)"
+                    : "„−“ nimmt das Talent wieder zurück (die AP werden erstattet)");
             JScrollPane aktScroll = new JScrollPane(aktiviert);
             aktScroll.setPreferredSize(new Dimension(100, 170));
-            JLabel ueber = new JLabel("Aktivierte Talente") {
+            JLabel ueber = new JLabel(zauber ? "Aktivierte Zauber" : "Aktivierte Talente") {
                 // fett gesetzt: unter Windows sonst um wenige Pixel abgeschnitten
                 @Override public Dimension getPreferredSize() { Dimension d = super.getPreferredSize(); return new Dimension(d.width + 4, d.height); }
             };
@@ -247,9 +287,16 @@ final class TalenteAktivieren {
 
         private void spalten(JTable t) {
             javax.swing.table.TableColumnModel cm = t.getColumnModel();
-            int[] b = {34, 260, 110, 40, 50, 70};
+            // Zauber: SE, Zauberfertigkeit, Repräsentation, Merkmale, Lern, AP, Aktivieren
+            int[] b = zauber ? new int[]{34, 230, 120, 120, 40, 50, 70} : new int[]{34, 260, 110, 40, 50, 70};
             for (int i = 0; i < b.length && i < cm.getColumnCount(); i++) cm.getColumn(i).setPreferredWidth(b[i]);
-            if (cm.getColumnCount() > 5) cm.getColumn(5).setHeaderValue("Aktivieren");
+            int letzte = cm.getColumnCount() - 1;
+            if (letzte >= 1) cm.getColumn(letzte).setHeaderValue("Aktivieren");
+            if (zauber && cm.getColumnCount() >= 7) {
+                cm.getColumn(0).setHeaderValue("SE");
+                cm.getColumn(2).setHeaderValue("Repräsentation");
+                cm.getColumn(4).setHeaderValue("Lern");
+            }
         }
 
         private void groesse() {
@@ -276,8 +323,33 @@ final class TalenteAktivieren {
             anzahl();
         }
 
+        /** Zauber: die Auswahlfelder der Helden-Software (sie filtern ihre Tabelle selbst) in der Kopfzeile. */
+        private void filterNeu() {
+            if (chips.getComponentCount() > 0) return;
+            for (Map.Entry<JComboBox<?>, String> f : filter.entrySet()) {
+                JPanel p = new JPanel(new BorderLayout(6, 0));
+                p.setOpaque(false);
+                InventarLayout.eigen(p);
+                JLabel l = new JLabel(f.getValue());
+                l.setForeground(Theme.muted());
+                l.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 2));
+                InventarLayout.eigen(l);
+                p.add(l, BorderLayout.WEST);
+                JComboBox<?> c = f.getKey();
+                c.setPreferredSize(null);
+                c.setMinimumSize(null);
+                Dimension pd = c.getPreferredSize();
+                c.setPreferredSize(new Dimension(Math.min(Math.max(pd.width, 110), 170), pd.height));
+                f.getKey().addActionListener(e -> SwingUtilities.invokeLater(this::anzahl));
+                p.add(c, BorderLayout.CENTER);
+                chips.add(p);
+            }
+            chips.revalidate();
+        }
+
         /** Gruppen-Knöpfe aus dem Auswahlfeld „Talentgruppe“, mit Anzahl der aktivierbaren Talente. */
         private void aktualisieren() {
+            if (zauber) { filterNeu(); anzahl(); return; }
             if (baueChips) return;
             baueChips = true;
             try {
@@ -373,7 +445,8 @@ final class TalenteAktivieren {
             Method aktivieren = neuere.isEmpty() ? null : aktivierenMethode(neuere.get(0));
             if (!neuere.isEmpty() && aktivieren == null) {
                 // ohne die Aktivieren-Logik nicht umsortieren – dann geht nur das zuletzt aktivierte
-                JOptionPane.showMessageDialog(dialog, "Hier lässt sich nur das zuletzt aktivierte Talent zurücknehmen.");
+                JOptionPane.showMessageDialog(dialog, zauber ? "Hier lässt sich nur der zuletzt aktivierte Zauber zurücknehmen."
+                        : "Hier lässt sich nur das zuletzt aktivierte Talent zurücknehmen.");
                 return;
             }
             for (int i = 0; i <= k; i++) loeschen.doClick(0);

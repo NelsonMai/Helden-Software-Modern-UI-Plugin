@@ -263,8 +263,10 @@ final class AllgemeinLayout {
         boolean aktiv;
         String filter = "";
         final Set<Object> angebunden = Collections.newSetFromMap(new WeakHashMap<>());
-        final javax.swing.Timer spaeter = new javax.swing.Timer(120, e -> neuAufbauen());
+        // etwas länger warten: beim Heldenwechsel kommen viele Feldänderungen kurz hintereinander
+        final javax.swing.Timer spaeter = new javax.swing.Timer(250, e -> neuAufbauen());
         String letzterStand;
+        int warten;
 
         Zustand(JPanel original) {
             this.original = original;
@@ -333,11 +335,28 @@ final class AllgemeinLayout {
             Daten d = lesen(original);
             anbinden(d);
             HeroData h = InventarLayout.held();
+            // Heldenwechsel: Die Helden-Software füllt ihre Felder nach und nach, die Heldendaten des Plugins kommen
+            // danach. Erst aufbauen, wenn beides zum selben Helden gehört – sonst flackert die Seite durch Zwischenstände.
+            if (h != null && ansicht.getComponentCount() > 0 && !d.text("Name").isEmpty() && !d.text("Name").equals(h.name)
+                    && warten++ < 12) {   // höchstens etwa 3 Sekunden – falls die Namen einmal nicht übereinstimmen
+                spaeter();
+                return;
+            }
+            warten = 0;
             String stand = stand(d, h);
             if (stand.equals(letzterStand) && ansicht.getComponentCount() > 0) return;
             letzterStand = stand;
             if (DebugBaum.ordner != null) System.err.println("[Allgemein] Ansicht neu aufgebaut");
             ansicht.aufbauen(d, h);
+            // umbrechende Texte kennen ihre Höhe erst nach dem Anordnen: vor dem Zeichnen mehrfach anordnen,
+            // damit die Karten nicht kurz danach springen
+            if (scroll != null && scroll.getViewport().getWidth() > 0)
+                for (int i = 0; i < 3; i++) { ungueltig(ansicht); scroll.getViewport().validate(); }
+        }
+
+        private void ungueltig(Component c) {
+            c.invalidate();
+            if (c instanceof Container) for (Component k : ((Container) c).getComponents()) ungueltig(k);
         }
     }
 
@@ -484,30 +503,72 @@ final class AllgemeinLayout {
                 @Override public Dimension getMinimumSize() { return new Dimension(160, super.getMinimumSize().height); }
             };
             k.setBorder(new EmptyBorder(12, 14, 14, 14));
-            JPanel kopf = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            // Titel darf im schmalen Fenster gekürzt werden („Sonderfertigk…“), der Zähl-Chip bleibt immer ganz sichtbar
+            JPanel kopf = new JPanel(new GridBagLayout());
             kopf.setOpaque(false);
             InventarLayout.eigen(kopf);
-            JLabel t = InventarLayout.titel(titel);
+            // passt der Titel nicht, steht die Abkürzung da („SF“) – der Zähl-Chip daneben bleibt ganz
+            final String kurz = "Sonderfertigkeiten".equals(titel) ? "SF" : titel;
+            JLabel t = new JLabel(titel) {
+                int vollBreite = -1;
+                @Override public Dimension getMinimumSize() {
+                    JLabel p = new JLabel(kurz, getIcon(), LEADING);
+                    p.setFont(getFont());
+                    p.setIconTextGap(getIconTextGap());
+                    return p.getPreferredSize();
+                }
+                @Override public void setBounds(int x, int y, int w, int h) {
+                    super.setBounds(x, y, w, h);
+                    if (vollBreite < 0) {
+                        JLabel p = new JLabel(titel, getIcon(), LEADING);
+                        p.setFont(getFont());
+                        p.setIconTextGap(getIconTextGap());
+                        vollBreite = p.getPreferredSize().width;
+                    }
+                    String soll = w >= vollBreite ? titel : kurz;
+                    if (!soll.equals(getText())) setText(soll);
+                }
+                @Override public Dimension getPreferredSize() {
+                    JLabel p = new JLabel(titel, getIcon(), LEADING);
+                    p.setFont(getFont());
+                    p.setIconTextGap(getIconTextGap());
+                    return p.getPreferredSize();
+                }
+            };
+            t.setFont(t.getFont().deriveFont(Font.BOLD, t.getFont().getSize2D() + 4f));
             t.setIcon(new EigenschaftenLayout.Plakette(symbol, 30, Theme.accent(), Color.WHITE));
             t.setIconTextGap(10);
+            TooltipHook.infoTip(t, titel);
             InventarLayout.eigen(t);
-            kopf.add(t);
-            kopf.add(Box.createHorizontalStrut(10));
+            GridBagConstraints kc = new GridBagConstraints();
+            kc.anchor = GridBagConstraints.WEST;
+            kc.fill = GridBagConstraints.HORIZONTAL;
+            kc.weightx = 0;
+            kc.insets = new Insets(0, 0, 0, 10);
+            kopf.add(t, kc);
             // Anzahl als Chip (bei Suche „n von m“)
             EigenschaftenLayout.Rund chip = new EigenschaftenLayout.Rund(new BorderLayout(),
                     EigenschaftenLayout.mische(Theme.kachel(), Theme.accent(), 0.08),
                     EigenschaftenLayout.mische(Theme.kachel(), Theme.accent(), 0.3), 999);
             chip.setBorder(new EmptyBorder(2, 10, 3, 10));
-            anzahl.setFont(anzahl.getFont().deriveFont(anzahl.getFont().getSize2D() - 1f));
+            // von der Grundschrift ableiten – die Karte wird bei jedem Heldenwechsel neu gebaut, das Label bleibt dasselbe
+            Font basis = UIManager.getFont("Label.font");
+            anzahl.setFont(basis.deriveFont(basis.getSize2D() - 1f));
             anzahl.setForeground(UIManager.getColor("Label.foreground"));
             anzahl.setBorder(null);
             anzahl.setHorizontalAlignment(SwingConstants.CENTER);
             chip.add(anzahl);
-            JPanel chipHalter = new JPanel(new GridBagLayout());
+            JPanel chipHalter = new JPanel(new GridBagLayout()) {
+                @Override public Dimension getMinimumSize() { return getPreferredSize(); }
+            };
             chipHalter.setOpaque(false);
             InventarLayout.eigen(chipHalter);
             chipHalter.add(chip);
-            kopf.add(chipHalter);
+            kc.fill = GridBagConstraints.NONE;
+            kc.insets = new Insets(0, 0, 0, 0);
+            kopf.add(chipHalter, kc);
+            kc.weightx = 1;
+            kopf.add(Box.createHorizontalGlue(), kc);
             k.add(kopf, BorderLayout.NORTH);
             // Knopf unten über die ganze Breite – wie in der Ansicht der Helden-Software
             if (knopf != null) k.add(knopf, BorderLayout.SOUTH);

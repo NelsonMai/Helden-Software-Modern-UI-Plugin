@@ -74,6 +74,8 @@ public final class TalenteSortierung {
             if (aktiv) {
                 // Designwechsel zwischen hell und dunkel: Schalterfarben neu
                 if (leiste != null && !Theme.current().equals(leiste.thema)) leiste.gruppenNeu();
+                // die Abenteuerpunkte-Leiste bekommt ihre Farben beim Bauen – neu bauen
+                if (leiste != null && !Theme.current().equals(leiste.apThema)) leiste.apNeu();
                 return;
             }
             aktiv = true;
@@ -86,10 +88,11 @@ public final class TalenteSortierung {
 
         /** Sinnvolle Breiten je Spalte (Pixel bei Schriftgröße 13, werden mit der Schrift skaliert). */
         private final Map<String, Integer> BREITEN = new HashMap<String, Integer>() {{
-            put("SE", 30); put("Art", 90); put("Talent", 210); put("Wert", 45); put("Lernmethode", 160);
-            put("Kat.", 40); put("Kosten", 60); put("Steigern", 70);
-            put("Zauberfertigkeit", 230); put("Komp", 50); put("Rep", 45); put("Merkmale", 120); put("Haus", 45);
-            put("Info", 40); put("Quelle", 80); put("Lern", 45);
+            // so bemessen, dass Talente und Zauber in der Standardgröße der Helden-Software ganz hineinpassen
+            put("SE", 26); put("Art", 80); put("Talent", 190); put("Wert", 40); put("Lernmethode", 140);
+            put("Kat.", 34); put("Kosten", 50); put("Steigern", 56);
+            put("Zauberfertigkeit", 170); put("Komp", 40); put("Rep", 36); put("Merkmale", 84); put("Haus", 38);
+            put("Info", 32); put("Quelle", 60); put("Lern", 34);
         }};
         Integer altModus;
         java.awt.event.ComponentListener vpHoerer;
@@ -124,7 +127,9 @@ public final class TalenteSortierung {
             int summe = 0;
             javax.swing.table.TableColumnModel cm = t.getColumnModel();
             for (int i = 0; i < cm.getColumnCount(); i++) summe += cm.getColumn(i).getPreferredWidth();
-            int soll = vp.getWidth() > 0 && vp.getWidth() < summe ? JTable.AUTO_RESIZE_OFF : altModus;
+            // erst deutlich unter der Summe der Breiten rollbar; bis dahin passen sich die Spalten dem Fenster an
+            // (lange Einträge enden dann mit „…“, der ganze Text steht im Tooltip der Zeile)
+            int soll = vp.getWidth() > 0 && vp.getWidth() < summe * 0.8 ? JTable.AUTO_RESIZE_OFF : altModus;
             if (t.getAutoResizeMode() != soll) t.setAutoResizeMode(soll);
         }
 
@@ -256,7 +261,7 @@ public final class TalenteSortierung {
      */
     private static final class Suchleiste extends JPanel {
         final Zustand z;
-        final JTextField feld = new JTextField(18);
+        final JTextField feld = new JTextField(12);
         final JPanel chips = new JPanel(new Umbruch(4, 4));
         final JLabel zahl = new JLabel();
         JPanel nav;
@@ -284,10 +289,12 @@ public final class TalenteSortierung {
                 void neu() { z.suche = feld.getText(); z.filtern(); }
             });
             // Suchfeld oben halten, auch wenn die Schalter in mehrere Zeilen umbrechen
-            JPanel links = new JPanel(new BorderLayout());
             links.setOpaque(false);
             links.putClientProperty("modernhelden.own", true);
-            links.add(feld, BorderLayout.NORTH);
+            sucheZeile.setOpaque(false);
+            sucheZeile.putClientProperty("modernhelden.own", true);
+            sucheZeile.add(feld);
+            links.add(sucheZeile, BorderLayout.NORTH);
             add(links, BorderLayout.WEST);
             chips.setOpaque(false);
             chips.putClientProperty("modernhelden.own", true);
@@ -296,8 +303,140 @@ public final class TalenteSortierung {
             zahl.putClientProperty("modernhelden.own", true);
             zahl.setVerticalAlignment(SwingConstants.TOP);
             zahl.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 4));
-            add(zahl, BorderLayout.EAST);
+            // rechts: Anzahl und „aktivieren“ (Knopf der Helden-Software, aus ihrer Kopfzeile hierher geholt)
+            rechts.setLayout(new BoxLayout(rechts, BoxLayout.Y_AXIS));
+            rechts.setOpaque(false);
+            rechts.putClientProperty("modernhelden.own", true);
+            zahl.setAlignmentX(1f);
+            zahl.setHorizontalAlignment(SwingConstants.RIGHT);
+            rechts.add(zahl);
+            add(rechts, BorderLayout.EAST);
             gruppenNeu();
+        }
+
+        /** rechts: „aktivieren“ oben, die Anzahl darunter – so bleibt Platz für die Talentgruppen (höchstens zwei Reihen) */
+        final JPanel rechts = new JPanel();
+        final JPanel links = new JPanel(new BorderLayout());
+        /** Suchfeld und – bei den Zaubern – „Zauber aktivieren …“ direkt daneben (eine Zeile) */
+        final JPanel sucheZeile = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        /** Abenteuerpunkte-Leiste über der Suche (wie in „Allgemein“ und „Eigenschaften“) */
+        final JPanel apHalter = new JPanel(new BorderLayout()) {
+            @Override public Dimension getMinimumSize() { return getPreferredSize(); }
+        };
+        /** Teile der Kopfzeile der Helden-Software („Freie AP …“, „aktivieren“), solange das moderne Design aktiv ist ausgeblendet */
+        final List<Component> verborgen = new ArrayList<>();
+        JTextField freiFeld, eingesetztFeld;
+        AbstractButton aktivieren, aktivierenEigen;
+        Component abstand;
+        JPanel unterSuche;
+
+        /** Kopfzeile der Helden-Software ausblenden; AP-Leiste und „aktivieren“ übernehmen. */
+        private void kopfUebernehmen() {
+            verborgen.clear();
+            freiFeld = eingesetztFeld = null;
+            aktivieren = null;
+            List<JTextField> felder = new ArrayList<>();
+            for (Component k : nav.getComponents()) {
+                if (k == this || k == apHalter || !k.isVisible()) continue;
+                if (k instanceof JTextField) felder.add((JTextField) k);
+                if (k instanceof AbstractButton && aktivieren == null) aktivieren = (AbstractButton) k;
+                verborgen.add(k);
+            }
+            if (felder.size() < 2) { verborgen.clear(); return; }
+            freiFeld = felder.get(0);
+            eingesetztFeld = felder.get(1);
+            for (Component k : verborgen) k.setVisible(false);
+            javax.swing.event.DocumentListener dl = new javax.swing.event.DocumentListener() {
+                public void insertUpdate(javax.swing.event.DocumentEvent e) { apNeu(); }
+                public void removeUpdate(javax.swing.event.DocumentEvent e) { apNeu(); }
+                public void changedUpdate(javax.swing.event.DocumentEvent e) { apNeu(); }
+            };
+            for (JTextField f : felder) {
+                if (f.getClientProperty("modernhelden.apHoerer") != null) continue;
+                f.putClientProperty("modernhelden.apHoerer", Boolean.TRUE);
+                f.getDocument().addDocumentListener(dl);
+            }
+            apHalter.setOpaque(false);
+            apHalter.putClientProperty("modernhelden.own", true);
+            // Reiter beim Designwechsel nicht sichtbar: beim nächsten Zeigen mit den neuen Farben bauen
+            if (apHalter.getClientProperty("modernhelden.apZeigen") == null) {
+                apHalter.putClientProperty("modernhelden.apZeigen", Boolean.TRUE);
+                apHalter.addHierarchyListener(e -> {
+                    if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) != 0 && apHalter.isShowing()
+                            && !Theme.current().equals(apThema)) SwingUtilities.invokeLater(this::apNeu);
+                });
+            }
+            // Abstand wie in den übrigen Reitern (12 px zum Rand, 10 px zur Suchzeile)
+            apHalter.setBorder(BorderFactory.createEmptyBorder(12, 12, 6, 12));
+            GridBagConstraints c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = 40;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1;
+            nav.add(apHalter, c);
+            apNeu();
+            if (aktivieren != null) {
+                boolean talente = z.artSpalte() >= 0;
+                JButton b = new JButton(talente ? "Talent aktivieren …" : "Zauber aktivieren …");
+                b.setFocusable(false);
+                b.putClientProperty("JButton.buttonType", "roundRect");
+                b.putClientProperty("modernhelden.own", true);
+                TooltipHook.infoTip(b, talente ? "Neues Talent aktivieren (Dialog der Helden-Software)" : "Neuen Zauber aktivieren (Dialog der Helden-Software)");
+                b.setEnabled(aktivieren.isEnabled());
+                final AbstractButton orig = aktivieren;
+                orig.addPropertyChangeListener("enabled", e -> b.setEnabled(orig.isEnabled()));
+                b.addActionListener(e -> orig.doClick());
+                aktivierenEigen = b;
+                if (talente) {
+                    // Talente: unter dem Suchfeld (gleich breit) – so bleibt für die Talentgruppen Platz für zwei Reihen
+                    unterSuche = new JPanel(new BorderLayout());
+                    unterSuche.setOpaque(false);
+                    unterSuche.putClientProperty("modernhelden.own", true);
+                    unterSuche.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
+                    unterSuche.add(b, BorderLayout.CENTER);
+                    links.add(unterSuche, BorderLayout.CENTER);
+                } else {
+                    // Zauber (keine Gruppen): direkt neben der Suche, die Zeile bleibt einzeilig
+                    abstand = Box.createHorizontalStrut(8);
+                    sucheZeile.add(abstand);
+                    sucheZeile.add(b);
+                }
+            }
+        }
+
+        /** Design, mit dem die Abenteuerpunkte-Leiste zuletzt gebaut wurde */
+        String apThema;
+
+        /** Gesamt = frei + eingesetzt, aus den Feldern der Helden-Software. */
+        void apNeu() {
+            if (freiFeld == null) return;
+            apThema = Theme.current();
+            Integer frei = ap(freiFeld.getText()), aus = ap(eingesetztFeld.getText());
+            apHalter.removeAll();
+            if (frei != null && aus != null) apHalter.add(EigenschaftenLayout.apLeiste(frei + aus, frei), BorderLayout.CENTER);
+            apHalter.revalidate();
+            apHalter.repaint();
+        }
+
+        private static Integer ap(String t) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("-?\\d+").matcher(String.valueOf(t).replace(".", ""));
+            return m.find() ? Integer.valueOf(m.group()) : null;
+        }
+
+        private void kopfZurueck() {
+            for (Component k : verborgen) k.setVisible(true);
+            verborgen.clear();
+            if (aktivierenEigen != null) { rechts.remove(aktivierenEigen); sucheZeile.remove(aktivierenEigen); }
+            if (abstand != null) sucheZeile.remove(abstand);
+            if (unterSuche != null) links.remove(unterSuche);
+            unterSuche = null;
+            abstand = null;
+            zahl.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 4));
+            aktivierenEigen = null;
+            Container p = apHalter.getParent();
+            if (p != null) p.remove(apHalter);
+            freiFeld = eingesetztFeld = null;
         }
 
         /** Über der Tabelle einhängen: in die Kopfleiste „Navigationspanel“ der Helden-Software, eine Zeile tiefer. */
@@ -327,6 +466,7 @@ public final class TalenteSortierung {
             c.fill = GridBagConstraints.HORIZONTAL;
             c.weightx = 1;
             nav.add(this, c);
+            kopfUebernehmen();
             // war die Leiste ausgehängt (Design „Original“), hat sie den Designwechsel verpasst
             SwingUtilities.updateComponentTreeUI(this);
             gruppenNeu();
@@ -338,6 +478,7 @@ public final class TalenteSortierung {
             if (nav != null && navOpak != null) nav.setOpaque(navOpak);
             if (vp != null && vpOpak != null) vp.setOpaque(vpOpak);
             navOpak = vpOpak = null;
+            kopfZurueck();
             Container p = getParent();
             if (p == null) return;
             p.remove(this);
@@ -390,7 +531,7 @@ public final class TalenteSortierung {
             b.setFocusable(false);
             b.putClientProperty("JButton.buttonType", "roundRect");
             b.putClientProperty("modernhelden.own", true);
-            b.setMargin(new Insets(1, 8, 1, 8));
+            b.setMargin(new Insets(1, 6, 1, 6));
             TooltipHook.infoTip(b, tip);
             // gewählte Gruppen deutlich in der Akzentfarbe
             Color a = Theme.accent();

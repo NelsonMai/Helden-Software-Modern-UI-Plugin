@@ -71,6 +71,8 @@ final class KampfwerteLayout {
     private static final class Daten {
         Integer atBasis, paBasis, fkBasis;
         String rs = "";
+        /** Das Kampfwerte-Panel der Helden-Software, aus dem gelesen wurde. */
+        JPanel quelle;
         final List<Nahkampf> nah = new ArrayList<>();
         final List<Fernkampf> fern = new ArrayList<>();
     }
@@ -86,6 +88,7 @@ final class KampfwerteLayout {
 
     private static Daten lesen(JPanel p) {
         Daten d = new Daten();
+        d.quelle = p;
         GridBagLayout gb = (GridBagLayout) p.getLayout();
         Map<Integer, Map<Integer, List<Component>>> zeilen = new TreeMap<>();
         for (Component k : p.getComponents()) {
@@ -910,38 +913,89 @@ final class KampfwerteLayout {
                         + "Dauerhaft wird die Änderung erst beim Speichern des Helden.</html>",
                 "Verteilung zurücksetzen", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (ok != JOptionPane.OK_OPTION) return;
-        String fehler = null;
-        try {
-            if (!startwerteSenken(n, d)) fehler = "Die Helden-Software hat die Verteilung nicht freigegeben (unbekannte Version).";
+        // die Helden-Software übernimmt einen Schritt erst etwas später (und baut ihre Zeilen dabei neu auf) –
+        // deshalb Schritt für Schritt: klicken, auf die neue Anzeige warten, frisch einlesen, weiter
+        java.awt.Container behaelter = d.quelle;
+        Window fenster = SwingUtilities.getWindowAncestor(parent);
+        new Ruecksetzer(behaelter, n.name, fenster).schritt();
+    }
+
+    private static void meldung(Window w, String text) {
+        JOptionPane.showMessageDialog(w, text, "Verteilung zurücksetzen", JOptionPane.WARNING_MESSAGE);
+    }
+
+    /** Nimmt die verteilten TaP eines Talents einzeln mit den −1-Knöpfen der Helden-Software zurück. */
+    private static final class Ruecksetzer {
+        final java.awt.Container behaelter;
+        final String name;
+        final Window fenster;
+        int schritte, warten;
+        boolean anderer;
+        Integer atVor, paVor;
+
+        Ruecksetzer(java.awt.Container behaelter, String name, Window fenster) {
+            this.behaelter = behaelter; this.name = name; this.fenster = fenster;
+        }
+
+        /** Frisch eingelesene Daten mit der Zeile dieses Talents – oder null. */
+        private Object[] lesenFrisch() {
+            if (!(behaelter instanceof JPanel)) return null;
+            Daten d = lesen((JPanel) behaelter);
+            if (d.atBasis == null || d.paBasis == null) return null;
+            for (Nahkampf k : d.nah) if (name.equals(k.name)) return new Object[]{d, k};
+            return null;
+        }
+
+        void schritt() {
+            Object[] dn = lesenFrisch();
+            if (dn == null) return;
+            Daten d = (Daten) dn[0];
+            Nahkampf n = (Nahkampf) dn[1];
+            if (n.atMinus == null || n.paMinus == null) return;
+            Integer at = zahl(n.at.getText()), pa = zahl(n.pa.getText());
+            if (at == null || pa == null) return;
+            int a = at - d.atBasis, p = pa - d.paBasis;
+            if (a <= 0 && p <= 0 || ++schritte > 100) return;
+            AbstractButton b;
+            if (!anderer) b = a >= p ? n.atMinus : n.paMinus;
             else {
-                // abwechselnd den größeren Anteil senken, damit der Unterschied nie über die Grenze steigt
-                for (int i = 0; i < 100; i++) {
-                    Integer at = zahl(n.at.getText()), pa = zahl(n.pa.getText());
-                    if (at == null || pa == null) break;
-                    int a = at - d.atBasis, p = pa - d.paBasis;
-                    if (a <= 0 && p <= 0) break;
-                    AbstractButton b = a >= p ? n.atMinus : n.paMinus;
-                    b.setEnabled(true);
-                    b.doClick(0);
-                    Integer at2 = zahl(n.at.getText()), pa2 = zahl(n.pa.getText());
-                    if (java.util.Objects.equals(at, at2) && java.util.Objects.equals(pa, pa2)) {
-                        // die Helden-Software hat den Schritt abgelehnt – den anderen Anteil versuchen
-                        AbstractButton o = b == n.atMinus ? n.paMinus : n.atMinus;
-                        if ((o == n.atMinus ? a : p) <= 0) { fehler = "Die Helden-Software hat einen Schritt abgelehnt."; break; }
-                        o.setEnabled(true);
-                        o.doClick(0);
-                        if (java.util.Objects.equals(at, zahl(n.at.getText())) && java.util.Objects.equals(pa, zahl(n.pa.getText()))) {
-                            fehler = "Die Helden-Software hat einen Schritt abgelehnt.";
-                            break;
-                        }
-                    }
+                // der größere Anteil wurde abgelehnt – den anderen versuchen
+                b = a >= p ? n.paMinus : n.atMinus;
+                if ((b == n.atMinus ? a : p) <= 0) { meldung(fenster, "Die Helden-Software hat einen Schritt abgelehnt."); return; }
+            }
+            boolean frei;
+            try { frei = startwerteSenken(n, d); } catch (Exception ex) { frei = false; }
+            if (!frei && schritte == 1) {
+                meldung(fenster, "Die Helden-Software hat die Verteilung nicht freigegeben (unbekannte Version).");
+                return;
+            }
+            atVor = at; paVor = pa; warten = 0;
+            b.setEnabled(true);
+            b.doClick(0);
+            pruefen();
+        }
+
+        /** Wartet (höchstens ~1,5 s), bis die Helden-Software die neue AT/PA anzeigt. */
+        void pruefen() {
+            Object[] dn = lesenFrisch();
+            if (dn != null) {
+                Nahkampf n = (Nahkampf) dn[1];
+                if (!java.util.Objects.equals(atVor, zahl(n.at.getText())) || !java.util.Objects.equals(paVor, zahl(n.pa.getText()))) {
+                    anderer = false;
+                    SwingUtilities.invokeLater(this::schritt);
+                    return;
                 }
             }
-        } catch (Exception ex) {
-            fehler = "Fehler beim Zurücksetzen: " + ex;
+            if (++warten <= 30) {
+                javax.swing.Timer t = new javax.swing.Timer(50, e -> pruefen());
+                t.setRepeats(false);
+                t.start();
+                return;
+            }
+            if (anderer || dn == null) { meldung(fenster, "Die Helden-Software hat einen Schritt abgelehnt."); return; }
+            anderer = true;
+            schritt();
         }
-        if (fehler != null)
-            JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(parent), fehler, "Verteilung zurücksetzen", JOptionPane.WARNING_MESSAGE);
     }
 
     /** Setzt die beim Laden gemerkten AT/PA-Werte dieses Talents im Knopf-Listener der Helden-Software auf die Basis. */
