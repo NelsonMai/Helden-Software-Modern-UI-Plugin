@@ -25,7 +25,7 @@ final class NachteileSenken {
 
     /** Arten, wie die Helden-Software einen Nachteil senkt (Text ihres Knopfes). */
     private enum Art {
-        ALLE("Alle"), SE("Mit Spezieller Erfahrung"), EINS("−1 ohne SE"), ABBAUEN("Abbauen");
+        ALLE("Alle"), SE("−1 mit SE"), EINS("−1 ohne SE"), ABBAUEN("Abbauen");
         final String name;
         Art(String name) { this.name = name; }
     }
@@ -79,7 +79,7 @@ final class NachteileSenken {
     private static final class Aufbau {
         final JTable tab;
         final JTextField suche = new JTextField();
-        final JPanel chips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        final JPanel chips = new JPanel(new TalenteSortierung.Umbruch(4, 4));
         final JLabel zahl = new JLabel();
         final JPanel kopf = new JPanel(new BorderLayout(10, 0));
         final TableRowSorter<TableModel> sortierer;

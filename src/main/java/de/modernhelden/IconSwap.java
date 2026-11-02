@@ -63,6 +63,18 @@ public final class IconSwap {
         Toolkit.getDefaultToolkit().addAWTEventListener(ev -> {
             if (!modern || !(ev instanceof java.awt.event.HierarchyEvent)) return;
             java.awt.event.HierarchyEvent he = (java.awt.event.HierarchyEvent) ev;
+            // Dialoge mit größerem Umbau schon beim Anlegen des Fensters (vor dem Sichtbarwerden) umstellen –
+            // sonst zeigt Windows erst kurz ein leeres, weißes Fenster in alter Größe
+            if ((he.getChangeFlags() & java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED) != 0
+                    && he.getChanged() instanceof JDialog && he.getComponent() == he.getChanged()
+                    && he.getChanged().isDisplayable() && !he.getChanged().isShowing()) {
+                JDialog dl = (JDialog) he.getChanged();
+                try {
+                    if (NachteileSenken.TITEL.equals(dl.getTitle())) { NachteileSenken.anwenden(dl); baum(dl); }
+                    else if (SonderfertigkeitenHinzufuegen.ist(dl)) { SonderfertigkeitenHinzufuegen.anwenden(dl); baum(dl); }
+                } catch (RuntimeException ignore) { }
+                return;
+            }
             if ((he.getChangeFlags() & java.awt.event.HierarchyEvent.SHOWING_CHANGED) == 0) return;
             Component c = he.getChanged();
             if (!(c instanceof Window) || !c.isShowing() || he.getComponent() != c) return;
