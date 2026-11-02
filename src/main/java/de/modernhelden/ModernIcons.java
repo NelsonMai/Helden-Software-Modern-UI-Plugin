@@ -21,7 +21,6 @@ public final class ModernIcons {
     interface Zeichnung { void paint(Graphics2D g, Color fg, Color accent); }
 
     private static final Map<String, Zeichnung> SYMBOLE = new HashMap<>();
-    private static final Map<String, Color> FARBE = new HashMap<>();
 
     // Bedeutungsfarben (in beiden Designs gut sichtbar)
     static final Color GRUEN = new Color(0x3f9a5a), ROT = new Color(0xd0473f), GELB = new Color(0xd99a1e),
@@ -49,8 +48,6 @@ public final class ModernIcons {
         }
         return SYMBOLE.containsKey(k) ? k : null;
     }
-
-    public static boolean bekannt(String key) { return key != null && SYMBOLE.containsKey(key); }
 
     /** Symbol in der Größe des Originals; zeichnet bei jedem Aufruf in den aktuellen Designfarben. */
     public static ImageIcon icon(String key, int w, int h) { return new VektorIcon(key, w, h); }

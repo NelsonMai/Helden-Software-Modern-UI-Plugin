@@ -90,7 +90,6 @@ public final class ModernSheet implements Pageable, Printable {
         mg.dispose();
     }
 
-    public int pageCount() { return pages.size(); }
 
     // ================================================================== Inhalt
 
@@ -2210,8 +2209,6 @@ public final class ModernSheet implements Pageable, Printable {
         while (s.length() > 1 && fm.stringWidth(s + "…") > w) s = s.substring(0, s.length() - 1);
         return s + "…";
     }
-
-    static void drawFit(Graphics2D g, String s, float x, float base, float w) { g.drawString(fit(g, s, w), x, base); }
 
     static void right(Graphics2D g, String s, float rx, float base) {
         g.drawString(s, rx - g.getFontMetrics().stringWidth(s), base);

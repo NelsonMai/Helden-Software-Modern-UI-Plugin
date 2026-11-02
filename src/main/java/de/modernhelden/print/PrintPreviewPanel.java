@@ -255,8 +255,6 @@ public final class PrintPreviewPanel extends JPanel {
         showMode(modern.isSelected() || comp == null);
     }
 
-    public JComponent getOriginal() { return originalComp; }
-
     private void showMode(boolean mod) {
         if (!mod && originalComp == null) mod = true;
         modern.setSelected(mod);

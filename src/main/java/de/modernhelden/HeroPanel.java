@@ -379,7 +379,7 @@ public final class HeroPanel extends JPanel {
         if (!t.k.isEmpty()) x.put("Komplexität", t.k);
         boolean meta = "berechnet".equals(t.lernmethode);
         if (meta) x.put("Art", "Meta-Talent (berechnet)"); else x.put("Lernen", t.lernmethode);
-        return db.html(m, x, meta ? null : hero.herkunft.talent(t.name, t.wert));
+        return db.html(m, x, meta ? null : hero.herkunft.talent(t.name));
     }
 
     /** Talentwert als Zahl mit kleinem Balken (0–21). */

@@ -129,14 +129,14 @@ final class AusruestungDialoge {
             // im Zweifel bleibt der Dialog, wie ihn die Helden-Software gebaut hat
         }
         if (d.getRootPane().getClientProperty("modernhelden.ausr") != null) navigationOhneRahmen(d.getContentPane());
-        if (auftrag != null) ablegen(d, innen, tabellen, add, rem, auftrag);
+        if (auftrag != null) ablegen(d, innen, tabellen, rem, auftrag);
     }
 
     /**
      * Ablegen aus der Übersicht: im Dialog der Helden-Software den Platz leeren (bzw. das Rüstungsteil ablegen)
      * und mit ihrem „OK“ übernehmen. Klappt das nicht eindeutig, bleibt der Dialog offen.
      */
-    private static void ablegen(JDialog d, JPanel innen, List<JTable> tabellen, AbstractButton addR, AbstractButton remR, Ablegen a) {
+    private static void ablegen(JDialog d, JPanel innen, List<JTable> tabellen, AbstractButton remR, Ablegen a) {
         boolean erledigt = false;
         if (a.ruestung && remR != null && !tabellen.isEmpty()) {
             JTable angelegt = tabellen.get(0);   // beim Umbau nach Spalten sortiert: links = angelegt

@@ -7,8 +7,6 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
 
@@ -469,15 +467,13 @@ final class EigenschaftenLayout {
     }
 
     /** Gewöhnlicher abgerundeter Knopf wie „Angaben bearbeiten …“ – passt in Hell und Dunkel zum übrigen Design. */
-    static JButton farbknopf(String text, Color f) {
+    static JButton normalKnopf(String text) {
         JButton b = new JButton(text);
         b.setFocusable(false);
         b.putClientProperty("JButton.buttonType", "roundRect");
         InventarLayout.eigen(b);
         return b;
     }
-
-    private static String hex(Color c) { return String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue()); }
 
     /**
      * Ordnet Kinder in Spalten an (spaltenweise gefüllt): {@code max} Spalten, solange jede mindestens
@@ -962,14 +958,20 @@ final class EigenschaftenLayout {
         mitte.add(leise(maximum(z) ? "Maximum erreicht" : kosten.isEmpty() ? " " : "Nächster Schritt: " + kosten));
         String weg = rechenweg(e, h, wert, e.kuerzel.equals("AE") ? verlorenAe(d) : null);
         if (!weg.isEmpty()) {
-            JLabel rw = leise("<html><div style='width:170px'>" + esc(weg) + "</div></html>");
-            rw.setBorder(new EmptyBorder(3, 0, 0, 0));
+            // bricht an der tatsächlichen Kachelbreite um (feste Breite wurde bei schmalen Kacheln abgeschnitten)
+            JLabel muster = leise(" ");
+            Umbruchtext rw = new Umbruchtext(weg);
+            rw.setFont(muster.getFont());
+            rw.setForeground(muster.getForeground());
+            rw.setBorder(new EmptyBorder(3, 0, 0, 4));
+            rw.setAlignmentX(0f);
+            InventarLayout.eigen(rw);
             mitte.add(rw);
         }
         if (e.kuerzel.equals("AE")) verloreneAe(mitte, d);
         r.add(mitte, BorderLayout.CENTER);
 
-        JButton b = farbknopf("+  Steigern", f);
+        JButton b = normalKnopf("+  Steigern");
         if (!steigernAnbinden(b, z, e.name, wert)) b.setVisible(false);
         r.add(b, BorderLayout.SOUTH);
 
@@ -997,7 +999,7 @@ final class EigenschaftenLayout {
         String weg = rechenweg(e, h, wert, null);
         if (!weg.isEmpty()) l.add(leise(weg));
         r.add(l, BorderLayout.CENTER);
-        JButton b = farbknopf("Karmalqueste …", f);
+        JButton b = normalKnopf("Karmalqueste …");
         JComponent knopf = karmalqueste(b);
         JPanel halter = new JPanel(new GridBagLayout());
         halter.setOpaque(false);
@@ -1015,10 +1017,11 @@ final class EigenschaftenLayout {
         Zeile z = d.z("Astralenergie-permanent");
         if (z == null || z.feld == null) return;
         String v = String.valueOf(z.feld.getText()).trim();
-        JPanel zeile = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        // bricht bei schmaler Kachel um („Zurückkaufen“ in die nächste Zeile) – die Kachel wird entsprechend höher
+        JPanel zeile = new JPanel(new TalenteSortierung.Umbruch(0, 2));
         zeile.setOpaque(false);
         zeile.setAlignmentX(0);
-        zeile.setBorder(new EmptyBorder(4, 0, 0, 0));
+        zeile.setBorder(new EmptyBorder(2, 0, 0, 0));
         InventarLayout.eigen(zeile);
         JLabel n = leise("dauerhaft verloren: " + (v.isEmpty() ? "0" : v) + "   ");
         TooltipHook.infoTip(n, "Dauerhaft verlorene Astralenergie (z. B. durch bestimmte Rituale) kann mit AP zurückgekauft werden.");

@@ -77,7 +77,7 @@ public final class Herkunft {
      * "Start (Rasse/Kultur/Profession)|4", "Erschaffung|4 → 5 · 22 AP", "19.10.2026|5 → 6 · Selbststudium · 34 AP".
      * Jede Zeile ist {Beschriftung, Text}.
      */
-    public List<String[]> talent(String name, int aktuellerWert) {
+    public List<String[]> talent(String name) {
         List<String[]> out = new ArrayList<>();
         if (name == null || ereignisse.isEmpty()) return out;
 
